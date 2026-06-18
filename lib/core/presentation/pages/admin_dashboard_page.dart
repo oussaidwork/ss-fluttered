@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../domain/enums/sale_type.dart';
 import '../../../presentation/providers/dashboard_provider.dart';
 
 class AdminDashboardPage extends ConsumerWidget {
@@ -81,29 +80,25 @@ class AdminDashboardPage extends ConsumerWidget {
                           (sale) => ListTile(
                             leading: CircleAvatar(
                               backgroundColor: const Color(0xFF0066CC).withAlpha(30),
-                              child: Icon(
-                                sale.saleType == SaleType.fuel
-                                    ? Icons.local_gas_station
-                                    : Icons.inventory_2,
-                                color: const Color(0xFF0066CC),
+                              child: const Icon(
+                                Icons.receipt_long,
+                                color: Color(0xFF0066CC),
                                 size: 20,
                               ),
                             ),
                             title: Text(
-                              sale.saleType.name.toUpperCase(),
+                              'Sale #${sale.id.substring(0, sale.id.length > 6 ? 6 : sale.id.length).toUpperCase()}',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                             subtitle: Text(
-                              '${sale.totalPrice.toStringAsFixed(2)} MAD',
+                              '${sale.totalAmount.toStringAsFixed(2)} MAD',
                               style: const TextStyle(color: Colors.white54),
                             ),
                             trailing: Text(
-                              sale.timestamp != null
-                                  ? '${sale.timestamp!.hour}:${sale.timestamp!.minute.toString().padLeft(2, '0')}'
-                                  : '',
+                              '${sale.timestamp.hour}:${sale.timestamp.minute.toString().padLeft(2, '0')}',
                               style: const TextStyle(color: Colors.white38, fontSize: 12),
                             ),
                           ),

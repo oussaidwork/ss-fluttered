@@ -13,7 +13,7 @@ class _ServicesPageState extends State<ServicesPage> {
   void _showDialog({Map<String, dynamic>? service, String? docId}) {
     final nameCtrl = TextEditingController(text: service?['name'] ?? '');
     final priceInCtrl = TextEditingController(text: service?['priceIn']?.toString() ?? '');
-    final priceOutCtrl = TextEditingController(text: service?['priceOut']?.toString() ?? '');
+    final priceOutCtrl = TextEditingController(text: service?['price']?.toString() ?? service?['priceOut']?.toString() ?? '');
     final unitCtrl = TextEditingController(text: service?['unit'] ?? '');
 
     showDialog(
@@ -91,17 +91,21 @@ class _ServicesPageState extends State<ServicesPage> {
 
                     final data = {
                       'name': name,
+                      'price': priceOut,
                       'priceIn': priceIn,
                       'priceOut': priceOut,
                       'unit': unit.isEmpty ? null : unit,
+                      'category': 'service',
+                      'stockQuantity': 0,
+                      'isActive': true,
                       'isDeleted': false,
                     };
 
                     if (docId == null) {
-                      final id = firestore.collection('services').doc().id;
-                      await firestore.collection('services').doc(id).set({...data, 'id': id});
+                      final id = firestore.collection('products').doc().id;
+                      await firestore.collection('products').doc(id).set({...data, 'id': id});
                     } else {
-                      await firestore.collection('services').doc(docId).update(data);
+                      await firestore.collection('products').doc(docId).update(data);
                     }
                     if (ctx.mounted) Navigator.pop(ctx);
                   },
@@ -125,7 +129,11 @@ class _ServicesPageState extends State<ServicesPage> {
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: firestore.collection('services').where('isDeleted', isEqualTo: false).snapshots(),
+        stream: firestore
+            .collection('products')
+            .where('category', isEqualTo: 'service')
+            .where('isDeleted', isEqualTo: false)
+            .snapshots(),
         builder: (ctx, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator(color: Color(0xFF0066CC)));
@@ -157,7 +165,7 @@ class _ServicesPageState extends State<ServicesPage> {
                   final d = doc.data() as Map<String, dynamic>;
                   final id = doc.id;
                   final name = d['name'] ?? '';
-                  final priceOut = (d['priceOut'] as num?)?.toDouble() ?? 0;
+                  final priceOut = (d['price'] as num?)?.toDouble() ?? (d['priceOut'] as num?)?.toDouble() ?? 0;
                   final unit = d['unit'] ?? '-';
                   return DataRow(cells: [
                     DataCell(Text(name, style: const TextStyle(color: Colors.white))),
@@ -173,7 +181,7 @@ class _ServicesPageState extends State<ServicesPage> {
                         IconButton(
                           icon: const Icon(Icons.delete, size: 20, color: Colors.red),
                           onPressed: () async {
-                            await firestore.collection('services').doc(id).update({'isDeleted': true});
+                            await firestore.collection('products').doc(id).update({'isDeleted': true});
                           },
                         ),
                       ],

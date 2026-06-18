@@ -104,10 +104,10 @@ class _FuelPageState extends State<FuelPage> {
                     };
 
                     if (docId == null) {
-                      final id = firestore.collection('gasTypes').doc().id;
-                      await firestore.collection('gasTypes').doc(id).set({...data, 'id': id});
+                      final id = firestore.collection('gas_types').doc().id;
+                      await firestore.collection('gas_types').doc(id).set({...data, 'id': id});
                     } else {
-                      await firestore.collection('gasTypes').doc(docId).update(data);
+                      await firestore.collection('gas_types').doc(docId).update(data);
                     }
                     if (ctx.mounted) Navigator.pop(ctx);
                   },
@@ -131,7 +131,7 @@ class _FuelPageState extends State<FuelPage> {
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: firestore.collection('gasTypes').where('isDeleted', isEqualTo: false).snapshots(),
+        stream: firestore.collection('gas_types').where('isDeleted', isEqualTo: false).snapshots(),
         builder: (ctx, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator(color: Color(0xFF0066CC)));
@@ -206,7 +206,7 @@ class _FuelPageState extends State<FuelPage> {
                         IconButton(
                           icon: const Icon(Icons.delete, size: 20, color: Colors.red),
                           onPressed: () async {
-                            await firestore.collection('gasTypes').doc(id).update({'isDeleted': true});
+                            await firestore.collection('gas_types').doc(id).update({'isDeleted': true});
                           },
                         ),
                       ],

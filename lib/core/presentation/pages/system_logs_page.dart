@@ -49,7 +49,7 @@ class _SystemLogsPageState extends State<SystemLogsPage> {
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: firestore
-                  .collection('log_entries')
+                  .collection('logs')
                   .orderBy('timestamp', descending: true)
                   .limit(500)
                   .snapshots(),

@@ -17,7 +17,7 @@
       ]
     },
     {
-      "collectionGroup": "shiftPumps",
+      "collectionGroup": "shift_pumps",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "shiftId", "order": "ASCENDING" },
@@ -25,7 +25,7 @@
       ]
     },
     {
-      "collectionGroup": "shiftPumps",
+      "collectionGroup": "shift_pumps",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "pumpId", "order": "ASCENDING" },
@@ -36,15 +36,6 @@
       "collectionGroup": "sales",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "isDeleted", "order": "ASCENDING" },
-        { "fieldPath": "timestamp", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "sales",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "saleType", "order": "ASCENDING" },
         { "fieldPath": "isDeleted", "order": "ASCENDING" },
         { "fieldPath": "timestamp", "order": "DESCENDING" }
       ]
@@ -70,15 +61,6 @@
       "collectionGroup": "sales",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "gasTypeId", "order": "ASCENDING" },
-        { "fieldPath": "isDeleted", "order": "ASCENDING" },
-        { "fieldPath": "timestamp", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "sales",
-      "queryScope": "COLLECTION",
-      "fields": [
         { "fieldPath": "workerId", "order": "ASCENDING" },
         { "fieldPath": "isDeleted", "order": "ASCENDING" },
         { "fieldPath": "timestamp", "order": "DESCENDING" }
@@ -90,6 +72,37 @@
       "fields": [
         { "fieldPath": "paymentTypeId", "order": "ASCENDING" },
         { "fieldPath": "isDeleted", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "sale_items",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "saleId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "sale_items",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "saleType", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "sale_items",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "gasTypeId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "sale_items",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "productId", "order": "ASCENDING" },
         { "fieldPath": "timestamp", "order": "DESCENDING" }
       ]
     },
@@ -144,7 +157,7 @@
       ]
     },
     {
-      "collectionGroup": "pitRefills",
+      "collectionGroup": "pit_refills",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "pitId", "order": "ASCENDING" },
@@ -152,15 +165,7 @@
       ]
     },
     {
-      "collectionGroup": "pitRefills",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "supplierId", "order": "ASCENDING" },
-        { "fieldPath": "timestamp", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "fuelPriceHistory",
+      "collectionGroup": "fuel_price_history",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "gasTypeId", "order": "ASCENDING" },
@@ -168,7 +173,7 @@
       ]
     },
     {
-      "collectionGroup": "logEntries",
+      "collectionGroup": "logs",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "action", "order": "ASCENDING" },
@@ -176,7 +181,7 @@
       ]
     },
     {
-      "collectionGroup": "logEntries",
+      "collectionGroup": "logs",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "userId", "order": "ASCENDING" },
@@ -184,11 +189,19 @@
       ]
     },
     {
-      "collectionGroup": "salaryAdvances",
+      "collectionGroup": "salary_advances",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "requestDate", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "client_fleet",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "clientId", "order": "ASCENDING" },
+        { "fieldPath": "isDeleted", "order": "ASCENDING" }
       ]
     }
   ],

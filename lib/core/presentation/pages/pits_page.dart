@@ -64,7 +64,7 @@ class _PitsPageState extends State<PitsPage> {
                     ),
                     const SizedBox(height: 12),
                     StreamBuilder<QuerySnapshot>(
-                      stream: firestore.collection('gasTypes').where('isDeleted', isEqualTo: false).snapshots(),
+                      stream: firestore.collection('gas_types').where('isDeleted', isEqualTo: false).snapshots(),
                       builder: (ctx, snap) {
                         final docs = snap.data?.docs ?? [];
                         return DropdownButtonFormField<String>(
@@ -157,7 +157,7 @@ class _PitsPageState extends State<PitsPage> {
             );
           }
           return StreamBuilder<QuerySnapshot>(
-            stream: firestore.collection('gasTypes').where('isDeleted', isEqualTo: false).snapshots(),
+            stream: firestore.collection('gas_types').where('isDeleted', isEqualTo: false).snapshots(),
             builder: (ctx, gasSnap) {
               final gasDocs = gasSnap.data?.docs ?? [];
               final gasMap = <String, String>{};

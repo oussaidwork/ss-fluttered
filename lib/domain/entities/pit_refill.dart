@@ -10,6 +10,7 @@ class PitRefill {
   final String pitId;
   final String? recordedBy;
   final String? supplierId;
+  final String? supplierName;
   final String? fleetTruckId;
   final String? fleetDriverName;
   final String? fleetVehiclePlate;
@@ -29,6 +30,7 @@ class PitRefill {
     required this.pitId,
     this.recordedBy,
     this.supplierId,
+    this.supplierName,
     this.fleetTruckId,
     this.fleetDriverName,
     this.fleetVehiclePlate,
@@ -49,6 +51,7 @@ class PitRefill {
     String? pitId,
     String? recordedBy,
     String? supplierId,
+    String? supplierName,
     String? fleetTruckId,
     String? fleetDriverName,
     String? fleetVehiclePlate,
@@ -68,6 +71,7 @@ class PitRefill {
       pitId: pitId ?? this.pitId,
       recordedBy: recordedBy ?? this.recordedBy,
       supplierId: supplierId ?? this.supplierId,
+      supplierName: supplierName ?? this.supplierName,
       fleetTruckId: fleetTruckId ?? this.fleetTruckId,
       fleetDriverName: fleetDriverName ?? this.fleetDriverName,
       fleetVehiclePlate: fleetVehiclePlate ?? this.fleetVehiclePlate,
@@ -90,6 +94,7 @@ class PitRefill {
       'pitId': pitId,
       'recordedBy': recordedBy,
       'supplierId': supplierId,
+      'supplierName': supplierName,
       'fleetTruckId': fleetTruckId,
       'fleetDriverName': fleetDriverName,
       'fleetVehiclePlate': fleetVehiclePlate,
@@ -112,6 +117,7 @@ class PitRefill {
       pitId: map['pitId'] as String? ?? '',
       recordedBy: map['recordedBy'] as String?,
       supplierId: map['supplierId'] as String?,
+      supplierName: map['supplierName'] as String?,
       fleetTruckId: map['fleetTruckId'] as String?,
       fleetDriverName: map['fleetDriverName'] as String?,
       fleetVehiclePlate: map['fleetVehiclePlate'] as String?,

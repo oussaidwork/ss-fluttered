@@ -4,11 +4,10 @@ import '../../domain/entities/gas_type.dart';
 import '../../domain/entities/pit.dart';
 import '../../domain/entities/pump.dart';
 import '../../domain/entities/product.dart';
-import '../../domain/entities/service.dart';
 import '../../domain/entities/payment_type.dart';
 
 final gasTypesProvider = StreamProvider<List<GasType>>((ref) {
-  return firestore.collection('gasTypes').where('isDeleted', isEqualTo: false).snapshots().map(
+  return firestore.collection('gas_types').where('isDeleted', isEqualTo: false).snapshots().map(
     (snap) => snap.docs.map((d) => GasType.fromMap(d.data()..putIfAbsent('id', () => d.id))).toList(),
   );
 });
@@ -31,14 +30,8 @@ final productsProvider = StreamProvider<List<Product>>((ref) {
   );
 });
 
-final servicesProvider = StreamProvider<List<Service>>((ref) {
-  return firestore.collection('services').where('isDeleted', isEqualTo: false).snapshots().map(
-    (snap) => snap.docs.map((d) => Service.fromMap(d.data()..putIfAbsent('id', () => d.id))).toList(),
-  );
-});
-
 final paymentTypesProvider = StreamProvider<List<PaymentType>>((ref) {
-  return firestore.collection('paymentTypes').snapshots().map(
+  return firestore.collection('payment_types').snapshots().map(
     (snap) => snap.docs.map((d) => PaymentType.fromMap(d.data()..putIfAbsent('id', () => d.id))).toList(),
   );
 });

@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SS-RAGRAGA — Interactive Database Schema Tree</title>
+<style>
+  :root {
+    --bg: #0b0f19;
+    --bg-panel: #111827;
+    --bg-card: #1a2236;
+    --bg-hover: #1e293b;
+    --border: #2d3a4f;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --accent: #38bdf8;
+    --accent-glow: rgba(56,189,248,0.15);
+    --auth: #a78bfa;
+    --inventory: #34d399;
+    --sales: #fbbf24;
+    --clients: #f472b6;
+    --finance: #60a5fa;
+    --supply: #fb923c;
+    --system: #9ca3af;
+    --danger: #f87171;
+    --success: #34d399;
+    --warning: #fbbf24;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow: hidden;
+  }
+  /* Header */
+  .header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .header h1 { font-size: 16px; font-weight: 600; color: var(--text); white-space: nowrap; }
+  .header .subtitle { font-size: 11px; color: var(--text-muted); }
+  .search-box {
+    flex: 1; min-width: 180px; max-width: 320px;
+    position: relative;
+  }
+  .search-box input {
+    width: 100%; padding: 7px 12px 7px 32px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-size: 12px;
+    outline: none; transition: border-color .2s;
+  }
+  .search-box input:focus { border-color: var(--accent); }
+  .search-box::before {
+    content: "🔍"; position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    font-size: 12px; opacity: .6;
+  }
+  .filter-pills {
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .pill {
+    padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 500;
+    cursor: pointer; border: 1px solid var(--border); background: var(--bg-card);
+    color: var(--text-muted); transition: all .2s; user-select: none;
+  }
+  .pill:hover { border-color: var(--accent); color: var(--text); }
+  .pill.active { border-color: transparent; color: #000; }
+  .pill.auth.active { background: var(--auth); }
+  .pill.inventory.active { background: var(--inventory); }
+  .pill.sales.active { background: var(--sales); }
+  .pill.clients.active { background: var(--clients); }
+  .pill.finance.active { background: var(--finance); }
+  .pill.supply.active { background: var(--supply); }
+  .pill.system.active { background: var(--system); color: #000; }
+  .pill.all.active { background: var(--accent); color: #000; }
+
+  /* Layout */
+  .workspace {
+    position: fixed; top: 70px; left: 0; right: 0; bottom: 0;
+    display: flex;
+  }
+  .tree-panel {
+    width: 380px; min-width: 280px; max-width: 50vw;
+    background: var(--bg-panel); border-right: 1px solid var(--border);
+    overflow-y: auto; overflow-x: hidden; padding: 16px;
+    resize: horizontal;
+  }
+  .detail-panel {
+    flex: 1; position: relative; overflow: hidden;
+    background: var(--bg);
+  }
+  #relation-svg {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 1;
+  }
+  #relation-svg line, #relation-svg path {
+    pointer-events: stroke;
+    cursor: pointer;
+  }
+  .canvas-content {
+    position: absolute; top: 0; left: 0; padding: 30px; z-index: 2;
+    transform-origin: 0 0;
+  }
+  .zoom-controls {
+    position: fixed; bottom: 20px; right: 20px; z-index: 200;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .zoom-btn {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    color: var(--text); font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .2s;
+  }
+  .zoom-btn:hover { background: var(--bg-hover); border-color: var(--accent); }
+
+  /* Tree nodes */
+  .tree-group { margin-bottom: 18px; }
+  .group-header {
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+    border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);
+    transition: background .2s; user-select: none;
+  }
+  .group-header:hover { background: var(--bg-hover); }
+  .group-header .chevron {
+    transition: transform .2s; font-size: 10px;
+  }
+  .group-header.collapsed .chevron { transform: rotate(-90deg); }
+  .group-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .group-count { margin-left: auto; font-size: 10px; background: var(--bg-card); padding: 2px 8px; border-radius: 10px; }
+
+  .table-node {
+    margin-left: 12px; border-left: 2px solid var(--border);
+    padding-left: 10px; margin-top: 4px;
+  }
+  .table-row {
+    display: flex; align-items: center; gap: 8px; padding: 7px 10px;
+    border-radius: 8px; cursor: pointer; font-size: 12px;
+    transition: all .2s; position: relative;
+  }
+  .table-row:hover { background: var(--bg-hover); }
+  .table-row.selected {
+    background: var(--accent-glow); border: 1px solid var(--accent);
+  }
+  .table-row .tbl-icon {
+    width: 24px; height: 24px; border-radius: 6px; font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; color: #000; flex-shrink: 0;
+  }
+  .table-row .tbl-name { font-family: 'Consolas', monospace; font-weight: 500; }
+  .table-row .tbl-badge {
+    margin-left: auto; font-size: 9px; padding: 1px 6px; border-radius: 8px;
+    background: var(--bg-card); color: var(--text-dim);
+  }
+
+  /* Detail cards on canvas */
+  .schema-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    width: 320px; margin-bottom: 20px; overflow: hidden;
+    transition: box-shadow .3s, border-color .3s; position: relative;
+  }
+  .schema-card:hover { border-color: var(--accent); box-shadow: 0 0 20px rgba(56,189,248,0.08); }
+  .schema-card.highlighted { border-color: var(--accent); box-shadow: 0 0 30px rgba(56,189,248,0.15); }
+  .card-header {
+    padding: 12px 14px; display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .card-header .card-icon {
+    width: 32px; height: 32px; border-radius: 8px; font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; color: #000;
+  }
+  .card-header .card-title { font-size: 13px; font-weight: 600; }
+  .card-header .card-meta { font-size: 10px; color: var(--text-dim); margin-left: auto; }
+  .card-body { padding: 0; }
+  .field-row {
+    display: flex; align-items: center; gap: 8px; padding: 6px 14px;
+    font-size: 11px; border-bottom: 1px solid rgba(45,58,79,0.5);
+    transition: background .15s;
+  }
+  .field-row:last-child { border-bottom: none; }
+  .field-row:hover { background: rgba(30,41,59,0.6); }
+  .field-key { width: 18px; text-align: center; font-size: 10px; font-weight: 700; }
+  .field-key.pk { color: var(--warning); }
+  .field-key.fk { color: var(--accent); }
+  .field-name { font-family: 'Consolas', monospace; flex: 1; }
+  .field-type { color: var(--text-dim); font-family: 'Consolas', monospace; font-size: 10px; }
+  .field-constraint { font-size: 9px; color: var(--text-dim); margin-left: 6px; padding: 1px 5px; border-radius: 4px; background: rgba(45,58,79,0.5); }
+  .field-constraint.req { color: var(--danger); background: rgba(248,113,113,0.1); }
+  .field-constraint.fk-ref { color: var(--accent); background: rgba(56,189,248,0.1); }
+
+  /* Flow overlay */
+  .flow-overlay {
+    position: fixed; top: 70px; right: 0; width: 340px; bottom: 0;
+    background: var(--bg-panel); border-left: 1px solid var(--border);
+    transform: translateX(100%); transition: transform .3s ease;
+    z-index: 90; overflow-y: auto; padding: 16px;
+  }
+  .flow-overlay.open { transform: translateX(0); }
+  .overlay-toggle {
+    position: fixed; top: 80px; right: 20px; z-index: 95;
+    padding: 8px 14px; border-radius: 8px; background: var(--bg-card);
+    border: 1px solid var(--border); color: var(--text); font-size: 12px;
+    cursor: pointer; transition: all .2s; font-weight: 500;
+  }
+  .overlay-toggle:hover { border-color: var(--accent); }
+  .overlay-toggle.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  .flow-section { margin-bottom: 20px; }
+  .flow-section h3 { font-size: 12px; font-weight: 600; margin-bottom: 10px; color: var(--text); text-transform: uppercase; letter-spacing: 0.05em; }
+  .flow-step { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 11px; }
+  .flow-step .step-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .flow-arrow-mini { color: var(--text-dim); font-size: 14px; margin-left: 18px; margin-bottom: 8px; }
+  .flow-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 500; margin-left: 4px; }
+
+  .relation-popup {
+    position: absolute; background: var(--bg-card); border: 1px solid var(--accent);
+    border-radius: 8px; padding: 10px 14px; font-size: 11px; z-index: 50;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4); pointer-events: none; opacity: 0; transition: opacity .2s;
+    max-width: 280px;
+  }
+  .relation-popup.visible { opacity: 1; }
+
+  /* Migration timeline */
+  .mig-timeline { position: relative; padding-left: 20px; }
+  .mig-timeline::before {
+    content: ''; position: absolute; left: 5px; top: 0; bottom: 0; width: 2px;
+    background: var(--border);
+  }
+  .mig-item { position: relative; margin-bottom: 12px; font-size: 11px; }
+  .mig-item::before {
+    content: ''; position: absolute; left: -18px; top: 4px; width: 8px; height: 8px;
+    border-radius: 50%; background: var(--bg-panel); border: 2px solid var(--border);
+  }
+  .mig-item.major::before { border-color: var(--accent); background: var(--accent); }
+  .mig-item .mig-name { font-family: 'Consolas', monospace; color: var(--accent); font-size: 10px; }
+  .mig-item .mig-desc { color: var(--text-muted); margin-top: 2px; }
+
+  /* Legend */
+  .legend-bar {
+    position: fixed; bottom: 0; left: 0; right: 340px; z-index: 80;
+    background: var(--bg-panel); border-top: 1px solid var(--border);
+    padding: 8px 16px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--text-muted); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .legend-line { width: 20px; height: 2px; border-radius: 1px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+  @media (max-width: 900px) {
+    .tree-panel { width: 100%; max-width: none; border-right: none; border-bottom: 1px solid var(--border); }
+    .workspace { flex-direction: column; }
+    .flow-overlay { width: 100%; }
+    .legend-bar { right: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>🗂️ SS-RAGRAGA Schema Tree</h1>
+    <div class="subtitle">Interactive database schema, relations &amp; data flow explorer</div>
+  </div>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search tables, columns, relations..." autocomplete="off">
+  </div>
+  <div class="filter-pills">
+    <span class="pill all active" data-cat="all">All</span>
+    <span class="pill auth" data-cat="auth">Auth</span>
+    <span class="pill inventory" data-cat="inventory">Inventory</span>
+    <span class="pill sales" data-cat="sales">Sales</span>
+    <span class="pill clients" data-cat="clients">Clients</span>
+    <span class="pill finance" data-cat="finance">Finance</span>
+    <span class="pill supply" data-cat="supply">Supply</span>
+    <span class="pill system" data-cat="system">System</span>
+  </div>
+</div>
+
+<div class="workspace">
+  <div class="tree-panel" id="treePanel">
+    <!-- Tree groups injected by JS -->
+  </div>
+  <div class="detail-panel" id="detailPanel">
+    <svg id="relation-svg"></svg>
+    <div class="canvas-content" id="canvasContent">
+      <!-- Schema cards injected by JS -->
+    </div>
+  </div>
+</div>
+
+<button class="overlay-toggle" id="flowToggle" onclick="toggleFlow()">📊 Data Flow</button>
+<div class="flow-overlay" id="flowOverlay">
+  <div class="flow-section">
+    <h3>Architecture Layers</h3>
+    <div class="flow-step"><span class="step-dot" style="background:#f472b6"></span>React UI Components</div>
+    <div class="flow-arrow-mini">↓</div>
+    <div class="flow-step"><span class="step-dot" style="background:#fbbf24"></span>Application Services <span class="flow-badge" style="background:rgba(251,191,36,0.15);color:#fbbf24">TS</span></div>
+    <div class="flow-arrow-mini">↓</div>
+    <div class="flow-step"><span class="step-dot" style="background:#60a5fa"></span>Domain Use Cases <span class="flow-badge" style="background:rgba(96,165,250,0.15);color:#60a5fa">Entities</span></div>
+    <div class="flow-arrow-mini">↓</div>
+    <div class="flow-step"><span class="step-dot" style="background:#34d399"></span>Repository Interfaces</div>
+    <div class="flow-arrow-mini">↓</div>
+    <div class="flow-step"><span class="step-dot" style="background:#a78bfa"></span>PocketBase Repositories <span class="flow-badge" style="background:rgba(167,139,250,0.15);color:#a78bfa">pb SDK</span></div>
+    <div class="flow-arrow-mini">↓</div>
+    <div class="flow-step"><span class="step-dot" style="background:#fb923c"></span>SQLite (PocketBase)</div>
+    <div class="flow-arrow-mini">↓</div>
+    <div class="flow-step"><span class="step-dot" style="background:#9ca3af"></span>JSVM Hooks + Cron</div>
+  </div>
+
+  <div class="flow-section">
+    <h3>Data In / Out — Sales Transaction</h3>
+    <div class="flow-step"><span class="step-dot" style="background:var(--sales)"></span>UI: SaleForm submits</div>
+    <div class="flow-arrow-mini">↓</div>
+    <div class="flow-step"><span class="step-dot" style="background:var(--sales)"></span>saleService.recordSale()</div>
+    <div class="flow-arrow-mini">↓</div>
+    <div class="flow-step"><span class="step-dot" style="background:var(--inventory)"></span>Create <b>sales</b> record</div>
+    <div class="flow-arrow-mini">↓</div>
+    <div class="flow-step"><span class="step-dot" style="background:var(--finance)"></span>Create <b>payments</b> record</div>
+    <div class="flow-arrow-mini">↓</div>
+    <div class="flow-step"><span class="step-dot" style="background:var(--inventory)"></span>Decrement <b>pits</b> volume</div>
+    <div class="flow-arrow-mini">↓</div>
+    <div class="flow-step"><span class="step-dot" style="background:var(--system)"></span>Hook auto_audit_log → <b>logs</b></div>
+    <div class="flow-arrow-mini">↓</div>
+    <div class="flow-step"><span class="step-dot" style="background:var(--success)"></span>Return sale with expands</div>
+    <div style="margin-top:10px;font-size:10px;color:var(--text-dim);padding:8px;border-radius:6px;background:var(--bg-card);">
+      <b>Rollback:</b> On failure, compensating delete in reverse order (payment → sale) and restore pit volume.
+    </div>
+  </div>
+
+  <div class="flow-section">
+    <h3>Data In / Out — Shift Lifecycle</h3>
+    <div class="flow-step"><span class="step-dot" style="background:var(--sales)"></span>UI: Start Shift → work_shifts OPEN</div>
+    <div class="flow-arrow-mini">↓</div>
+    <div class="flow-step"><span class="step-dot" style="background:var(--sales)"></span>shift_pumps linked per pump</div>
+    <div class="flow-arrow-mini">↓</div>
+    <div class="flow-step"><span class="step-dot" style="background:var(--sales)"></span>Sales recorded against shift</div>
+    <div class="flow-arrow-mini">↓</div>
+    <div class="flow-step"><span class="step-dot" style="background:var(--sales)"></span>Close Shift → work_shifts CLOSED</div>
+    <div class="flow-arrow-mini">↓</div>
+    <div class="flow-step"><span class="step-dot" style="background:var(--system)"></span>Chain verified via end_time link</div>
+  </div>
+
+  <div class="flow-section">
+    <h3>Data In / Out — Refill Lifecycle</h3>
+    <div class="flow-step"><span class="step-dot" style="background:var(--supply)"></span>UI: Record Refill → pit_refills</div>
+    <div class="flow-arrow-mini">↓</div>
+    <div class="flow-step"><span class="step-dot" style="background:var(--inventory)"></span>Increment <b>pits</b> volume</div>
+    <div class="flow-arrow-mini">↓</div>
+    <div class="flow-step"><span class="step-dot" style="background:var(--finance)"></span>Refill payments → refill_payments</div>
+    <div class="flow-arrow-mini">↓</div>
+    <div class="flow-step"><span class="step-dot" style="background:var(--system)"></span>Hook validates pit volume ≥ 0</div>
+  </div>
+
+  <div class="flow-section">
+    <h3>Migration Timeline</h3>
+    <div class="mig-timeline">
+      <div class="mig-item major"><div class="mig-name">001_base_collections</div><div class="mig-desc">gas_types, pits, pumps, products, payment_types</div></div>
+      <div class="mig-item major"><div class="mig-name">002_shift_sales</div><div class="mig-desc">work_shifts, shift_pumps, clients, sales, debts</div></div>
+      <div class="mig-item major"><div class="mig-name">003_financial_supply</div><div class="mig-desc">payments, pit_refills, fuel_price_history, fuel_suppliers</div></div>
+      <div class="mig-item major"><div class="mig-name">004_admin</div><div class="mig-desc">app_permissions, logs, salary_advances, expenses</div></div>
+      <div class="mig-item"><div class="mig-name">005_user_fields</div><div class="mig-desc">+full_name, +role, +is_active on users</div></div>
+      <div class="mig-item"><div class="mig-name">006_fix_mismatches</div><div class="mig-desc">+expenses.category, +debts.is_deleted, +app_permissions.roles</div></div>
+      <div class="mig-item"><div class="mig-name">007_drop_fleet</div><div class="mig-desc">Removed client_fleet, fleet_id from sales</div></div>
+      <div class="mig-item"><div class="mig-name">008_drop_collections</div><div class="mig-desc">Merged refill_payment_types, dropped supplier_fleet, pit_refill_services, payment_allocations</div></div>
+      <div class="mig-item major"><div class="mig-name">009_refine_architecture</div><div class="mig-desc">Created services collection, +sale_type, +service_id on sales, simplified debts</div></div>
+      <div class="mig-item"><div class="mig-name">010_monthly_salary</div><div class="mig-desc">+monthly_salary on users</div></div>
+      <div class="mig-item"><div class="mig-name">011_ensure_dropped</div><div class="mig-desc">Cleanup leftover tables &amp; fields</div></div>
+      <div class="mig-item"><div class="mig-name">012_client_fields</div><div class="mig-desc">+address, +email on clients</div></div>
+      <div class="mig-item"><div class="mig-name">013_debt_fleet</div><div class="mig-desc">+driver_name, +vehicle_plate on debts</div></div>
+      <div class="mig-item"><div class="mig-name">014_drop_end_time</div><div class="mig-desc">Dropped end_time from work_shifts (later re-added)</div></div>
+      <div class="mig-item"><div class="mig-name">015_rename_expense</div><div class="mig-desc">expense_date → timestamp</div></div>
+      <div class="mig-item"><div class="mig-name">016_rename_logs</div><div class="mig-desc">action_type → action</div></div>
+      <div class="mig-item"><div class="mig-name">017_drop_unused</div><div class="mig-desc">Removed other_info, last_measurement_timestamp, total_sales_volume, contact_person, phone</div></div>
+      <div class="mig-item"><div class="mig-name">018_product_fields</div><div class="mig-desc">+stock_quantity, +category, +is_active on products</div></div>
+      <div class="mig-item"><div class="mig-name">019_drop_digital</div><div class="mig-desc">Dropped digital counters, re-added end_time on shifts</div></div>
+      <div class="mig-item"><div class="mig-name">020_optional_ts</div><div class="mig-desc">sales.timestamp optional (uses PocketBase created)</div></div>
+      <div class="mig-item"><div class="mig-name">021_fix_shift</div><div class="mig-desc">end_time optional, +start_analog_counter on shift_pumps</div></div>
+      <div class="mig-item"><div class="mig-name">022_backfill</div><div class="mig-desc">Backfill is_active = true on existing products</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="zoom-controls">
+  <button class="zoom-btn" onclick="setZoom(zoom+0.15)" title="Zoom in">+</button>
+  <button class="zoom-btn" onclick="setZoom(zoom-0.15)" title="Zoom out">−</button>
+  <button class="zoom-btn" onclick="setZoom(1); pan={x:0,y:0}; updateTransform();" title="Reset">⌂</button>
+</div>
+
+<div class="legend-bar">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--auth)"></div> Auth</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--inventory)"></div> Inventory</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--sales)"></div> Sales</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--clients)"></div> Clients</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--finance)"></div> Finance</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--supply)"></div> Supply</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--system)"></div> System</div>
+  <div class="legend-item"><div class="legend-line" style="background:var(--accent)"></div> FK Relation</div>
+  <div class="legend-item"><div class="legend-line" style="background:var(--danger)"></div> Cascade Delete</div>
+  <div class="legend-item"><div class="legend-line" style="background:var(--warning);border-bottom:2px dashed var(--warning);background:none;height:0"></div> Many-to-Many</div>
+  <div class="legend-item" style="margin-left:auto"><span style="color:var(--accent)">━━</span> Hover lines for relation details</div>
+</div>
+
+<div class="relation-popup" id="relationPopup"></div>
+
+<script>
+/* ================== DATA MODEL ================== */
+const schemaData = {
+  groups: [
+    {
+      id: 'auth',
+      label: 'Auth & Users',
+      color: '#a78bfa',
+      tables: [
+        {
+          id: 'users',
+          name: 'users',
+          icon: 'U',
+          note: 'Built-in auth collection extended by migration',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'email', type: 'TEXT', required: true, note: 'PocketBase auth field' },
+            { name: 'password', type: 'TEXT', required: true, note: 'PocketBase auth field' },
+            { name: 'full_name', type: 'TEXT', max: 200 },
+            { name: 'role', type: 'SELECT', required: true, values: 'Worker, Admin, SuperUser, Audit' },
+            { name: 'is_active', type: 'BOOL', default: 'true' },
+            { name: 'monthly_salary', type: 'NUMBER', min: 0, max: 99999999 },
+            { name: 'created', type: 'DATE', note: 'PocketBase auto' },
+            { name: 'updated', type: 'DATE', note: 'PocketBase auto' },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'inventory',
+      label: 'Inventory & Station',
+      color: '#34d399',
+      tables: [
+        {
+          id: 'gas_types',
+          name: 'gas_types',
+          icon: 'GT',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'name', type: 'TEXT', required: true, unique: true, max: 100 },
+            { name: 'price_in', type: 'NUMBER', required: true, min: 0, max: 999999 },
+            { name: 'price_out', type: 'NUMBER', required: true, min: 0, max: 999999 },
+            { name: 'color', type: 'TEXT', max: 20 },
+            { name: 'is_deleted', type: 'BOOL', default: 'false' },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        },
+        {
+          id: 'pits',
+          name: 'pits',
+          icon: 'PT',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'name', type: 'TEXT', required: true, max: 100 },
+            { name: 'capacity', type: 'NUMBER', required: true, min: 0, max: 999999 },
+            { name: 'current_volume', type: 'NUMBER', min: 0 },
+            { name: 'gas_type_id', type: 'RELATION', fk: 'gas_types', cascadeDelete: false },
+            { name: 'is_deleted', type: 'BOOL', default: 'false' },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        },
+        {
+          id: 'pumps',
+          name: 'pumps',
+          icon: 'PM',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'name', type: 'TEXT', required: true, max: 100 },
+            { name: 'is_active', type: 'BOOL', default: 'true' },
+            { name: 'initial_analog_counter', type: 'NUMBER', min: 0 },
+            { name: 'group_id', type: 'TEXT', max: 50 },
+            { name: 'subgroup', type: 'TEXT', max: 50 },
+            { name: 'color', type: 'TEXT', max: 20 },
+            { name: 'pit_id', type: 'RELATION', fk: 'pits', required: true, cascadeDelete: false },
+            { name: 'is_deleted', type: 'BOOL', default: 'false' },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        },
+        {
+          id: 'products',
+          name: 'products',
+          icon: 'PD',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'name', type: 'TEXT', required: true, max: 200 },
+            { name: 'price', type: 'NUMBER', required: true, min: 0, max: 999999 },
+            { name: 'price_in', type: 'NUMBER', min: 0, max: 999999 },
+            { name: 'price_out', type: 'NUMBER', min: 0, max: 999999 },
+            { name: 'unit', type: 'TEXT', max: 20 },
+            { name: 'stock_quantity', type: 'NUMBER', min: 0, max: 999999 },
+            { name: 'category', type: 'TEXT', max: 100 },
+            { name: 'is_active', type: 'BOOL', default: 'true' },
+            { name: 'is_deleted', type: 'BOOL', default: 'false' },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        },
+        {
+          id: 'services',
+          name: 'services',
+          icon: 'SV',
+          note: 'Non-fuel services (e.g. car wash, oil change)',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'name', type: 'TEXT', required: true, max: 200 },
+            { name: 'price_in', type: 'NUMBER', min: 0, max: 999999 },
+            { name: 'price_out', type: 'NUMBER', required: true, min: 0, max: 999999 },
+            { name: 'unit', type: 'TEXT', max: 20 },
+            { name: 'is_deleted', type: 'BOOL', default: 'false' },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        },
+        {
+          id: 'fuel_price_history',
+          name: 'fuel_price_history',
+          icon: 'FP',
+          note: 'Audit trail of price changes',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'old_price_in', type: 'NUMBER', min: 0, max: 999999 },
+            { name: 'new_price_in', type: 'NUMBER', min: 0, max: 999999 },
+            { name: 'old_price_out', type: 'NUMBER', min: 0, max: 999999 },
+            { name: 'new_price_out', type: 'NUMBER', min: 0, max: 999999 },
+            { name: 'changed_at', type: 'DATE', required: true },
+            { name: 'gas_type_id', type: 'RELATION', fk: 'gas_types', required: true, cascadeDelete: false },
+            { name: 'changed_by', type: 'RELATION', fk: 'users', cascadeDelete: false },
+            { name: 'is_deleted', type: 'BOOL', default: 'false' },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'sales',
+      label: 'Sales & Shifts',
+      color: '#fbbf24',
+      tables: [
+        {
+          id: 'work_shifts',
+          name: 'work_shifts',
+          icon: 'WS',
+          note: 'Shift lifecycle: OPEN → CLOSED',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'start_time', type: 'DATE', required: true },
+            { name: 'end_time', type: 'DATE', required: false },
+            { name: 'status', type: 'SELECT', required: true, values: 'OPEN, CLOSED' },
+            { name: 'actual_cash', type: 'NUMBER', min: 0 },
+            { name: 'worker_id', type: 'RELATION', fk: 'users', required: true, cascadeDelete: false },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        },
+        {
+          id: 'shift_pumps',
+          name: 'shift_pumps',
+          icon: 'SP',
+          note: 'Pump readings at shift start/end',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'shift_id', type: 'RELATION', fk: 'work_shifts', required: true, cascadeDelete: true },
+            { name: 'pump_id', type: 'RELATION', fk: 'pumps', required: true, cascadeDelete: false },
+            { name: 'start_analog_counter', type: 'NUMBER', min: 0 },
+            { name: 'end_analog_counter', type: 'NUMBER', min: 0 },
+            { name: 'price_at_shift', type: 'NUMBER', min: 0, max: 999999 },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        },
+        {
+          id: 'sales',
+          name: 'sales',
+          icon: 'SL',
+          note: 'All transactions (fuel, product, service)',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'sale_type', type: 'SELECT', required: true, values: 'FUEL, PRODUCT, SERVICE' },
+            { name: 'volume', type: 'NUMBER', min: 0, max: 999999 },
+            { name: 'total_price', type: 'NUMBER', required: true, min: 0, max: 99999999 },
+            { name: 'unit_price', type: 'NUMBER', min: 0, max: 999999 },
+            { name: 'driver_name', type: 'TEXT', max: 200 },
+            { name: 'vehicle_plate', type: 'TEXT', max: 50 },
+            { name: 'driver_phone', type: 'TEXT', max: 50 },
+            { name: 'notes', type: 'TEXT', max: 1000 },
+            { name: 'timestamp', type: 'DATE', required: false },
+            { name: 'shift_id', type: 'RELATION', fk: 'work_shifts', cascadeDelete: false },
+            { name: 'client_id', type: 'RELATION', fk: 'clients', cascadeDelete: false },
+            { name: 'gas_type_id', type: 'RELATION', fk: 'gas_types', cascadeDelete: false },
+            { name: 'payment_type_id', type: 'RELATION', fk: 'payment_types', cascadeDelete: false },
+            { name: 'worker_id', type: 'RELATION', fk: 'users', cascadeDelete: false },
+            { name: 'product_id', type: 'RELATION', fk: 'products', cascadeDelete: false },
+            { name: 'service_id', type: 'RELATION', fk: 'services', cascadeDelete: false },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'clients',
+      label: 'Clients',
+      color: '#f472b6',
+      tables: [
+        {
+          id: 'clients',
+          name: 'clients',
+          icon: 'CL',
+          note: 'Customer / fleet owner profiles',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'name', type: 'TEXT', required: true, max: 200 },
+            { name: 'phone', type: 'TEXT', max: 50 },
+            { name: 'plate_number', type: 'TEXT', max: 50 },
+            { name: 'credit_limit', type: 'NUMBER', min: 0, max: 9999999 },
+            { name: 'current_balance', type: 'NUMBER', min: -9999999, max: 9999999 },
+            { name: 'address', type: 'TEXT', max: 200 },
+            { name: 'email', type: 'TEXT', max: 100 },
+            { name: 'is_deleted', type: 'BOOL', default: 'false' },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'finance',
+      label: 'Finance & HR',
+      color: '#60a5fa',
+      tables: [
+        {
+          id: 'payments',
+          name: 'payments',
+          icon: 'PY',
+          note: 'Money-in records (sales + repayments)',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'amount', type: 'NUMBER', required: true, min: 0, max: 99999999 },
+            { name: 'status', type: 'SELECT', required: true, values: 'PENDING, COMPLETED, REJECTED, CANCELLED' },
+            { name: 'check_bank_name', type: 'TEXT', max: 100 },
+            { name: 'check_number', type: 'TEXT', max: 100 },
+            { name: 'due_date', type: 'DATE' },
+            { name: 'cleared_at', type: 'DATE' },
+            { name: 'notes', type: 'TEXT', max: 1000 },
+            { name: 'is_deleted', type: 'BOOL', default: 'false' },
+            { name: 'client_id', type: 'RELATION', fk: 'clients', cascadeDelete: false },
+            { name: 'sale_id', type: 'RELATION', fk: 'sales', cascadeDelete: false },
+            { name: 'payment_type_id', type: 'RELATION', fk: 'payment_types', cascadeDelete: false },
+            { name: 'recorded_by', type: 'RELATION', fk: 'users', cascadeDelete: false },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        },
+        {
+          id: 'debts',
+          name: 'debts',
+          icon: 'DB',
+          note: 'Standalone obligations (NOT from sales)',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'amount', type: 'NUMBER', required: true, min: 0, max: 99999999 },
+            { name: 'due_date', type: 'DATE' },
+            { name: 'driver_name', type: 'TEXT', max: 200 },
+            { name: 'vehicle_plate', type: 'TEXT', max: 50 },
+            { name: 'is_deleted', type: 'BOOL', default: 'false' },
+            { name: 'client_id', type: 'RELATION', fk: 'clients', required: true, cascadeDelete: false },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        },
+        {
+          id: 'refill_payments',
+          name: 'refill_payments',
+          icon: 'RP',
+          note: 'Payments to fuel suppliers for refills',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'amount', type: 'NUMBER', required: true, min: 0, max: 99999999 },
+            { name: 'transfer_reference', type: 'TEXT', max: 100 },
+            { name: 'bank_name', type: 'TEXT', max: 100 },
+            { name: 'account_number', type: 'TEXT', max: 100 },
+            { name: 'payment_date', type: 'DATE' },
+            { name: 'refill_id', type: 'RELATION', fk: 'pit_refills', required: true, cascadeDelete: true },
+            { name: 'payment_type_id', type: 'RELATION', fk: 'payment_types', cascadeDelete: false },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        },
+        {
+          id: 'salary_advances',
+          name: 'salary_advances',
+          icon: 'SA',
+          note: 'Worker salary advance requests',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'amount', type: 'NUMBER', required: true, min: 0, max: 99999999 },
+            { name: 'status', type: 'SELECT', required: true, values: 'PENDING, APPROVED, REJECTED' },
+            { name: 'request_date', type: 'DATE', required: true },
+            { name: 'resolution_date', type: 'DATE' },
+            { name: 'worker_id', type: 'RELATION', fk: 'users', required: true, cascadeDelete: false },
+            { name: 'resolved_by', type: 'RELATION', fk: 'users', cascadeDelete: false },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        },
+        {
+          id: 'expenses',
+          name: 'expenses',
+          icon: 'EX',
+          note: 'Operational expenses',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'description', type: 'TEXT', required: true, max: 500 },
+            { name: 'amount', type: 'NUMBER', required: true, min: 0, max: 99999999 },
+            { name: 'quantity', type: 'NUMBER', min: 0 },
+            { name: 'category', type: 'SELECT', values: 'SUPPLIES, MAINTENANCE, SALARY, UTILITIES, RENT, TRANSPORT, OTHER' },
+            { name: 'timestamp', type: 'DATE', required: true },
+            { name: 'recorded_by', type: 'RELATION', fk: 'users', cascadeDelete: false },
+            { name: 'is_deleted', type: 'BOOL', default: 'false' },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'supply',
+      label: 'Supply Chain',
+      color: '#fb923c',
+      tables: [
+        {
+          id: 'fuel_suppliers',
+          name: 'fuel_suppliers',
+          icon: 'FS',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'name', type: 'TEXT', required: true, max: 200 },
+            { name: 'is_active', type: 'BOOL', default: 'true' },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        },
+        {
+          id: 'pit_refills',
+          name: 'pit_refills',
+          icon: 'PR',
+          note: 'Fuel deliveries to station pits',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'volume', type: 'NUMBER', required: true, min: 0, max: 999999 },
+            { name: 'cost_per_liter', type: 'NUMBER', min: 0, max: 999999 },
+            { name: 'total_cost', type: 'NUMBER', min: 0, max: 99999999 },
+            { name: 'profit_margin', type: 'NUMBER', min: 0, max: 99999999 },
+            { name: 'timestamp', type: 'DATE', required: true },
+            { name: 'truck_driver', type: 'TEXT', max: 200 },
+            { name: 'depot_num', type: 'TEXT', max: 50 },
+            { name: 'bch_num', type: 'TEXT', max: 50 },
+            { name: 'veh_plate', type: 'TEXT', max: 50 },
+            { name: 'tank_id', type: 'TEXT', max: 50 },
+            { name: 'fleet_truck_id', type: 'TEXT', max: 50 },
+            { name: 'fleet_driver_name', type: 'TEXT', max: 200 },
+            { name: 'fleet_vehicle_plate', type: 'TEXT', max: 50 },
+            { name: 'pit_id', type: 'RELATION', fk: 'pits', required: true, cascadeDelete: false },
+            { name: 'recorded_by', type: 'RELATION', fk: 'users', cascadeDelete: false },
+            { name: 'supplier_id', type: 'RELATION', fk: 'fuel_suppliers', cascadeDelete: false },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        }
+      ]
+    },
+    {
+      id: 'system',
+      label: 'System & Config',
+      color: '#9ca3af',
+      tables: [
+        {
+          id: 'payment_types',
+          name: 'payment_types',
+          icon: 'PT',
+          note: 'Valid payment methods (CASH, CHECK, TRANSFER, etc.)',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'name', type: 'TEXT', required: true, max: 50 },
+            { name: 'code', type: 'TEXT', required: true, unique: true, max: 20 },
+            { name: 'icon', type: 'TEXT', max: 50 },
+            { name: 'is_active', type: 'BOOL', default: 'true' },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        },
+        {
+          id: 'app_permissions',
+          name: 'app_permissions',
+          icon: 'AP',
+          note: 'Role-based access control definitions',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'section', type: 'TEXT', required: true, unique: true, max: 100 },
+            { name: 'permitted_roles', type: 'JSON' },
+            { name: 'roles', type: 'JSON' },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        },
+        {
+          id: 'logs',
+          name: 'logs',
+          icon: 'LG',
+          note: 'Audit & operational event log (auto-deleted after 90 days)',
+          fields: [
+            { name: 'id', type: 'UUID', pk: true },
+            { name: 'action', type: 'TEXT', required: true, max: 100 },
+            { name: 'details', type: 'TEXT', max: 2000 },
+            { name: 'timestamp', type: 'DATE', required: true },
+            { name: 'user_id', type: 'RELATION', fk: 'users', cascadeDelete: false },
+            { name: 'created', type: 'DATE', note: 'PB auto' },
+            { name: 'updated', type: 'DATE', note: 'PB auto' },
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+/* Relations: [source, target, sourceField, targetField, type, cascade, note] */
+const relations = [
+  ['gas_types', 'pits', 'id', 'gas_type_id', '1:N', false, 'Each gas type defines fuel grade'],
+  ['gas_types', 'sales', 'id', 'gas_type_id', '1:N', false, 'Sale references fuel grade'],
+  ['gas_types', 'fuel_price_history', 'id', 'gas_type_id', '1:N', false, 'Price audit trail'],
+  ['pits', 'pumps', 'id', 'pit_id', '1:N', false, 'Each pit has multiple dispensers'],
+  ['pits', 'pit_refills', 'id', 'pit_id', '1:N', false, 'Refills target specific pits'],
+  ['pumps', 'shift_pumps', 'id', 'pump_id', '1:N', false, 'Shift records per pump'],
+  ['users', 'work_shifts', 'id', 'worker_id', '1:N', false, 'Worker assigned to shift'],
+  ['users', 'sales', 'id', 'worker_id', '1:N', false, 'Worker who recorded sale'],
+  ['users', 'payments', 'id', 'recorded_by', '1:N', false, 'User who recorded payment'],
+  ['users', 'pit_refills', 'id', 'recorded_by', '1:N', false, 'User who recorded refill'],
+  ['users', 'expenses', 'id', 'recorded_by', '1:N', false, 'User who recorded expense'],
+  ['users', 'fuel_price_history', 'id', 'changed_by', '1:N', false, 'User who changed price'],
+  ['users', 'salary_advances', 'id', 'worker_id', '1:N', false, 'Worker requesting advance'],
+  ['users', 'salary_advances', 'id', 'resolved_by', '1:1', false, 'Admin resolving advance'],
+  ['users', 'logs', 'id', 'user_id', '1:N', false, 'User associated with log entry'],
+  ['work_shifts', 'shift_pumps', 'id', 'shift_id', '1:N', true, 'CASCADE: shift pumps deleted with shift'],
+  ['work_shifts', 'sales', 'id', 'shift_id', '1:N', false, 'Sales recorded during shift'],
+  ['clients', 'sales', 'id', 'client_id', '1:N', false, 'Client associated with sale (nullable)'],
+  ['clients', 'debts', 'id', 'client_id', '1:N', false, 'Every debt belongs to a client'],
+  ['clients', 'payments', 'id', 'client_id', '1:N', false, 'Payments from client (nullable)'],
+  ['payment_types', 'sales', 'id', 'payment_type_id', '1:N', false, 'Payment method used for sale'],
+  ['payment_types', 'payments', 'id', 'payment_type_id', '1:N', false, 'Payment method classification'],
+  ['payment_types', 'refill_payments', 'id', 'payment_type_id', '1:N', false, 'Supplier payment method'],
+  ['products', 'sales', 'id', 'product_id', '1:N', false, 'Product sold (non-fuel)'],
+  ['services', 'sales', 'id', 'service_id', '1:N', false, 'Service rendered'],
+  ['fuel_suppliers', 'pit_refills', 'id', 'supplier_id', '1:N', false, 'Supplier who delivered fuel'],
+  ['sales', 'payments', 'id', 'sale_id', '1:N', false, 'Payment linked to sale (SET NULL)'],
+  ['pit_refills', 'refill_payments', 'id', 'refill_id', '1:N', true, 'CASCADE: payments deleted with refill'],
+];
+
+/* Dropped / deprecated tables (shown in migration history) */
+const droppedTables = [
+  { name: 'client_fleet', reason: 'Flattened into sales (driver_name, vehicle_plate)' },
+  { name: 'supplier_fleet', reason: 'Flattened into pit_refills (fleet_* fields)' },
+  { name: 'pit_refill_services', reason: 'Flattened into pit_refills (truck_driver, depot_num, etc.)' },
+  { name: 'refill_payment_types', reason: 'Merged into payment_types' },
+  { name: 'payment_allocations', reason: 'Dropped — payment/debt separation by design' },
+  { name: 'payment_schedules', reason: 'Removed during cleanup' },
+];
+
+/* ================== RENDER ================== */
+let zoom = 1, pan = { x: 0, y: 0 };
+let selectedTable = null;
+let activeFilter = 'all';
+let searchQuery = '';
+let collapsedGroups = new Set();
+
+const treePanel = document.getElementById('treePanel');
+const canvasContent = document.getElementById('canvasContent');
+const svg = document.getElementById('relation-svg');
+const popup = document.getElementById('relationPopup');
+const detailPanel = document.getElementById('detailPanel');
+
+function renderTree() {
+  treePanel.innerHTML = '';
+  schemaData.groups.forEach(g => {
+    const matchesFilter = activeFilter === 'all' || g.id === activeFilter;
+    const groupEl = document.createElement('div');
+    groupEl.className = 'tree-group';
+
+    const header = document.createElement('div');
+    header.className = 'group-header' + (collapsedGroups.has(g.id) ? ' collapsed' : '');
+    header.innerHTML = `<span class="chevron">▼</span><div class="group-dot" style="background:${g.color}"></div><span>${g.label}</span><span class="group-count">${g.tables.length}</span>`;
+    header.onclick = () => {
+      if (collapsedGroups.has(g.id)) collapsedGroups.delete(g.id);
+      else collapsedGroups.add(g.id);
+      renderTree();
+    };
+    groupEl.appendChild(header);
+
+    if (!collapsedGroups.has(g.id)) {
+      g.tables.forEach(t => {
+        const match = searchQuery === '' || t.name.includes(searchQuery) || t.fields.some(f => f.name.includes(searchQuery));
+        if (!match) return;
+        const row = document.createElement('div');
+        row.className = 'table-row' + (selectedTable === t.id ? ' selected' : '');
+        row.style.display = matchesFilter ? 'flex' : 'none';
+        row.innerHTML = `<div class="tbl-icon" style="background:${g.color}">${t.icon}</div><span class="tbl-name">${t.name}</span>${t.note ? '<span class="tbl-badge" title="' + t.note + '">?</span>' : ''}`;
+        row.onclick = () => selectTable(t.id);
+        groupEl.appendChild(row);
+      });
+    }
+    treePanel.appendChild(groupEl);
+  });
+}
+
+function selectTable(id) {
+  selectedTable = id;
+  renderTree();
+  renderCanvas();
+  // Scroll to card
+  setTimeout(() => {
+    const card = document.getElementById('card-' + id);
+    if (card) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+      card.classList.add('highlighted');
+      setTimeout(() => card.classList.remove('highlighted'), 1500);
+    }
+  }, 50);
+}
+
+function renderCanvas() {
+  canvasContent.innerHTML = '';
+  const cards = [];
+
+  schemaData.groups.forEach(g => {
+    if (activeFilter !== 'all' && g.id !== activeFilter) return;
+    g.tables.forEach(t => {
+      if (searchQuery && !t.name.includes(searchQuery) && !t.fields.some(f => f.name.includes(searchQuery))) return;
+      const card = document.createElement('div');
+      card.className = 'schema-card';
+      card.id = 'card-' + t.id;
+      card.dataset.tableId = t.id;
+
+      const searchHighlight = searchQuery ? 'style="background:rgba(251,191,36,0.15);color:#fbbf24"' : '';
+      const fieldsHtml = t.fields.map(f => {
+        const pkClass = f.pk ? 'pk' : '';
+        const fkClass = f.fk ? 'fk' : '';
+        let keyLabel = '';
+        if (f.pk) keyLabel = 'PK';
+        else if (f.fk) keyLabel = 'FK';
+        else keyLabel = '•';
+        const highlight = (searchQuery && f.name.includes(searchQuery)) ? 'style="background:rgba(251,191,36,0.08)"' : '';
+        const constraints = [];
+        if (f.required) constraints.push('<span class="field-constraint req">REQ</span>');
+        if (f.unique) constraints.push('<span class="field-constraint">UNQ</span>');
+        if (f.fk) constraints.push(`<span class="field-constraint fk-ref">→ ${f.fk}${f.cascadeDelete ? ' CASCADE' : ''}</span>`);
+        if (f.values) constraints.push(`<span class="field-constraint">${f.values}</span>`);
+        if (f.note) constraints.push(`<span class="field-constraint">${f.note}</span>`);
+        return `<div class="field-row" ${highlight}>
+          <span class="field-key ${pkClass} ${fkClass}">${keyLabel}</span>
+          <span class="field-name">${f.name}</span>
+          <span class="field-type">${f.type}</span>
+          ${constraints.join('')}
+        </div>`;
+      }).join('');
+
+      card.innerHTML = `
+        <div class="card-header" style="border-left:3px solid ${g.color}">
+          <div class="card-icon" style="background:${g.color}">${t.icon}</div>
+          <span class="card-title">${t.name}</span>
+          <span class="card-meta">${t.fields.length} fields</span>
+        </div>
+        <div class="card-body">${fieldsHtml}</div>
+      `;
+      canvasContent.appendChild(card);
+      cards.push({ id: t.id, el: card, group: g });
+    });
+  });
+
+  // Layout: masonry-ish grid
+  requestAnimationFrame(() => drawRelations(cards));
+}
+
+function drawRelations(cards) {
+  const svgRect = detailPanel.getBoundingClientRect();
+  svg.setAttribute('width', svgRect.width);
+  svg.setAttribute('height', svgRect.height);
+  svg.innerHTML = '';
+
+  const cardMap = {};
+  cards.forEach(c => {
+    const r = c.el.getBoundingClientRect();
+    const pr = canvasContent.getBoundingClientRect();
+    cardMap[c.id] = {
+      x: r.left - pr.left + (pan.x * zoom),
+      y: r.top - pr.top + (pan.y * zoom),
+      w: r.width / zoom,
+      h: r.height / zoom,
+      el: c.el,
+      group: c.group
+    };
+  });
+
+  relations.forEach(([src, tgt, srcField, tgtField, type, cascade, note]) => {
+    if (!cardMap[src] || !cardMap[tgt]) return;
+    const a = cardMap[src];
+    const b = cardMap[tgt];
+
+    const color = cascade ? '#f87171' : '#38bdf8';
+    const dash = type === 'M:N' ? '4,4' : '0';
+    const sx = a.x + a.w;
+    const sy = a.y + a.h / 2;
+    const tx = b.x;
+    const ty = b.y + b.h / 2;
+    const cx = (sx + tx) / 2;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', `M ${sx} ${sy} C ${cx} ${sy}, ${cx} ${ty}, ${tx} ${ty}`);
+    path.setAttribute('stroke', color);
+    path.setAttribute('stroke-width', '1.5');
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke-dasharray', dash);
+    path.setAttribute('opacity', '0.5');
+    path.style.transition = 'opacity 0.2s';
+    path.onmouseenter = (e) => {
+      path.setAttribute('opacity', '1');
+      path.setAttribute('stroke-width', '2.5');
+      showPopup(e, `${src}.${srcField} → ${tgt}.${tgtField}<br><span style="color:${color}">${type}${cascade ? ' CASCADE' : ''}</span><br>${note}`);
+    };
+    path.onmouseleave = () => {
+      path.setAttribute('opacity', '0.5');
+      path.setAttribute('stroke-width', '1.5');
+      hidePopup();
+    };
+    svg.appendChild(path);
+
+    // Arrow head
+    const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    arrow.setAttribute('points', `${tx},${ty} ${tx-6},${ty-3} ${tx-6},${ty+3}`);
+    arrow.setAttribute('fill', color);
+    arrow.setAttribute('opacity', '0.6');
+    svg.appendChild(arrow);
+  });
+
+  // Draw data-flow arrows for selected table
+  if (selectedTable && cardMap[selectedTable]) {
+    const sel = cardMap[selectedTable];
+    relations.filter(r => r[0] === selectedTable || r[1] === selectedTable).forEach(([src, tgt]) => {
+      const a = cardMap[src];
+      const b = cardMap[tgt];
+      if (!a || !b) return;
+      const sx = src === selectedTable ? a.x + a.w : a.x + a.w / 2;
+      const sy = src === selectedTable ? a.y + a.h / 2 : a.y + a.h;
+      const tx = tgt === selectedTable ? b.x : b.x + b.w / 2;
+      const ty = tgt === selectedTable ? b.y + b.h / 2 : b.y + b.h;
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', sx); circle.setAttribute('cy', sy);
+      circle.setAttribute('r', '3'); circle.setAttribute('fill', '#38bdf8');
+      svg.appendChild(circle);
+    });
+  }
+}
+
+function showPopup(e, html) {
+  const rect = detailPanel.getBoundingClientRect();
+  popup.innerHTML = html;
+  popup.style.left = (e.clientX - rect.left + 12) + 'px';
+  popup.style.top = (e.clientY - rect.top + 12) + 'px';
+  popup.classList.add('visible');
+}
+function hidePopup() { popup.classList.remove('visible'); }
+
+function updateTransform() {
+  canvasContent.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
+}
+function setZoom(z) { zoom = Math.max(0.3, Math.min(3, z)); updateTransform(); drawRelationsAfterZoom(); }
+function drawRelationsAfterZoom() { setTimeout(() => renderCanvas(), 60); }
+
+/* Panning */
+let isPanning = false, panStart = { x: 0, y: 0 };
+detailPanel.onmousedown = (e) => {
+  if (e.target.closest('.schema-card') || e.target.closest('line') || e.target.closest('path')) return;
+  isPanning = true; panStart = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+  detailPanel.style.cursor = 'grabbing';
+};
+window.onmousemove = (e) => {
+  if (!isPanning) return;
+  pan.x = e.clientX - panStart.x; pan.y = e.clientY - panStart.y;
+  updateTransform();
+};
+window.onmouseup = () => { isPanning = false; detailPanel.style.cursor = 'default'; };
+detailPanel.onwheel = (e) => {
+  if (e.ctrlKey || e.metaKey) { e.preventDefault(); setZoom(zoom - e.deltaY * 0.001); }
+};
+
+/* Filter pills */
+document.querySelectorAll('.pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+    activeFilter = p.dataset.cat;
+    renderTree(); renderCanvas();
+  });
+});
+
+/* Search */
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  searchQuery = e.target.value.toLowerCase();
+  renderTree(); renderCanvas();
+});
+
+/* Flow toggle */
+let flowOpen = false;
+function toggleFlow() {
+  flowOpen = !flowOpen;
+  const el = document.getElementById('flowOverlay');
+  const btn = document.getElementById('flowToggle');
+  el.classList.toggle('open', flowOpen);
+  btn.classList.toggle('active', flowOpen);
+  btn.textContent = flowOpen ? '✕ Close' : '📊 Data Flow';
+}
+
+/* Resize observer for SVG redraw */
+new ResizeObserver(() => drawRelationsAfterZoom()).observe(detailPanel);
+
+/* Initial render */
+updateTransform();
+renderTree();
+renderCanvas();
+
+/* Auto-layout: arrange cards in a grid */
+function autoLayout() {
+  const cols = Math.max(1, Math.floor((detailPanel.clientWidth - 60) / 340));
+  const cards = Array.from(canvasContent.querySelectorAll('.schema-card'));
+  cards.forEach((c, i) => {
+    c.style.position = 'absolute';
+    c.style.left = (20 + (i % cols) * 340) + 'px';
+    c.style.top = (20 + Math.floor(i / cols) * 20) + 'px';
+  });
+  canvasContent.style.height = (Math.ceil(cards.length / cols) * 400 + 40) + 'px';
+}
+/* Use absolute positioning for cards to enable proper relation lines */
+const style = document.createElement('style');
+style.textContent = `.canvas-content { position: relative; min-width: 100%; min-height: 100%; } .schema-card { position: absolute; }`;
+document.head.appendChild(style);
+
+/* After render, position cards absolutely in a grid */
+function positionCards() {
+  const cols = Math.max(1, Math.floor((detailPanel.clientWidth - 60) / 340));
+  const allTables = [];
+  schemaData.groups.forEach(g => {
+    if (activeFilter !== 'all' && g.id !== activeFilter) return;
+    g.tables.forEach(t => {
+      if (searchQuery && !t.name.includes(searchQuery) && !t.fields.some(f => f.name.includes(searchQuery))) return;
+      allTables.push(t);
+    });
+  });
+
+  let x = 20, y = 20, maxH = 0, col = 0;
+  const colWidth = 340, rowGap = 30;
+  const heights = new Array(cols).fill(20);
+
+  allTables.forEach((t, i) => {
+    const card = document.getElementById('card-' + t.id);
+    if (!card) return;
+    const c = i % cols;
+    card.style.left = (20 + c * colWidth) + 'px';
+    card.style.top = heights[c] + 'px';
+    heights[c] += card.offsetHeight + rowGap;
+  });
+
+  const maxHeight = Math.max(...heights, 400);
+  canvasContent.style.height = maxHeight + 'px';
+  canvasContent.style.width = (cols * colWidth + 40) + 'px';
+}
+
+/* Override renderCanvas to position after insertion */
+const originalRenderCanvas = renderCanvas;
+renderCanvas = function() {
+  originalRenderCanvas();
+  requestAnimationFrame(() => { positionCards(); drawRelationsAfterZoom(); });
+};
+
+/* Initial call */
+renderCanvas();
+</script>
+</body>
+</html>

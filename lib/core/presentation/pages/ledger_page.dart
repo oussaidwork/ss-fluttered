@@ -147,7 +147,7 @@ class _LedgerPageState extends State<LedgerPage> {
                 if (salesSnap.hasData) {
                   for (final doc in salesSnap.data!.docs) {
                     final data = doc.data() as Map<String, dynamic>;
-                    totalSales += (data['totalPrice'] as num?)?.toDouble() ?? 0;
+                    totalSales += (data['totalAmount'] as num?)?.toDouble() ?? 0;
                   }
                 }
                 if (paymentsSnap.hasData) {
@@ -388,9 +388,7 @@ class _LedgerPageState extends State<LedgerPage> {
     switch (item.type) {
       case 'SALE':
         final s = item.sale!;
-        final typeName = s.saleType.value;
-        if (s.volume != null) return '$typeName — ${s.volume!.toStringAsFixed(2)}L';
-        return typeName;
+        return 'Sale #${s.id.substring(0, s.id.length > 6 ? 6 : s.id.length).toUpperCase()}';
       case 'PAYMENT':
         return 'Payment from client';
       case 'DEBT':
@@ -404,7 +402,7 @@ class _LedgerPageState extends State<LedgerPage> {
   String _txnAmount(_TransactionItem item) {
     switch (item.type) {
       case 'SALE':
-        return '+${item.sale!.totalPrice.toStringAsFixed(2)} DA';
+        return '+${item.sale!.totalAmount.toStringAsFixed(2)} DA';
       case 'PAYMENT':
         return '+${item.payment!.amount.toStringAsFixed(2)} DA';
       case 'DEBT':
@@ -434,12 +432,9 @@ class _LedgerPageState extends State<LedgerPage> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _detailLine('Product', s.gasTypeId ?? s.productId ?? '--'),
-            _detailLine('Volume', s.volume != null ? '${s.volume!.toStringAsFixed(2)} L' : '--'),
-            _detailLine('Unit Price', s.unitPrice != null ? '${s.unitPrice!.toStringAsFixed(2)} DA' : '--'),
-            _detailLine('Total', '${s.totalPrice.toStringAsFixed(2)} DA'),
+            _detailLine('Total', '${s.totalAmount.toStringAsFixed(2)} DA'),
             if (s.paymentTypeId != null) _detailLine('Payment Method', s.paymentTypeId!),
-            if (s.driverName != null) _detailLine('Driver', s.driverName!),
+            if (s.notes != null && s.notes!.isNotEmpty) _detailLine('Notes', s.notes!),
           ],
         );
       case 'PAYMENT':
