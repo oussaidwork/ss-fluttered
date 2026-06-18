@@ -16,11 +16,13 @@ import '../presentation/pages/expenses_page.dart';
 import '../presentation/pages/reports_page.dart';
 import '../presentation/pages/system_logs_page.dart';
 import '../presentation/pages/settings_page.dart';
+import '../presentation/pages/pos_page.dart';
 
 abstract class AppRoutes {
   static const login = '/login';
   static const signup = '/signup';
   static const dashboard = '/';
+  static const pos = '/pos';
   static const pits = '/pits';
   static const pumps = '/pumps';
   static const fuel = '/fuel';
@@ -53,6 +55,7 @@ GoRouter createRouter({required bool isAuthenticated}) {
         builder: (context, state, child) => DashboardPage(child: child),
         routes: [
           GoRoute(path: AppRoutes.dashboard, builder: (_, _) => const AdminDashboardPage()),
+          GoRoute(path: AppRoutes.pos, builder: (_, _) => const PosPage()),
           GoRoute(path: AppRoutes.pits, builder: (_, _) => const PitsPage()),
           GoRoute(path: AppRoutes.pumps, builder: (_, _) => const PumpsPage()),
           GoRoute(path: AppRoutes.fuel, builder: (_, _) => const FuelPage()),

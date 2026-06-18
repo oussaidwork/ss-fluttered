@@ -88,6 +88,12 @@ class Sidebar extends StatelessWidget {
                   title: 'OPERATIONS',
                   items: [
                     _NavItem(
+                      icon: Icons.point_of_sale,
+                      label: 'POS Sale',
+                      route: AppRoutes.pos,
+                      currentPath: currentPath,
+                    ),
+                    _NavItem(
                       icon: Icons.schedule,
                       label: 'Shifts',
                       route: AppRoutes.shifts,

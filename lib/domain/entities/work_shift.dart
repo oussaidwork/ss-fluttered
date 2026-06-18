@@ -7,7 +7,9 @@ class WorkShift {
   final DateTime endTime;
   final ShiftStatus status;
   final double? actualCash;
+  final double? expectedCash;
   final String workerId;
+  final bool isDeleted;
 
   const WorkShift({
     required this.id,
@@ -15,7 +17,9 @@ class WorkShift {
     required this.endTime,
     required this.status,
     this.actualCash,
+    this.expectedCash,
     required this.workerId,
+    this.isDeleted = false,
   });
 
   WorkShift copyWith({
@@ -24,7 +28,9 @@ class WorkShift {
     DateTime? endTime,
     ShiftStatus? status,
     double? actualCash,
+    double? expectedCash,
     String? workerId,
+    bool? isDeleted,
   }) {
     return WorkShift(
       id: id ?? this.id,
@@ -32,7 +38,9 @@ class WorkShift {
       endTime: endTime ?? this.endTime,
       status: status ?? this.status,
       actualCash: actualCash ?? this.actualCash,
+      expectedCash: expectedCash ?? this.expectedCash,
       workerId: workerId ?? this.workerId,
+      isDeleted: isDeleted ?? this.isDeleted,
     );
   }
 
@@ -43,7 +51,9 @@ class WorkShift {
       'endTime': Timestamp.fromDate(endTime),
       'status': status.value,
       'actualCash': actualCash,
+      'expectedCash': expectedCash,
       'workerId': workerId,
+      'isDeleted': isDeleted,
     };
   }
 
@@ -54,7 +64,9 @@ class WorkShift {
       endTime: (map['endTime'] as Timestamp?)?.toDate() ?? DateTime.now(),
       status: ShiftStatus.fromString(map['status'] as String? ?? 'CLOSED'),
       actualCash: (map['actualCash'] as num?)?.toDouble(),
+      expectedCash: (map['expectedCash'] as num?)?.toDouble(),
       workerId: map['workerId'] as String? ?? '',
+      isDeleted: map['isDeleted'] as bool? ?? false,
     );
   }
 }
