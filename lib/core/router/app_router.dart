@@ -11,6 +11,7 @@ import '../presentation/pages/services_page.dart';
 import '../presentation/pages/shifts_page.dart';
 import '../presentation/pages/clients_page.dart';
 import '../presentation/pages/ledger_page.dart';
+import '../presentation/pages/import_page.dart';
 import '../presentation/pages/workers_page.dart';
 import '../presentation/pages/expenses_page.dart';
 import '../presentation/pages/reports_page.dart';
@@ -32,6 +33,7 @@ abstract class AppRoutes {
   static const clients = '/clients';
   static const ledger = '/ledger';
   static const workers = '/workers';
+  static const importData = '/import';
   static const expenses = '/expenses';
   static const reports = '/reports';
   static const systemLogs = '/system-logs';
@@ -65,6 +67,7 @@ GoRouter createRouter({required bool isAuthenticated}) {
           GoRoute(path: AppRoutes.clients, builder: (_, _) => const ClientsPage()),
           GoRoute(path: AppRoutes.ledger, builder: (_, _) => const LedgerPage()),
           GoRoute(path: AppRoutes.workers, builder: (_, _) => const WorkersPage()),
+          GoRoute(path: AppRoutes.importData, builder: (_, _) => const ImportPage()),
           GoRoute(path: AppRoutes.expenses, builder: (_, _) => const ExpensesPage()),
           GoRoute(path: AppRoutes.reports, builder: (_, _) => const ReportsPage()),
           GoRoute(path: AppRoutes.systemLogs, builder: (_, _) => const SystemLogsPage()),
