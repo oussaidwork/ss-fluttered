@@ -1,9 +1,12 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, TargetPlatform;
+    show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
+    if (kIsWeb) {
+      return web;
+    }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
@@ -21,13 +24,14 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'YOUR_API_KEY',
-    appId: '1:000000000000:web:0000000000000000000000',
-    messagingSenderId: '000000000000',
-    projectId: 'ss-ragraga',
-    storageBucket: 'ss-ragraga.appspot.com',
+    apiKey: 'AIzaSyAMPx-kaKzBr2hhDbFUXeNlsDpnGiRaMeE',
+    appId: '1:488576150560:web:b2d0c031eea5f121afa045',
+    messagingSenderId: '488576150560',
+    projectId: 'gen-lang-client-0557342357',
+    authDomain: 'gen-lang-client-0557342357.firebaseapp.com',
+    databaseURL: 'https://gen-lang-client-0557342357-default-rtdb.firebaseio.com',
+    storageBucket: 'gen-lang-client-0557342357.firebasestorage.app',
   );
-
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'YOUR_API_KEY',
     appId: '1:000000000000:android:0000000000000000000000',

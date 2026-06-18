@@ -1,21 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../data/auth/firebase_auth_provider.dart';
+import '../../../data/firestore/firestore_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../router/app_router.dart';
 
-class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({super.key});
+class SignupPage extends ConsumerStatefulWidget {
+  const SignupPage({super.key});
 
   @override
-  ConsumerState<LoginPage> createState() => _LoginPageState();
+  ConsumerState<SignupPage> createState() => _SignupPageState();
 }
 
-class _LoginPageState extends ConsumerState<LoginPage> {
+class _SignupPageState extends ConsumerState<SignupPage> {
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red.shade700),
+    );
+  }
+
+  InputDecoration _inputDecoration({
+    required String label,
+    required IconData icon,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: Colors.white54),
+      prefixIcon: Icon(icon, color: Colors.white54),
+      filled: true,
+      fillColor: const Color(0xFF0B1220),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF84CC16)),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,17 +102,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
                 SizedBox(height: 32),
                 Text(
-                  'Industrial-grade POS and operations management\nfor fuel/gas stations',
+                  'Create your account to get started\nwith industrial-grade station management.',
                   style: TextStyle(fontSize: 16, color: Colors.white38, height: 1.5),
                 ),
-                SizedBox(height: 48),
-                _FeatureRow(icon: Icons.local_gas_station, text: 'Fuel dispensing & inventory'),
-                SizedBox(height: 12),
-                _FeatureRow(icon: Icons.schedule, text: 'Shift management'),
-                SizedBox(height: 12),
-                _FeatureRow(icon: Icons.assessment, text: 'Reports & analytics'),
-                SizedBox(height: 12),
-                _FeatureRow(icon: Icons.people, text: 'Client & debt ledger'),
               ],
             ),
           ),
@@ -81,7 +113,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
-              child: _buildLoginForm(),
+              child: _buildSignupForm(),
             ),
           ),
         ),
@@ -107,14 +139,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
             ),
             const SizedBox(height: 32),
-            _buildLoginForm(),
+            _buildSignupForm(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLoginForm() {
+  Widget _buildSignupForm() {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
@@ -126,7 +158,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           const Text(
-            'Sign In',
+            'Create Account',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -134,77 +166,41 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text('Enter your credentials', style: TextStyle(color: Colors.white54)),
+          const Text('Fill in the details below', style: TextStyle(color: Colors.white54)),
           const SizedBox(height: 32),
+          TextField(
+            controller: _nameController,
+            style: const TextStyle(color: Colors.white),
+            textCapitalization: TextCapitalization.words,
+            decoration: _inputDecoration(label: 'Full Name', icon: Icons.person),
+          ),
+          const SizedBox(height: 16),
           TextField(
             controller: _emailController,
             style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              labelText: 'Email',
-              labelStyle: const TextStyle(color: Colors.white54),
-              prefixIcon: const Icon(Icons.email, color: Colors.white54),
-              filled: true,
-              fillColor: const Color(0xFF0B1220),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF84CC16)),
-              ),
-            ),
+            keyboardType: TextInputType.emailAddress,
+            decoration: _inputDecoration(label: 'Email', icon: Icons.email),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _passwordController,
             obscureText: true,
             style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              labelText: 'Password',
-              labelStyle: const TextStyle(color: Colors.white54),
-              prefixIcon: const Icon(Icons.lock, color: Colors.white54),
-              filled: true,
-              fillColor: const Color(0xFF0B1220),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF84CC16)),
-              ),
-            ),
+            decoration: _inputDecoration(label: 'Password', icon: Icons.lock),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _confirmPasswordController,
+            obscureText: true,
+            style: const TextStyle(color: Colors.white),
+            decoration: _inputDecoration(label: 'Confirm Password', icon: Icons.lock_outline),
           ),
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
             height: 48,
             child: ElevatedButton(
-              onPressed: _isLoading
-                  ? null
-                  : () async {
-                      setState(() => _isLoading = true);
-                      try {
-                        await firebaseAuthProvider.signIn(
-                          _emailController.text.trim(),
-                          _passwordController.text,
-                        );
-                        // Successful sign‑in will trigger authStateProvider and router redirect.
-                      } on FirebaseAuthException catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                               e.code == 'invalid-api-key'
-                                   ? 'Invalid API key – check the Firebase console for restrictions and ensure localhost is an authorized domain.'
-                                   : '${e.code}: ${e.message ?? 'Sign‑in failed'}',
-                            ),
-                          ),
-                        );
-                      } finally {
-                        if (mounted) setState(() => _isLoading = false);
-                      }
-                    },
+              onPressed: _isLoading ? null : _handleSignup,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF84CC16),
                 foregroundColor: const Color(0xFF0B1220),
@@ -219,14 +215,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         color: Color(0xFF0B1220),
                       ),
                     )
-                  : const Text('Sign In', style: TextStyle(fontWeight: FontWeight.bold)),
+                  : const Text('Create Account', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ),
           const SizedBox(height: 16),
           TextButton(
-            onPressed: () => context.go(AppRoutes.signup),
+            onPressed: () => context.go(AppRoutes.login),
             child: const Text(
-              "Don't have an account? Create one",
+              'Already have an account? Sign In',
               style: TextStyle(color: Color(0xFF84CC16)),
             ),
           ),
@@ -234,21 +230,55 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       ),
     );
   }
-}
 
-class _FeatureRow extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  const _FeatureRow({required this.icon, required this.text});
+  Future<void> _handleSignup() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final confirm = _confirmPasswordController.text;
 
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: const Color(0xFF84CC16)),
-        const SizedBox(width: 12),
-        Text(text, style: const TextStyle(color: Colors.white54, fontSize: 14)),
-      ],
-    );
+    if (name.isEmpty || email.isEmpty || password.isEmpty || confirm.isEmpty) {
+      _showError('All fields are required.');
+      return;
+    }
+
+    if (password != confirm) {
+      _showError('Passwords do not match.');
+      return;
+    }
+
+    if (password.length < 6) {
+      _showError('Password must be at least 6 characters.');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final credential = await firebaseAuthProvider.signUp(email, password);
+
+      await firestore.collection('users').doc(credential.user!.uid).set({
+        'displayName': name,
+        'email': email,
+        'role': 'Worker',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account created successfully! You can now sign in.'),
+            backgroundColor: Color(0xFF84CC16),
+          ),
+        );
+        context.go(AppRoutes.login);
+      }
+    } on FirebaseAuthException catch (e) {
+      _showError('${e.code}: ${e.message ?? 'Signup failed'}');
+    } catch (e) {
+      _showError('An unexpected error occurred: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 }

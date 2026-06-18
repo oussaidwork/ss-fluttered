@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import '../presentation/pages/login_page.dart';
+import '../presentation/pages/signup_page.dart';
 import '../presentation/pages/dashboard_page.dart';
 import '../presentation/pages/admin_dashboard_page.dart';
 import '../presentation/pages/pits_page.dart';
@@ -18,6 +19,7 @@ import '../presentation/pages/settings_page.dart';
 
 abstract class AppRoutes {
   static const login = '/login';
+  static const signup = '/signup';
   static const dashboard = '/';
   static const pits = '/pits';
   static const pumps = '/pumps';
@@ -39,12 +41,14 @@ GoRouter createRouter({required bool isAuthenticated}) {
     initialLocation: isAuthenticated ? AppRoutes.dashboard : AppRoutes.login,
     redirect: (context, state) {
       final onLogin = state.matchedLocation == AppRoutes.login;
-      if (!isAuthenticated && !onLogin) return AppRoutes.login;
-      if (isAuthenticated && onLogin) return AppRoutes.dashboard;
+      final onSignup = state.matchedLocation == AppRoutes.signup;
+      if (!isAuthenticated && !onLogin && !onSignup) return AppRoutes.login;
+      if (isAuthenticated && (onLogin || onSignup)) return AppRoutes.dashboard;
       return null;
     },
     routes: [
       GoRoute(path: AppRoutes.login, builder: (_, _) => const LoginPage()),
+      GoRoute(path: AppRoutes.signup, builder: (_, _) => const SignupPage()),
       ShellRoute(
         builder: (context, state, child) => DashboardPage(child: child),
         routes: [
