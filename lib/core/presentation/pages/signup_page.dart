@@ -258,9 +258,10 @@ class _SignupPageState extends ConsumerState<SignupPage> {
       final credential = await firebaseAuthProvider.signUp(email, password);
 
       await firestore.collection('users').doc(credential.user!.uid).set({
-        'displayName': name,
+        'fullName': name,
         'email': email,
         'role': 'Worker',
+        'isActive': true,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
