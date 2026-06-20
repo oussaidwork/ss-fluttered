@@ -4,7 +4,7 @@ class RevenueUtils {
 
   /// Sums a field across a list of objects.
   static double sumField<T>(List<T> items, double Function(T) field) {
-    return items.fold<double>(0.0, (sum, item) => sum + (field(item) ?? 0.0));
+    return items.fold<double>(0.0, (sum, item) => sum + field(item));
   }
 
   /// Filters fuel sales from a list and returns total volume and revenue.

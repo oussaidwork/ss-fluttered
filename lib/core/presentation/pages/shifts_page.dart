@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../data/firestore/firestore_provider.dart';
 import '../../../domain/entities/work_shift.dart';
@@ -322,7 +323,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
       String? lastShiftId;
       if (lastShiftSnap.docs.isNotEmpty) {
         final lastShift = WorkShift.fromMap(
-            lastShiftSnap.docs.first.data()!);
+            lastShiftSnap.docs.first.data());
         lastShiftId = lastShift.id;
       }
 
@@ -492,7 +493,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
         .get();
     final Map<String, String> pumpNames = {};
     for (final d in pumpsSnap.docs) {
-      final data = d.data()!;
+      final data = d.data();
       pumpNames[d.id] = data['name'] as String? ?? d.id;
     }
 
@@ -880,6 +881,7 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
                           child: TextFormField(
                             controller: _counterControllers[sp.pumpId],
                             keyboardType: TextInputType.number,
+                            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
                             style: const TextStyle(color: Colors.white, fontSize: 13),
                             decoration: InputDecoration(
                               hintText: 'End counter',
@@ -938,6 +940,7 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
                       child: TextFormField(
                         controller: _otherController,
                         keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
                         style: const TextStyle(color: Colors.white, fontSize: 13),
                         decoration: InputDecoration(
                           isDense: true,
@@ -990,6 +993,7 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
                       child: TextFormField(
                         controller: _cashController,
                         keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
                         style: const TextStyle(color: Colors.white, fontSize: 13),
                         decoration: InputDecoration(
                           isDense: true,

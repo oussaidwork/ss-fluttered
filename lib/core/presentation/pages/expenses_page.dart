@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../data/firestore/firestore_provider.dart';
+import '../../../data/auth/firebase_auth_provider.dart';
 import '../../../domain/entities/expense.dart';
 import '../../../domain/enums/expense_category.dart';
 
@@ -247,10 +249,10 @@ class _ExpensesPageState extends State<ExpensesPage> {
     final isEdit = expense != null;
     final descCtrl = TextEditingController(text: expense?.description ?? '');
     final amountCtrl = TextEditingController(
-      text: expense != null ? expense.amount.toStringAsFixed(0) : '',
+      text: expense != null ? expense.amount.toString() : '',
     );
     final qtyCtrl = TextEditingController(
-      text: expense?.quantity != null ? expense!.quantity!.toStringAsFixed(0) : '',
+      text: expense?.quantity != null ? expense!.quantity.toString() : '',
     );
     ExpenseCategory selectedCategory = expense?.category ?? ExpenseCategory.other;
     DateTime selectedDate = expense?.timestamp ?? DateTime.now();
@@ -276,12 +278,19 @@ class _ExpensesPageState extends State<ExpensesPage> {
                 children: [
                   _buildTextField(descCtrl, 'Description', Icons.description),
                   const SizedBox(height: 12),
-                  _buildTextField(amountCtrl, 'Amount (DA)', Icons.attach_money, keyboardType: TextInputType.number),
+                  _buildTextField(amountCtrl, 'Amount (DA)', Icons.attach_money, 
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+                  ),
                   const SizedBox(height: 12),
-                  _buildTextField(qtyCtrl, 'Quantity', Icons.inventory_2, keyboardType: TextInputType.number),
+                  _buildTextField(qtyCtrl, 'Quantity', Icons.inventory_2, 
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+                  ),
+
                   const SizedBox(height: 12),
                   DropdownButtonFormField<ExpenseCategory>(
-                    initialValue: selectedCategory,
+                    value: selectedCategory,
                     dropdownColor: const Color(0xFF1A2332),
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
@@ -296,7 +305,10 @@ class _ExpensesPageState extends State<ExpensesPage> {
                       ),
                     ),
                     items: ExpenseCategory.values
-                        .map((c) => DropdownMenuItem(value: c, child: Text(c.value)))
+                        .map((c) => DropdownMenuItem(
+                              value: c,
+                              child: Text(c.value),
+                            ))
                         .toList(),
                     onChanged: (val) {
                       if (val != null) setDialogState(() => selectedCategory = val);
@@ -322,24 +334,22 @@ class _ExpensesPageState extends State<ExpensesPage> {
                           );
                         },
                       );
-                      if (picked != null) setDialogState(() => selectedDate = picked);
+                      if (picked != null && ctx.mounted) {
+                        setDialogState(() => selectedDate = picked);
+                      }
                     },
-                    child: InputDecorator(
-                      decoration: InputDecoration(
-                        labelText: 'Date',
-                        labelStyle: const TextStyle(color: Colors.white54),
-                        prefixIcon: const Icon(Icons.calendar_today, color: Colors.white38, size: 20),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        focusedBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFF0066CC)),
-                        ),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
-                        _formatDate(selectedDate),
-                        style: const TextStyle(color: Colors.white),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(_formatDate(selectedDate), style: const TextStyle(color: Colors.white)),
+                          const Icon(Icons.calendar_today, color: Color(0xFF0066CC), size: 20),
+                        ],
                       ),
                     ),
                   ),
@@ -354,18 +364,84 @@ class _ExpensesPageState extends State<ExpensesPage> {
             ),
             ElevatedButton(
               onPressed: () async {
-                if (descCtrl.text.trim().isEmpty || amountCtrl.text.trim().isEmpty) return;
-                await _saveExpense(
-                  id: expense?.id,
-                  description: descCtrl.text.trim(),
-                  amount: double.tryParse(amountCtrl.text) ?? 0,
-                  quantity: double.tryParse(qtyCtrl.text),
-                  category: selectedCategory,
-                  timestamp: selectedDate,
-                  recordedBy: 'admin',
-                  isEdit: isEdit,
-                );
-                if (ctx.mounted) Navigator.of(ctx).pop();
+                if (descCtrl.text.trim().isEmpty || amountCtrl.text.trim().isEmpty) {
+                  if (ctx.mounted) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please fill in description and amount'),
+                        backgroundColor: Color(0xFFEF4444),
+                      ),
+                    );
+                  }
+                  return;
+                }
+                
+                try {
+                  final amount = double.tryParse(amountCtrl.text.trim());
+                  if (amount == null) {
+                    if (ctx.mounted) {
+                      ScaffoldMessenger.of(ctx).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please enter a valid amount'),
+                          backgroundColor: Color(0xFFEF4444),
+                        ),
+                      );
+                    }
+                    return;
+                  }
+                  
+                  final quantity = qtyCtrl.text.trim().isEmpty 
+                      ? null 
+                      : double.tryParse(qtyCtrl.text.trim());
+
+                  final currentUser = firebaseAuthProvider.currentUser;
+                  if (currentUser == null) {
+                    if (ctx.mounted) {
+                      ScaffoldMessenger.of(ctx).showSnackBar(
+                        const SnackBar(
+                          content: Text('You must be logged in to save expenses'),
+                          backgroundColor: Color(0xFFEF4444),
+                        ),
+                      );
+                    }
+                    return;
+                  }
+
+                  await _saveExpense(
+                    id: expense?.id,
+                    description: descCtrl.text.trim(),
+                    amount: amount,
+                    quantity: quantity,
+                    category: selectedCategory,
+                    timestamp: selectedDate,
+                    recordedBy: currentUser.email ?? currentUser.uid,
+                    isEdit: isEdit,
+                  );
+                  
+                  if (ctx.mounted) {
+                    Navigator.of(ctx).pop();
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      const SnackBar(
+                        content: Text('Expense saved successfully'),
+                        backgroundColor: Color(0xFF84CC16),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (ctx.mounted) {
+                    String errorMessage = 'Error saving expense: $e';
+                    if (e.toString().contains('permission-denied')) {
+                      errorMessage = 'Permission denied: You may not be logged in or your account lacks the required permissions.';
+                    }
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      SnackBar(
+                        content: Text(errorMessage),
+                        backgroundColor: const Color(0xFFEF4444),
+                      ),
+                    );
+                  }
+                }
+
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF0066CC),
@@ -376,14 +452,15 @@ class _ExpensesPageState extends State<ExpensesPage> {
           ],
         ),
       ),
-    );
+    ).then((_) => setState(() {}));
   }
 
   Widget _buildTextField(TextEditingController ctrl, String label, IconData icon,
-      {TextInputType? keyboardType}) {
+      {TextInputType? keyboardType, List<TextInputFormatter>? inputFormatters}) {
     return TextField(
       controller: ctrl,
       keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         labelText: label,
@@ -414,6 +491,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
     required String recordedBy,
     required bool isEdit,
   }) async {
+    final now = DateTime.now();
     final data = {
       'description': description,
       'amount': amount,
@@ -421,6 +499,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
       'category': category.value,
       'timestamp': Timestamp.fromDate(timestamp),
       'recordedBy': recordedBy,
+      'createdAt': Timestamp.fromDate(now),
     };
     if (isEdit && id != null) {
       await firestore.collection('expenses').doc(id).update(data);

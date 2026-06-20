@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:excel/excel.dart';
-import 'package:flutter/foundation.dart';
 import '../../data/firestore/firestore_provider.dart';
 
 class ImportService {
@@ -174,7 +173,7 @@ class ImportService {
         'id': id,
         'workerId': data[9]?.toString() ?? '',
         'startTime': Timestamp.fromDate(DateTime.parse(data[3]?.toString() ?? DateTime.now().toString())),
-        'endTime': data[4] != null ? Timestamp.fromDate(DateTime.parse(data[4]?.toString())) : null,
+        'endTime': data[4] != null ? Timestamp.fromDate(DateTime.parse(data[4].toString())) : null,
         'status': data[7]?.toString() ?? 'CLOSED',
         'actualCash': (data[0] as num?)?.toDouble(),
         'expectedCash': null,
@@ -194,7 +193,6 @@ class ImportService {
     if (rows.isEmpty) return;
     
     final header = rows.first.map((c) => c?.value?.toString()).toList();
-    final shiftIds = header.skip(1).where((id) => id != null).cast<String>();
     
     int count = 0;
     for (var i = 1; i < rows.length; i++) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/auth/firebase_auth_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../router/app_router.dart';
@@ -16,6 +17,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _rememberMe = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRememberMe();
+  }
+
+  Future<void> _loadRememberMe() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _rememberMe = prefs.getBool('remember_me') ?? false;
+      _emailController.text = prefs.getString('remembered_email') ?? '';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -176,6 +192,28 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
             ),
           ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: Checkbox(
+                  value: _rememberMe,
+                  onChanged: (value) {
+                    setState(() => _rememberMe = value ?? false);
+                  },
+                  activeColor: const Color(0xFF84CC16),
+                  side: const BorderSide(color: Colors.white54),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Remember me',
+                style: const TextStyle(color: Colors.white54, fontSize: 14),
+              ),
+            ],
+          ),
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
@@ -190,17 +228,28 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           _emailController.text.trim(),
                           _passwordController.text,
                         );
+
+                        final prefs = await SharedPreferences.getInstance();
+                        if (_rememberMe) {
+                          await prefs.setBool('remember_me', true);
+                          await prefs.setString('remembered_email', _emailController.text.trim());
+                        } else {
+                          await prefs.remove('remember_me');
+                          await prefs.remove('remembered_email');
+                        }
                         // Successful sign‑in will trigger authStateProvider and router redirect.
                       } on FirebaseAuthException catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                               e.code == 'invalid-api-key'
-                                   ? 'Invalid API key – check the Firebase console for restrictions and ensure localhost is an authorized domain.'
-                                   : '${e.code}: ${e.message ?? 'Sign‑in failed'}',
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                e.code == 'invalid-api-key'
+                                    ? 'Invalid API key – check the Firebase console for restrictions and ensure localhost is an authorized domain.'
+                                    : '${e.code}: ${e.message ?? 'Sign‑in failed'}',
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        }
                       } finally {
                         if (mounted) setState(() => _isLoading = false);
                       }
