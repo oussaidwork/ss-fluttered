@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../router/app_router.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../presentation/providers/theme_provider.dart';
 
 class Sidebar extends ConsumerWidget {
   const Sidebar({super.key});
@@ -191,11 +192,40 @@ class Sidebar extends ConsumerWidget {
                       route: AppRoutes.settings,
                       currentPath: currentPath,
                     ),
+                    _NavItem(
+                      icon: Icons.admin_panel_settings,
+                      label: 'Setup Users',
+                      route: AppRoutes.adminSetup,
+                      currentPath: currentPath,
+                    ),
                   ],
                 ),
               ],
             ),
           ),
+          const Divider(color: Colors.white12, height: 1),
+          ListTile(
+            leading: Icon(
+              ref.watch(themeModeProvider) == ThemeMode.dark
+                  ? Icons.dark_mode
+                  : Icons.light_mode,
+              size: 20,
+              color: Colors.white54,
+            ),
+            title: Text(
+              ref.watch(themeModeProvider) == ThemeMode.dark ? 'Dark Mode' : 'Light Mode',
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
+            ),
+            trailing: Switch(
+              value: ref.watch(themeModeProvider) == ThemeMode.dark,
+              onChanged: (_) => ref.read(themeModeProvider.notifier).toggleTheme(),
+              activeTrackColor: const Color(0xFF84CC16),
+            ),
+            dense: true,
+            onTap: () => ref.read(themeModeProvider.notifier).toggleTheme(),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          ),
+          const Divider(color: Colors.white12, height: 1),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(

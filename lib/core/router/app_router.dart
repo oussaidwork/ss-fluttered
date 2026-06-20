@@ -18,6 +18,7 @@ import '../presentation/pages/reports_page.dart';
 import '../presentation/pages/system_logs_page.dart';
 import '../presentation/pages/settings_page.dart';
 import '../presentation/pages/pos_page.dart';
+import '../presentation/pages/admin_setup_page.dart';
 
 abstract class AppRoutes {
   static const login = '/login';
@@ -43,6 +44,7 @@ abstract class AppRoutes {
   static const reports = '/reports';
   static const systemLogs = '/system-logs';
   static const settings = '/settings';
+  static const adminSetup = '/admin/setup';
 }
 
 GoRouter createRouter({required bool isAuthenticated}) {
@@ -102,6 +104,7 @@ GoRouter createRouter({required bool isAuthenticated}) {
           GoRoute(path: AppRoutes.reports, builder: (_, _) => const ReportsPage()),
           GoRoute(path: AppRoutes.systemLogs, builder: (_, _) => const SystemLogsPage()),
           GoRoute(path: AppRoutes.settings, builder: (_, _) => const SettingsPage()),
+          GoRoute(path: AppRoutes.adminSetup, builder: (_, _) => const AdminSetupPage()),
         ],
       ),
     ],

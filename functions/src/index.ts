@@ -163,3 +163,83 @@ export const onUserDelete = functions.auth
       functions.logger.warn(`Could not soft-delete user profile for ${uid}: ${e}`);
     }
   });
+
+// ────────────────────────────────────────────────────────────────
+// 5. Bootstrap Users — one-time HTTP function to seed initial accounts
+// ────────────────────────────────────────────────────────────────
+const BOOTSTRAP_SECRET = 'ss-ragrama-bootstrap-2026';
+
+interface UserSeed {
+  email: string;
+  password: string;
+  displayName: string;
+  role: string;
+}
+
+export const createBootstrapUsers = functions.https.onRequest(async (req, res) => {
+  // CORS headers
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'POST');
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method Not Allowed' });
+    return;
+  }
+
+  const { secret, users } = req.body as { secret: string; users: UserSeed[] };
+
+  if (secret !== BOOTSTRAP_SECRET) {
+    res.status(403).json({ error: 'Invalid bootstrap secret' });
+    return;
+  }
+
+  if (!Array.isArray(users) || users.length === 0) {
+    res.status(400).json({ error: 'Provide a non-empty users array' });
+    return;
+  }
+
+  const results: Array<{ email: string; uid?: string; status: string; error?: string }> = [];
+
+  for (const user of users) {
+    try {
+      // 1. Create Firebase Auth user
+      const authUser = await admin.auth().createUser({
+        email: user.email,
+        password: user.password,
+        displayName: user.displayName,
+        emailVerified: false,
+        disabled: false,
+      });
+
+      // 2. Set custom claims (role)
+      await admin.auth().setCustomUserClaims(authUser.uid, { role: user.role });
+
+      // 3. Create Firestore user profile
+      await db.collection('users').doc(authUser.uid).set({
+        fullName: user.displayName,
+        email: user.email,
+        role: user.role,
+        isActive: true,
+        monthlySalary: null,
+        isDeleted: false,
+      });
+
+      results.push({ email: user.email, uid: authUser.uid, status: 'created' });
+      functions.logger.info(`Created user: ${user.email} (${user.role})`);
+    } catch (e: any) {
+      results.push({ email: user.email, status: 'error', error: e.message });
+      functions.logger.error(`Failed to create ${user.email}: ${e.message}`);
+    }
+  }
+
+  const created = results.filter((r) => r.status === 'created').length;
+  const failed = results.filter((r) => r.status === 'error').length;
+
+  res.status(200).json({ created, failed, results });
+});

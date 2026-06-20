@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'core/router/app_router.dart';
-import 'core/theme/app_theme.dart';
+import 'core/theme/theme.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/locale_provider.dart';
+import 'presentation/providers/theme_provider.dart';
 import 'l10n/app_localizations.dart';
 
 bool _firebaseInitFailed = false;
@@ -39,6 +40,7 @@ class MyApp extends ConsumerWidget {
 
     final authState = ref.watch(authStateProvider);
     final locale = ref.watch(localeProvider);
+    final themeMode = ref.watch(themeModeProvider);
     final textDirection = locale.languageCode == 'ar'
         ? TextDirection.rtl
         : TextDirection.ltr;
@@ -47,7 +49,7 @@ class MyApp extends ConsumerWidget {
     final bool isAuthenticated = authState.when(
       data: (user) => user != null,
       loading: () => false,
-      error: (_, __) => false,
+      error: (_, _) => false,
     );
 
     return MaterialApp.router(
@@ -57,7 +59,7 @@ class MyApp extends ConsumerWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.dark,
+      themeMode: themeMode,
       routerConfig: createRouter(isAuthenticated: isAuthenticated),
       debugShowCheckedModeBanner: false,
       builder: (context, child) {
