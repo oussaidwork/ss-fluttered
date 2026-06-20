@@ -1,9 +1,101 @@
-import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../data/firestore/firestore_provider.dart';
+// ignore_for_file: deprecated_member_use, avoid_web_libraries_in_flutter
 
-class ReportsPage extends StatelessWidget {
+import 'dart:html' as html;
+import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import '../../services/pdf_report_service.dart';
+
+/// Report type definition with metadata.
+class _ReportType {
+  final String title;
+  final String description;
+  final IconData icon;
+  final Color color;
+  final bool requiresDateRange;
+
+  const _ReportType({
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.color,
+    this.requiresDateRange = true,
+  });
+}
+
+const _reportTypes = [
+  _ReportType(
+    title: 'Sales Report',
+    description: 'Detailed breakdown of all sales by period',
+    icon: Icons.receipt_long,
+    color: Color(0xFF0066CC),
+  ),
+  _ReportType(
+    title: 'Shift Summary',
+    description: 'Per-shift performance with cash reconciliation',
+    icon: Icons.schedule,
+    color: Color(0xFF8B5CF6),
+  ),
+  _ReportType(
+    title: 'Debts Report',
+    description: 'Outstanding debts by client with due dates',
+    icon: Icons.money_off,
+    color: Color(0xFFEF4444),
+    requiresDateRange: false,
+  ),
+  _ReportType(
+    title: 'Payments Settlement',
+    description: 'Payment history and settlement status',
+    icon: Icons.payments,
+    color: Color(0xFF84CC16),
+  ),
+  _ReportType(
+    title: 'Pump Indexes',
+    description: 'Current pump counter readings for all nozzles',
+    icon: Icons.speed,
+    color: Color(0xFF06B6D4),
+    requiresDateRange: false,
+  ),
+  _ReportType(
+    title: 'Pit Refill',
+    description: 'Fuel tank refill history and volume tracking',
+    icon: Icons.local_shipping,
+    color: Color(0xFFF59E0B),
+  ),
+  _ReportType(
+    title: 'Fuel Price History',
+    description: 'Price changes over time for all fuel types',
+    icon: Icons.trending_up,
+    color: Color(0xFF84CC16),
+    requiresDateRange: false,
+  ),
+  _ReportType(
+    title: 'Audit Log',
+    description: 'System activity log with user actions',
+    icon: Icons.security,
+    color: Colors.white54,
+  ),
+  _ReportType(
+    title: 'Statistics',
+    description: 'Aggregate metrics: totals, averages, and counts',
+    icon: Icons.analytics,
+    color: Color(0xFF0066CC),
+    requiresDateRange: false,
+  ),
+];
+
+class ReportsPage extends StatefulWidget {
   const ReportsPage({super.key});
+
+  @override
+  State<ReportsPage> createState() => _ReportsPageState();
+}
+
+class _ReportsPageState extends State<ReportsPage> {
+  DateTime _from = DateTime.now().subtract(const Duration(days: 30));
+  DateTime _to = DateTime.now();
+  bool _isGenerating = false;
+  String? _generatingTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -12,117 +104,173 @@ class ReportsPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header
           Row(
             children: [
               const Icon(Icons.assessment, color: Color(0xFF0066CC), size: 28),
               const SizedBox(width: 12),
               const Text(
                 'Reports Hub',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
               ),
             ],
           ),
+          const SizedBox(height: 20),
+
+          // Date range filter
+          _buildDateRangeFilter(),
           const SizedBox(height: 24),
+
+          // Report grid
           Expanded(
-            child: GridView.count(
-              crossAxisCount: 3,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              childAspectRatio: 1.4,
-              children: [
-                _buildReportCard(
-                  context,
-                  icon: Icons.speed,
-                  title: 'Pump Indexes',
-                  description: 'Current and historical pump readings for all nozzles',
-                  color: const Color(0xFF0066CC),
-                  onTap: () => _generateReport(context, 'Pump Indexes', 'pump_indexes'),
-                ),
-                _buildReportCard(
-                  context,
-                  icon: Icons.local_gas_station,
-                  title: 'Sales Report',
-                  description: 'Detailed breakdown of all sales by period and type',
-                  color: const Color(0xFF84CC16),
-                  onTap: () => _generateReport(context, 'Sales Report', 'sales'),
-                ),
-                _buildReportCard(
-                  context,
-                  icon: Icons.money_off,
-                  title: 'Debts Report',
-                  description: 'Outstanding debts by client with due dates',
-                  color: const Color(0xFFEF4444),
-                  onTap: () => _generateReport(context, 'Debts Report', 'debts'),
-                ),
-                _buildReportCard(
-                  context,
-                  icon: Icons.payments,
-                  title: 'Payments Settlement',
-                  description: 'Payment history and settlement status by client',
-                  color: const Color(0xFF84CC16),
-                  onTap: () => _generateReport(context, 'Payments Settlement', 'payments'),
-                ),
-                _buildReportCard(
-                  context,
-                  icon: Icons.local_shipping,
-                  title: 'Pit Refill',
-                  description: 'Fuel tank refill history and volume tracking',
-                  color: const Color(0xFF06B6D4),
-                  onTap: () => _generateReport(context, 'Pit Refill', 'pit_refill'),
-                ),
-                _buildReportCard(
-                  context,
-                  icon: Icons.trending_up,
-                  title: 'Fuel Price History',
-                  description: 'Price changes over time for all fuel types',
-                  color: const Color(0xFFF59E0B),
-                  onTap: () => _generateReport(context, 'Fuel Price History', 'fuel_prices'),
-                ),
-                _buildReportCard(
-                  context,
-                  icon: Icons.security,
-                  title: 'Audit Log',
-                  description: 'System activity log with user actions and timestamps',
-                  color: Colors.white54,
-                  onTap: () => _generateReport(context, 'Audit Log', 'log_entries'),
-                ),
-                _buildReportCard(
-                  context,
-                  icon: Icons.schedule,
-                  title: 'Shift Summary',
-                  description: 'Per-shift performance with sales and cash reconciliation',
-                  color: const Color(0xFF8B5CF6),
-                  onTap: () => _generateReport(context, 'Shift Summary', 'work_shifts'),
-                ),
-                _buildReportCard(
-                  context,
-                  icon: Icons.analytics,
-                  title: 'Statistics',
-                  description: 'Aggregate metrics: daily averages, trends, and comparisons',
-                  color: const Color(0xFF0066CC),
-                  onTap: () => _showStatisticsDialog(context),
-                ),
-              ],
-            ),
+            child: _isGenerating
+                ? _buildLoadingState()
+                : GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 16,
+                      childAspectRatio: 1.4,
+                    ),
+                    itemCount: _reportTypes.length,
+                    itemBuilder: (ctx, idx) =>
+                        _buildReportCard(_reportTypes[idx]),
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildReportCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String description,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildDateRangeFilter() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A2332),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.date_range, color: Color(0xFF0066CC), size: 20),
+          const SizedBox(width: 12),
+          const Text('Period:', style: TextStyle(color: Colors.white54)),
+          const SizedBox(width: 12),
+          _dateChip(_from, isFrom: true),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Text('—', style: TextStyle(color: Colors.white54)),
+          ),
+          _dateChip(_to, isFrom: false),
+          const Spacer(),
+          // Quick presets
+          _presetChip('7 Days', 7),
+          const SizedBox(width: 6),
+          _presetChip('30 Days', 30),
+          const SizedBox(width: 6),
+          _presetChip('90 Days', 90),
+        ],
+      ),
+    );
+  }
+
+  Widget _dateChip(DateTime date, {required bool isFrom}) {
+    return InkWell(
+      onTap: () async {
+        final picked = await showDatePicker(
+          context: context,
+          initialDate: date,
+          firstDate: DateTime(2020),
+          lastDate: DateTime.now(),
+          builder: (ctx, child) => Theme(
+            data: Theme.of(ctx).copyWith(
+              colorScheme: const ColorScheme.dark(
+                primary: Color(0xFF0066CC),
+                surface: Color(0xFF1A2332),
+              ),
+            ),
+            child: child!,
+          ),
+        );
+        if (picked != null) {
+          setState(() {
+            if (isFrom) {
+              _from = picked;
+            } else {
+              _to = picked;
+            }
+          });
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0066CC).withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _formatDate(date),
+              style: const TextStyle(
+                  color: Color(0xFF0066CC),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13),
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.edit_calendar,
+                size: 14, color: Color(0xFF0066CC)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _presetChip(String label, int days) {
+    final isActive = _to == DateTime.now() &&
+        _from == DateTime.now().subtract(Duration(days: days));
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _to = DateTime.now();
+          _from = DateTime.now().subtract(Duration(days: days));
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: isActive
+              ? const Color(0xFF0066CC).withValues(alpha: 0.2)
+              : Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isActive
+                ? const Color(0xFF0066CC)
+                : Colors.white.withValues(alpha: 0.1),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isActive ? const Color(0xFF0066CC) : Colors.white54,
+            fontSize: 12,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReportCard(_ReportType type) {
     return Card(
       color: const Color(0xFF1A2332),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
-        onTap: onTap,
+        onTap: _isGenerating ? null : () => _generateReport(type),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -134,18 +282,19 @@ class ReportsPage extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.15),
+                      color: type.color.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(icon, color: color, size: 24),
+                    child: Icon(type.icon, color: type.color, size: 24),
                   ),
                   const Spacer(),
-                  Icon(Icons.arrow_forward_ios, color: Colors.white24, size: 16),
+                  Icon(Icons.arrow_forward_ios,
+                      color: Colors.white24, size: 16),
                 ],
               ),
               const Spacer(),
               Text(
-                title,
+                type.title,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -154,7 +303,7 @@ class ReportsPage extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                description,
+                type.description,
                 style: const TextStyle(color: Colors.white54, fontSize: 12),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -166,220 +315,145 @@ class ReportsPage extends StatelessWidget {
     );
   }
 
-  void _generateReport(BuildContext context, String title, String collection) {
-    showDialog(
-      context: context,
-      builder: (ctx) => _ReportPreviewDialog(title: title, collection: collection),
-    );
-  }
-
-  void _showStatisticsDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => _StatisticsDialog(),
-    );
-  }
-}
-
-class _ReportPreviewDialog extends StatelessWidget {
-  final String title;
-  final String collection;
-  const _ReportPreviewDialog({required this.title, required this.collection});
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: const Color(0xFF1A2332),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Row(
+  Widget _buildLoadingState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.assessment, color: Color(0xFF0066CC), size: 22),
-          const SizedBox(width: 8),
-          Expanded(child: Text(title, style: const TextStyle(color: Colors.white))),
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.white54, size: 20),
-            onPressed: () => Navigator.of(context).pop(),
+          const SizedBox(
+            width: 48,
+            height: 48,
+            child: CircularProgressIndicator(
+                strokeWidth: 3, color: Color(0xFF0066CC)),
           ),
-        ],
-      ),
-      content: SizedBox(
-        width: 600,
-        height: 400,
-        child: StreamBuilder<QuerySnapshot>(
-          stream: firestore.collection(collection).limit(50).snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator(color: Color(0xFF0066CC)));
-            }
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.inbox, size: 48, color: Colors.white24),
-                    const SizedBox(height: 12),
-                    Text(
-                      'No data available for $title',
-                      style: const TextStyle(color: Colors.white54),
-                    ),
-                  ],
-                ),
-              );
-            }
-            final docs = snapshot.data!.docs;
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        '${docs.length} records found',
-                        style: const TextStyle(color: Colors.white70),
-                      ),
-                      const Spacer(),
-                      TextButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.download, size: 16, color: Color(0xFF0066CC)),
-                        label: const Text('Export', style: TextStyle(color: Color(0xFF0066CC))),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: docs.length,
-                    itemBuilder: (ctx, idx) {
-                      final data = docs[idx].data() as Map<String, dynamic>;
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 6),
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.03),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          data.entries.map((e) => '${e.key}: ${e.value ?? "--"}').join('  |  '),
-                          style: const TextStyle(color: Colors.white70, fontSize: 12),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close', style: TextStyle(color: Colors.white54)),
-        ),
-      ],
-    );
-  }
-}
-
-class _StatisticsDialog extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: const Color(0xFF1A2332),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Row(
-        children: [
-          const Icon(Icons.analytics, color: Color(0xFF0066CC), size: 22),
-          const SizedBox(width: 8),
-          const Text('Statistics Overview', style: TextStyle(color: Colors.white)),
-          const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.white54, size: 20),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
-      content: SizedBox(
-        width: 500,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              StreamBuilder<QuerySnapshot>(
-                stream: firestore.collection('sales').where('isDeleted', isEqualTo: false).snapshots(),
-                builder: (ctx, salesSnap) {
-                  return StreamBuilder<QuerySnapshot>(
-                    stream: firestore.collection('clients').where('isDeleted', isEqualTo: false).snapshots(),
-                    builder: (ctx, clientsSnap) {
-                      return StreamBuilder<QuerySnapshot>(
-                        stream: firestore.collection('work_shifts').snapshots(),
-                        builder: (ctx, shiftsSnap) {
-                          final salesCount = salesSnap.data?.docs.length ?? 0;
-                          final clientsCount = clientsSnap.data?.docs.length ?? 0;
-                          final shiftsCount = shiftsSnap.data?.docs.length ?? 0;
-                          double totalRevenue = 0;
-                          if (salesSnap.hasData) {
-                            for (final doc in salesSnap.data!.docs) {
-                              final data = doc.data() as Map<String, dynamic>;
-                              totalRevenue += (data['totalPrice'] as num?)?.toDouble() ?? 0;
-                            }
-                          }
-                          return Column(
-                            children: [
-                              _statTile('Total Sales', '$salesCount', const Color(0xFF0066CC)),
-                              const SizedBox(height: 8),
-                              _statTile('Total Revenue', '${totalRevenue.toStringAsFixed(2)} DA', const Color(0xFF84CC16)),
-                              const SizedBox(height: 8),
-                              _statTile('Clients', '$clientsCount', const Color(0xFFF59E0B)),
-                              const SizedBox(height: 8),
-                              _statTile('Shifts Completed', '$shiftsCount', const Color(0xFF8B5CF6)),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close', style: TextStyle(color: Colors.white54)),
-        ),
-      ],
-    );
-  }
-
-  Widget _statTile(String label, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: [
-          Text(label, style: const TextStyle(color: Colors.white70)),
-          const Spacer(),
+          const SizedBox(height: 20),
           Text(
-            value,
-            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 18),
+            'Generating $_generatingTitle...',
+            style: const TextStyle(color: Colors.white70, fontSize: 16),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Please wait while we compile your report',
+            style: TextStyle(color: Colors.white38, fontSize: 13),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _generateReport(_ReportType type) async {
+    setState(() {
+      _isGenerating = true;
+      _generatingTitle = type.title;
+    });
+
+    try {
+      Uint8List pdfBytes;
+
+      switch (type.title) {
+        case 'Sales Report':
+          pdfBytes = await PdfReportService.generateSalesReport(
+            from: _from,
+            to: _to,
+          );
+          break;
+        case 'Shift Summary':
+          pdfBytes = await PdfReportService.generateShiftReport(
+            from: _from,
+            to: _to,
+          );
+          break;
+        case 'Debts Report':
+          pdfBytes = await PdfReportService.generateDebtsReport();
+          break;
+        case 'Payments Settlement':
+          pdfBytes = await PdfReportService.generatePaymentsReport(
+            from: _from,
+            to: _to,
+          );
+          break;
+        case 'Pump Indexes':
+          pdfBytes = await PdfReportService.generatePumpIndexReport();
+          break;
+        case 'Pit Refill':
+          pdfBytes = await PdfReportService.generatePitRefillReport(
+            from: _from,
+            to: _to,
+          );
+          break;
+        case 'Fuel Price History':
+          pdfBytes = await PdfReportService.generateFuelPriceReport();
+          break;
+        case 'Audit Log':
+          pdfBytes = await PdfReportService.generateAuditLogReport(
+            from: _from,
+            to: _to,
+          );
+          break;
+        case 'Statistics':
+          pdfBytes = await PdfReportService.generateStatisticsReport();
+          break;
+        default:
+          throw Exception('Unknown report type: ${type.title}');
+      }
+
+      _downloadPdf(pdfBytes, type.title);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${type.title} downloaded successfully'),
+            backgroundColor: const Color(0xFF84CC16),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error generating report: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGenerating = false;
+          _generatingTitle = null;
+        });
+      }
+    }
+  }
+
+  void _downloadPdf(Uint8List bytes, String title) {
+    if (!kIsWeb) {
+      // For native platforms, we'd use path_provider + file write
+      return;
+    }
+
+    final safeTitle = title.replaceAll(RegExp(r'[^\w\s]'), '').replaceAll(' ', '_');
+    final filename =
+        'SS_RAGRAGA_${safeTitle}_${_formatFileDate(DateTime.now())}.pdf';
+
+    final blob = html.Blob([bytes], 'application/pdf');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.AnchorElement(href: url)
+      ..target = 'blank'
+      ..download = filename;
+    anchor.click();
+    html.Url.revokeObjectUrl(url);
+  }
+
+  String _formatDate(DateTime dt) {
+    return '${dt.day.toString().padLeft(2, '0')}/'
+        '${dt.month.toString().padLeft(2, '0')}/'
+        '${dt.year}';
+  }
+
+  String _formatFileDate(DateTime dt) {
+    return '${dt.year}-'
+        '${dt.month.toString().padLeft(2, '0')}-'
+        '${dt.day.toString().padLeft(2, '0')}';
   }
 }
