@@ -254,7 +254,7 @@ class ImportService {
         'clientId': data[0]?.toString(),
         'workerId': data[21]?.toString(),
         'paymentTypeId': data[10]?.toString(),
-        'totalAmount': (data[16] as num?)?.toDouble() ?? 0.0,
+        'totalPrice': (data[16] as num?)?.toDouble() ?? 0.0,
         'notes': data[9]?.toString(),
         'timestamp': Timestamp.fromDate(DateTime.parse(data[15]?.toString() ?? DateTime.now().toString())),
         'isDeleted': false,

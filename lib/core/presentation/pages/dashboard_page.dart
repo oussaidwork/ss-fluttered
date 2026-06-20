@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/editorial_ticker_bar.dart';
+import '../widgets/fab_speed_dial.dart';
 import '../../../../presentation/providers/auth_provider.dart';
 import '../../../data/auth/firebase_auth_provider.dart';
 import '../../router/app_router.dart';
@@ -24,6 +25,7 @@ class DashboardPage extends ConsumerWidget {
             Expanded(child: child),
           ],
         ),
+        floatingActionButton: const FabSpeedDial(),
       );
     }
 
@@ -96,6 +98,7 @@ class DashboardPage extends ConsumerWidget {
         ],
       ),
       body: child,
+      floatingActionButton: const FabSpeedDial(),
     );
   }
 }

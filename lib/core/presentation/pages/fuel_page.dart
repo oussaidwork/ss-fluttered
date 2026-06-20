@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../data/firestore/firestore_provider.dart';
 
@@ -46,6 +47,7 @@ class _FuelPageState extends State<FuelPage> {
                     TextField(
                       controller: priceInCtrl,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
                       style: const TextStyle(color: Colors.white),
                       decoration: const InputDecoration(
                         labelText: 'Price In (MAD/L)',
@@ -57,6 +59,7 @@ class _FuelPageState extends State<FuelPage> {
                     TextField(
                       controller: priceOutCtrl,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
                       style: const TextStyle(color: Colors.white),
                       decoration: const InputDecoration(
                         labelText: 'Price Out (MAD/L)',

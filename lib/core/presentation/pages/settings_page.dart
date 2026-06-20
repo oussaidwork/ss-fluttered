@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../presentation/providers/locale_provider.dart';
+import '../../router/app_router.dart';
 
-class SettingsPage extends StatefulWidget {
+class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
 
   @override
-  State<SettingsPage> createState() => _SettingsPageState();
+  ConsumerState<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
-  String _selectedLanguage = 'EN';
+class _SettingsPageState extends ConsumerState<SettingsPage> {
   bool _isDarkMode = true;
 
   @override
   Widget build(BuildContext context) {
+    final currentLocale = ref.watch(localeProvider);
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: SingleChildScrollView(
@@ -31,7 +36,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 32),
             _buildSection('Language', Icons.language, [
-              _buildLanguageSelector(),
+              _buildLanguageSelector(currentLocale),
             ]),
             const SizedBox(height: 24),
             _buildSection('Appearance', Icons.palette, [
@@ -82,62 +87,62 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildLanguageSelector() {
+  Widget _buildLanguageSelector(Locale currentLocale) {
     final languages = [
-      ('EN', 'English', '🇺🇸'),
-      ('FR', 'Francais', '🇫🇷'),
-      ('AR', 'العربية', '🇩🇿'),
+      (const Locale('en'), 'English', '🇺🇸'),
+      (const Locale('fr'), 'Français', '🇫🇷'),
+      (const Locale('ar'), 'العربية', '🇩🇿'),
     ];
-    return Row(
+    return Wrap(
+      spacing: 12,
+      runSpacing: 8,
       children: languages.map((lang) {
-        final selected = _selectedLanguage == lang.$1;
-        return Padding(
-          padding: const EdgeInsets.only(right: 12),
-          child: InkWell(
-            onTap: () => setState(() => _selectedLanguage = lang.$1),
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
+        final selected = currentLocale.languageCode == lang.$1.languageCode;
+        return InkWell(
+          onTap: () => ref.read(localeProvider.notifier).setLocale(lang.$1),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            decoration: BoxDecoration(
+              color: selected
+                  ? const Color(0xFF0066CC).withValues(alpha: 0.15)
+                  : Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
                 color: selected
-                    ? const Color(0xFF0066CC).withValues(alpha: 0.15)
-                    : Colors.white.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: selected
-                      ? const Color(0xFF0066CC)
-                      : Colors.white.withValues(alpha: 0.1),
-                ),
+                    ? const Color(0xFF0066CC)
+                    : Colors.white.withValues(alpha: 0.1),
               ),
-              child: Row(
-                children: [
-                  Text(lang.$3, style: const TextStyle(fontSize: 20)),
-                  const SizedBox(width: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        lang.$2,
-                        style: TextStyle(
-                          color: selected ? Colors.white : Colors.white70,
-                          fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                        ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(lang.$3, style: const TextStyle(fontSize: 20)),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      lang.$2,
+                      style: TextStyle(
+                        color: selected ? Colors.white : Colors.white70,
+                        fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                       ),
-                      Text(
-                        lang.$1,
-                        style: TextStyle(
-                          color: selected ? const Color(0xFF0066CC) : Colors.white38,
-                          fontSize: 11,
-                        ),
+                    ),
+                    Text(
+                      lang.$1.languageCode.toUpperCase(),
+                      style: TextStyle(
+                        color: selected ? const Color(0xFF0066CC) : Colors.white38,
+                        fontSize: 11,
                       ),
-                    ],
-                  ),
-                  if (selected) ...[
-                    const SizedBox(width: 8),
-                    const Icon(Icons.check_circle, color: Color(0xFF0066CC), size: 18),
+                    ),
                   ],
+                ),
+                if (selected) ...[
+                  const SizedBox(width: 8),
+                  const Icon(Icons.check_circle, color: Color(0xFF0066CC), size: 18),
                 ],
-              ),
+              ],
             ),
           ),
         );
@@ -237,7 +242,7 @@ class _SettingsPageState extends State<SettingsPage> {
           title: 'Import Data',
           subtitle: 'Import data from a backup file',
           color: const Color(0xFF0066CC),
-          onTap: () => _showComingSoon('Data Import'),
+          onTap: () => context.go(AppRoutes.importData),
         ),
         const SizedBox(height: 10),
         _buildActionTile(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../data/firestore/firestore_provider.dart';
 import '../../../domain/entities/gas_type.dart';
@@ -141,7 +142,7 @@ class _PosPageState extends State<PosPage> with TickerProviderStateMixin {
 
     try {
       final now = DateTime.now();
-      final totalAmount =
+      final totalPrice =
           _cart.fold<double>(0, (total, item) => total + item.lineTotal);
       final saleId = firestore.collection('sales').doc().id;
 
@@ -152,7 +153,7 @@ class _PosPageState extends State<PosPage> with TickerProviderStateMixin {
         'clientId': _selectedClientId,
         'workerId': null, // will be set to current user in future
         'paymentTypeId': _selectedPaymentTypeId,
-        'totalAmount': totalAmount,
+        'totalPrice': totalPrice,
         'notes': null,
         'timestamp': Timestamp.fromDate(now),
         'isDeleted': false,
@@ -208,7 +209,7 @@ class _PosPageState extends State<PosPage> with TickerProviderStateMixin {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Sale recorded: ${totalAmount.toStringAsFixed(2)} DA'),
+            content: Text('Sale recorded: ${totalPrice.toStringAsFixed(2)} DA'),
             backgroundColor: const Color(0xFF84CC16),
           ),
         );
@@ -399,6 +400,7 @@ class _PosPageState extends State<PosPage> with TickerProviderStateMixin {
                     child: TextField(
                       controller: _volumeController,
                       keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
                       style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
                         labelText: 'Volume (Liters)',
@@ -621,6 +623,7 @@ class _PosPageState extends State<PosPage> with TickerProviderStateMixin {
                       child: TextField(
                         controller: _quantityController,
                         keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                         style: const TextStyle(color: Colors.white),
                         decoration: const InputDecoration(
                           isDense: true,

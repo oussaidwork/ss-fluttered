@@ -390,7 +390,7 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
                 if (salesSnap.hasData) {
                   for (final doc in salesSnap.data!.docs) {
                     final data = doc.data() as Map<String, dynamic>;
-                    totalSales += (data['totalAmount'] as num?)?.toDouble() ?? 0;
+                    totalSales += (data['totalPrice'] as num?)?.toDouble() ?? 0;
                   }
                 }
                 if (paymentsSnap.hasData) {
@@ -679,7 +679,7 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
   String _txnAmount(_TransactionItem item) {
     switch (item.type) {
       case 'SALE':
-        return '+${item.sale!.totalAmount.toStringAsFixed(2)} DA';
+        return '+${item.sale!.totalPrice.toStringAsFixed(2)} DA';
       case 'PAYMENT':
         return '+${item.payment!.amount.toStringAsFixed(2)} DA';
       case 'DEBT':
@@ -719,7 +719,7 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _detailRow('Total', '${s.totalAmount.toStringAsFixed(2)} DA'),
+        _detailRow('Total', '${s.totalPrice.toStringAsFixed(2)} DA'),
         if (s.paymentTypeId != null) _detailRow('Payment Method', s.paymentTypeId!),
         if (s.notes != null && s.notes!.isNotEmpty) _detailRow('Notes', s.notes!),
         // Show client name in sale details when not filtered by client

@@ -24,6 +24,8 @@ class FirestorePaths {
   static const String logs = 'logs';
   static const String appPermissions = 'appPermissions';
   static const String users = 'users';
+  static const String clientFleet = 'clientFleet';
+  static const String saleItems = 'saleItems';
 
   /// Returns a Firestore document reference path: collection/docId
   static String docPath(String collection, String docId) => '$collection/$docId';

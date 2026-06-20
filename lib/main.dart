@@ -5,6 +5,8 @@ import 'firebase_options.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'presentation/providers/auth_provider.dart';
+import 'presentation/providers/locale_provider.dart';
+import 'l10n/app_localizations.dart';
 
 bool _firebaseInitFailed = false;
 
@@ -36,15 +38,34 @@ class MyApp extends ConsumerWidget {
     }
 
     final authState = ref.watch(authStateProvider);
+    final locale = ref.watch(localeProvider);
+    final textDirection = locale.languageCode == 'ar'
+        ? TextDirection.rtl
+        : TextDirection.ltr;
+
     // If the stream has data and a non‑null user, consider the user authenticated.
-    final bool isAuthenticated = authState.when(data: (user) => user != null, loading: () => false, error: (_, __) => false);
+    final bool isAuthenticated = authState.when(
+      data: (user) => user != null,
+      loading: () => false,
+      error: (_, __) => false,
+    );
+
     return MaterialApp.router(
       title: 'SS-RAGRAGA Station OS',
+      locale: locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.dark,
       routerConfig: createRouter(isAuthenticated: isAuthenticated),
       debugShowCheckedModeBanner: false,
+      builder: (context, child) {
+        return Directionality(
+          textDirection: textDirection,
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }
