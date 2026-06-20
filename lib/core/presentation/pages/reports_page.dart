@@ -1,9 +1,6 @@
-// ignore_for_file: deprecated_member_use, avoid_web_libraries_in_flutter
-
-import 'dart:html' as html;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:printing/printing.dart';
 import '../../services/pdf_report_service.dart';
 
 /// Report type definition with metadata.
@@ -426,23 +423,25 @@ class _ReportsPageState extends State<ReportsPage> {
     }
   }
 
-  void _downloadPdf(Uint8List bytes, String title) {
-    if (!kIsWeb) {
-      // For native platforms, we'd use path_provider + file write
-      return;
-    }
-
+  void _downloadPdf(Uint8List bytes, String title) async {
     final safeTitle = title.replaceAll(RegExp(r'[^\w\s]'), '').replaceAll(' ', '_');
-    final filename =
-        'SS_RAGRAGA_${safeTitle}_${_formatFileDate(DateTime.now())}.pdf';
+    final filename = 'SS_RAGRAGA_${safeTitle}_${_formatFileDate(DateTime.now())}.pdf';
 
-    final blob = html.Blob([bytes], 'application/pdf');
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    final anchor = html.AnchorElement(href: url)
-      ..target = 'blank'
-      ..download = filename;
-    anchor.click();
-    html.Url.revokeObjectUrl(url);
+    try {
+      await Printing.sharePdf(
+        bytes: bytes,
+        filename: filename,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not save report: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
+    }
   }
 
   String _formatDate(DateTime dt) {

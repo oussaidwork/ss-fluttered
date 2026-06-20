@@ -535,7 +535,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
       ),
     );
     if (confirmed == true) {
-      await firestore.collection('expenses').doc(expense.id).delete();
+      await firestore.collection('expenses').doc(expense.id).update({'isDeleted': true});
     }
   }
 

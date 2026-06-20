@@ -92,6 +92,12 @@ class Sidebar extends ConsumerWidget {
                   title: l10n.sectionOperations,
                   items: [
                     _NavItem(
+                      icon: Icons.play_circle,
+                      label: 'My Shift',
+                      route: AppRoutes.myShift,
+                      currentPath: currentPath,
+                    ),
+                    _NavItem(
                       icon: Icons.point_of_sale,
                       label: l10n.posSale,
                       route: AppRoutes.pos,
@@ -178,6 +184,12 @@ class Sidebar extends ConsumerWidget {
                       icon: Icons.group,
                       label: l10n.workers,
                       route: AppRoutes.workers,
+                      currentPath: currentPath,
+                    ),
+                    _NavItem(
+                      icon: Icons.shield,
+                      label: 'Role Management',
+                      route: AppRoutes.roleManagement,
                       currentPath: currentPath,
                     ),
                     _NavItem(

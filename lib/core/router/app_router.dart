@@ -19,11 +19,14 @@ import '../presentation/pages/system_logs_page.dart';
 import '../presentation/pages/settings_page.dart';
 import '../presentation/pages/pos_page.dart';
 import '../presentation/pages/admin_setup_page.dart';
+import '../presentation/pages/my_shift_page.dart';
+import '../presentation/pages/role_management_page.dart';
 
 abstract class AppRoutes {
   static const login = '/login';
   static const signup = '/signup';
   static const dashboard = '/';
+  static const myShift = '/my-shift';
   static const pos = '/pos';
   static const pits = '/pits';
   static const pumps = '/pumps';
@@ -34,6 +37,7 @@ abstract class AppRoutes {
   static const clients = '/clients';
   static const ledger = '/ledger';
   static const workers = '/workers';
+  static const roleManagement = '/role-management';
   static const importData = '/import';
   static const importClients = '/import/clients';
   static const importWorkers = '/import/workers';
@@ -64,6 +68,7 @@ GoRouter createRouter({required bool isAuthenticated}) {
         builder: (context, state, child) => DashboardPage(child: child),
         routes: [
           GoRoute(path: AppRoutes.dashboard, builder: (_, _) => const AdminDashboardPage()),
+          GoRoute(path: AppRoutes.myShift, builder: (_, _) => const MyShiftPage()),
           GoRoute(path: AppRoutes.pos, builder: (_, _) => const PosPage()),
           GoRoute(path: AppRoutes.pits, builder: (_, _) => const PitsPage()),
           GoRoute(path: AppRoutes.pumps, builder: (_, _) => const PumpsPage()),
@@ -74,6 +79,7 @@ GoRouter createRouter({required bool isAuthenticated}) {
           GoRoute(path: AppRoutes.clients, builder: (_, _) => const ClientsPage()),
           GoRoute(path: AppRoutes.ledger, builder: (_, _) => const LedgerPage()),
           GoRoute(path: AppRoutes.workers, builder: (_, _) => const WorkersPage()),
+          GoRoute(path: AppRoutes.roleManagement, builder: (_, _) => const RoleManagementPage()),
           GoRoute(
             path: AppRoutes.importData,
             builder: (_, _) => const ImportPage(),
