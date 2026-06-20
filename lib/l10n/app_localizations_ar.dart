@@ -111,6 +111,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paymentMethods => 'طرق الدفع';
 
   @override
+  String get shiftPerformance => 'أداء الورديات (7 أيام)';
+
+  @override
+  String get expenseBreakdown => 'توزيع المصروفات';
+
+  @override
   String get recentActivity => 'النشاط الأخير';
 
   @override
@@ -127,6 +133,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pos => 'نقطة البيع';
+
+  @override
+  String get posSale => 'بيع نقطة البيع';
 
   @override
   String get pits => 'الحفر';
@@ -159,10 +168,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get systemLogs => 'سجلات النظام';
 
   @override
+  String get expenses => 'المصروفات';
+
+  @override
   String get admin => 'الإدارة';
 
   @override
   String get operations => 'العمليات';
+
+  @override
+  String get overview => 'نظرة عامة';
+
+  @override
+  String get sectionOverview => 'نظرة عامة';
+
+  @override
+  String get sectionStation => 'المحطة';
+
+  @override
+  String get sectionOperations => 'العمليات';
+
+  @override
+  String get sectionAdmin => 'الإدارة';
 
   @override
   String get welcomeMessage => 'مرحباً بعودتك!';
@@ -178,4 +205,82 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get arabic => 'العربية';
+
+  @override
+  String get signIn => 'تسجيل الدخول';
+
+  @override
+  String get signUp => 'إنشاء حساب';
+
+  @override
+  String get email => 'البريد الإلكتروني';
+
+  @override
+  String get password => 'كلمة المرور';
+
+  @override
+  String get fullName => 'الاسم الكامل';
+
+  @override
+  String get login => 'دخول';
+
+  @override
+  String get register => 'تسجيل';
+
+  @override
+  String get version => 'v1.0.0';
+
+  @override
+  String get expected => 'متوقع';
+
+  @override
+  String get actual => 'فعلي';
+
+  @override
+  String get today => 'اليوم';
+
+  @override
+  String get thisWeek => 'هذا الأسبوع';
+
+  @override
+  String get thisMonth => 'هذا الشهر';
+
+  @override
+  String get allTime => 'كل الوقت';
+
+  @override
+  String get shiftSummary => 'ملخص الوردية';
+
+  @override
+  String get expectedCash => 'النقد المتوقع';
+
+  @override
+  String get actualCash => 'النقد الفعلي';
+
+  @override
+  String get difference => 'الفرق';
+
+  @override
+  String get noShiftsClosed => 'لا توجد ورديات مغلقة في هذه الفترة';
+
+  @override
+  String get importData => 'استيراد البيانات';
+
+  @override
+  String get importClients => 'استيراد بيانات العملاء';
+
+  @override
+  String get importWorkers => 'استيراد بيانات الموظفين';
+
+  @override
+  String get importShifts => 'استيراد بيانات الورديات';
+
+  @override
+  String get importStation => 'استيراد بيانات المحطة';
+
+  @override
+  String get importFinancial => 'استيراد البيانات المالية';
+
+  @override
+  String get sectionImport => 'استيراد';
 }

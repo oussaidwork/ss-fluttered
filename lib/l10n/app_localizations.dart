@@ -304,6 +304,18 @@ abstract class AppLocalizations {
   /// **'Payment Methods'**
   String get paymentMethods;
 
+  /// No description provided for @shiftPerformance.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift Performance (7 days)'**
+  String get shiftPerformance;
+
+  /// No description provided for @expenseBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense Breakdown'**
+  String get expenseBreakdown;
+
   /// No description provided for @recentActivity.
   ///
   /// In en, this message translates to:
@@ -339,6 +351,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Point of Sale'**
   String get pos;
+
+  /// No description provided for @posSale.
+  ///
+  /// In en, this message translates to:
+  /// **'POS Sale'**
+  String get posSale;
 
   /// No description provided for @pits.
   ///
@@ -400,6 +418,12 @@ abstract class AppLocalizations {
   /// **'System Logs'**
   String get systemLogs;
 
+  /// No description provided for @expenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get expenses;
+
   /// No description provided for @admin.
   ///
   /// In en, this message translates to:
@@ -411,6 +435,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Operations'**
   String get operations;
+
+  /// No description provided for @overview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get overview;
+
+  /// No description provided for @sectionOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'OVERVIEW'**
+  String get sectionOverview;
+
+  /// No description provided for @sectionStation.
+  ///
+  /// In en, this message translates to:
+  /// **'STATION'**
+  String get sectionStation;
+
+  /// No description provided for @sectionOperations.
+  ///
+  /// In en, this message translates to:
+  /// **'OPERATIONS'**
+  String get sectionOperations;
+
+  /// No description provided for @sectionAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'ADMIN'**
+  String get sectionAdmin;
 
   /// No description provided for @welcomeMessage.
   ///
@@ -441,6 +495,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'العربية'**
   String get arabic;
+
+  /// No description provided for @signIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get signIn;
+
+  /// No description provided for @signUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up'**
+  String get signUp;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @fullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fullName;
+
+  /// No description provided for @login.
+  ///
+  /// In en, this message translates to:
+  /// **'Login'**
+  String get login;
+
+  /// No description provided for @register.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get register;
+
+  /// No description provided for @version.
+  ///
+  /// In en, this message translates to:
+  /// **'v1.0.0'**
+  String get version;
+
+  /// No description provided for @expected.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected'**
+  String get expected;
+
+  /// No description provided for @actual.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual'**
+  String get actual;
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
+  /// No description provided for @thisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This Week'**
+  String get thisWeek;
+
+  /// No description provided for @thisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This Month'**
+  String get thisMonth;
+
+  /// No description provided for @allTime.
+  ///
+  /// In en, this message translates to:
+  /// **'All Time'**
+  String get allTime;
+
+  /// No description provided for @shiftSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift Summary'**
+  String get shiftSummary;
+
+  /// No description provided for @expectedCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected Cash'**
+  String get expectedCash;
+
+  /// No description provided for @actualCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual Cash'**
+  String get actualCash;
+
+  /// No description provided for @difference.
+  ///
+  /// In en, this message translates to:
+  /// **'Difference'**
+  String get difference;
+
+  /// No description provided for @noShiftsClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'No closed shifts in this period'**
+  String get noShiftsClosed;
+
+  /// No description provided for @importData.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Data'**
+  String get importData;
+
+  /// No description provided for @importClients.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Client Data'**
+  String get importClients;
+
+  /// No description provided for @importWorkers.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Worker Data'**
+  String get importWorkers;
+
+  /// No description provided for @importShifts.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Shift Data'**
+  String get importShifts;
+
+  /// No description provided for @importStation.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Station Data'**
+  String get importStation;
+
+  /// No description provided for @importFinancial.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Financial Data'**
+  String get importFinancial;
+
+  /// No description provided for @sectionImport.
+  ///
+  /// In en, this message translates to:
+  /// **'IMPORT'**
+  String get sectionImport;
 }
 
 class _AppLocalizationsDelegate

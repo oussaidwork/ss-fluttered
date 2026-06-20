@@ -3,13 +3,11 @@ import 'package:excel/excel.dart';
 import '../../data/firestore/firestore_provider.dart';
 
 class ImportService {
-  /// Imports data from Excel bytes into Firestore.
-  /// Returns a summary of the import results.
+  /// Imports all data from Excel bytes into Firestore.
   Future<Map<String, int>> importExcel(List<int> bytes) async {
     final excel = Excel.decodeBytes(bytes);
     final Map<String, int> results = {};
     
-    // Process sheets in order of dependencies
     await _importUsers(excel, results);
     await _importClients(excel, results);
     await _importGasTypes(excel, results);
@@ -21,6 +19,49 @@ class ImportService {
     await _importPayments(excel, results);
     await _importExpenses(excel, results);
     
+    return results;
+  }
+
+  /// Imports only specific sheets from Excel bytes based on [importType].
+  /// Returns a summary of the import results.
+  Future<Map<String, int>> importByType(List<int> bytes, String importType) async {
+    final excel = Excel.decodeBytes(bytes);
+    final Map<String, int> results = {};
+
+    switch (importType) {
+      case 'clients':
+        await _importClients(excel, results);
+        break;
+      case 'workers':
+        await _importUsers(excel, results);
+        break;
+      case 'shifts':
+        await _importShifts(excel, results);
+        await _importShiftPumps(excel, results);
+        break;
+      case 'station':
+        await _importGasTypes(excel, results);
+        await _importPumps(excel, results);
+        await _importPits(excel, results);
+        break;
+      case 'financial':
+        await _importSales(excel, results);
+        await _importPayments(excel, results);
+        await _importExpenses(excel, results);
+        break;
+      default:
+        await _importUsers(excel, results);
+        await _importClients(excel, results);
+        await _importGasTypes(excel, results);
+        await _importPumps(excel, results);
+        await _importPits(excel, results);
+        await _importShifts(excel, results);
+        await _importShiftPumps(excel, results);
+        await _importSales(excel, results);
+        await _importPayments(excel, results);
+        await _importExpenses(excel, results);
+    }
+
     return results;
   }
 

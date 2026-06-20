@@ -34,6 +34,11 @@ abstract class AppRoutes {
   static const ledger = '/ledger';
   static const workers = '/workers';
   static const importData = '/import';
+  static const importClients = '/import/clients';
+  static const importWorkers = '/import/workers';
+  static const importShifts = '/import/shifts';
+  static const importStation = '/import/station';
+  static const importFinancial = '/import/financial';
   static const expenses = '/expenses';
   static const reports = '/reports';
   static const systemLogs = '/system-logs';
@@ -67,7 +72,32 @@ GoRouter createRouter({required bool isAuthenticated}) {
           GoRoute(path: AppRoutes.clients, builder: (_, _) => const ClientsPage()),
           GoRoute(path: AppRoutes.ledger, builder: (_, _) => const LedgerPage()),
           GoRoute(path: AppRoutes.workers, builder: (_, _) => const WorkersPage()),
-          GoRoute(path: AppRoutes.importData, builder: (_, _) => const ImportPage()),
+          GoRoute(
+            path: AppRoutes.importData,
+            builder: (_, _) => const ImportPage(),
+            routes: [
+              GoRoute(
+                path: 'clients',
+                builder: (_, _) => const ImportPage(importType: 'clients'),
+              ),
+              GoRoute(
+                path: 'workers',
+                builder: (_, _) => const ImportPage(importType: 'workers'),
+              ),
+              GoRoute(
+                path: 'shifts',
+                builder: (_, _) => const ImportPage(importType: 'shifts'),
+              ),
+              GoRoute(
+                path: 'station',
+                builder: (_, _) => const ImportPage(importType: 'station'),
+              ),
+              GoRoute(
+                path: 'financial',
+                builder: (_, _) => const ImportPage(importType: 'financial'),
+              ),
+            ],
+          ),
           GoRoute(path: AppRoutes.expenses, builder: (_, _) => const ExpensesPage()),
           GoRoute(path: AppRoutes.reports, builder: (_, _) => const ReportsPage()),
           GoRoute(path: AppRoutes.systemLogs, builder: (_, _) => const SystemLogsPage()),

@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../router/app_router.dart';
+import '../../../l10n/app_localizations.dart';
 
-class Sidebar extends StatelessWidget {
+class Sidebar extends ConsumerWidget {
   const Sidebar({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final currentPath = GoRouterState.of(context).matchedLocation;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       width: 220,
@@ -39,110 +42,110 @@ class Sidebar extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 8),
               children: [
                 _NavSection(
-                  title: 'OVERVIEW',
+                  title: l10n.sectionOverview,
                   items: [
                     _NavItem(
                       icon: Icons.dashboard,
-                      label: 'Dashboard',
+                      label: l10n.dashboard,
                       route: AppRoutes.dashboard,
                       currentPath: currentPath,
                     ),
                   ],
                 ),
                 _NavSection(
-                  title: 'STATION',
+                  title: l10n.sectionStation,
                   items: [
                     _NavItem(
                       icon: Icons.water_drop,
-                      label: 'Fuel Types',
+                      label: l10n.fuel,
                       route: AppRoutes.fuel,
                       currentPath: currentPath,
                     ),
                     _NavItem(
                       icon: Icons.archive,
-                      label: 'Pits',
+                      label: l10n.pits,
                       route: AppRoutes.pits,
                       currentPath: currentPath,
                     ),
                     _NavItem(
                       icon: Icons.local_gas_station,
-                      label: 'Pumps',
+                      label: l10n.pumps,
                       route: AppRoutes.pumps,
                       currentPath: currentPath,
                     ),
                     _NavItem(
                       icon: Icons.inventory_2,
-                      label: 'Products',
+                      label: l10n.products,
                       route: AppRoutes.products,
                       currentPath: currentPath,
                     ),
                     _NavItem(
                       icon: Icons.design_services,
-                      label: 'Services',
+                      label: l10n.services,
                       route: AppRoutes.services,
                       currentPath: currentPath,
                     ),
                   ],
                 ),
                 _NavSection(
-                  title: 'OPERATIONS',
+                  title: l10n.sectionOperations,
                   items: [
                     _NavItem(
                       icon: Icons.point_of_sale,
-                      label: 'POS Sale',
+                      label: l10n.posSale,
                       route: AppRoutes.pos,
                       currentPath: currentPath,
                     ),
                     _NavItem(
                       icon: Icons.schedule,
-                      label: 'Shifts',
+                      label: l10n.shifts,
                       route: AppRoutes.shifts,
                       currentPath: currentPath,
                     ),
                     _NavItem(
                       icon: Icons.people,
-                      label: 'Clients',
+                      label: l10n.clients,
                       route: AppRoutes.clients,
                       currentPath: currentPath,
                     ),
                     _NavItem(
                       icon: Icons.book,
-                      label: 'Ledger',
+                      label: l10n.ledger,
                       route: AppRoutes.ledger,
                       currentPath: currentPath,
                     ),
                     _NavItem(
                       icon: Icons.receipt_long,
-                      label: 'Expenses',
+                      label: l10n.expenses,
                       route: AppRoutes.expenses,
                       currentPath: currentPath,
                     ),
                   ],
                 ),
                 _NavSection(
-                  title: 'ADMIN',
+                  title: l10n.sectionAdmin,
                   items: [
                     _NavItem(
                       icon: Icons.assessment,
-                      label: 'Reports',
+                      label: l10n.reports,
                       route: AppRoutes.reports,
                       currentPath: currentPath,
                     ),
                     _NavItem(
                       icon: Icons.group,
-                      label: 'Workers',
+                      label: l10n.workers,
                       route: AppRoutes.workers,
                       currentPath: currentPath,
                     ),
                     _NavItem(
                       icon: Icons.list_alt,
-                      label: 'System Logs',
+                      label: l10n.systemLogs,
                       route: AppRoutes.systemLogs,
                       currentPath: currentPath,
                     ),
                     _NavItem(
                       icon: Icons.settings,
-                      label: 'Settings',
+                      label: l10n.settings,
                       route: AppRoutes.settings,
                       currentPath: currentPath,
                     ),
@@ -151,11 +154,11 @@ class Sidebar extends StatelessWidget {
               ],
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.all(16),
+          Padding(
+            padding: const EdgeInsets.all(16),
             child: Text(
-              'v0.8.0',
-              style: TextStyle(color: Colors.white38, fontSize: 12),
+              l10n.version,
+              style: const TextStyle(color: Colors.white38, fontSize: 12),
             ),
           ),
         ],

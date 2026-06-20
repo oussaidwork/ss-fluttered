@@ -111,6 +111,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentMethods => 'Payment Methods';
 
   @override
+  String get shiftPerformance => 'Shift Performance (7 days)';
+
+  @override
+  String get expenseBreakdown => 'Expense Breakdown';
+
+  @override
   String get recentActivity => 'Recent Activity';
 
   @override
@@ -127,6 +133,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pos => 'Point of Sale';
+
+  @override
+  String get posSale => 'POS Sale';
 
   @override
   String get pits => 'Pits';
@@ -159,10 +168,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get systemLogs => 'System Logs';
 
   @override
+  String get expenses => 'Expenses';
+
+  @override
   String get admin => 'Admin';
 
   @override
   String get operations => 'Operations';
+
+  @override
+  String get overview => 'Overview';
+
+  @override
+  String get sectionOverview => 'OVERVIEW';
+
+  @override
+  String get sectionStation => 'STATION';
+
+  @override
+  String get sectionOperations => 'OPERATIONS';
+
+  @override
+  String get sectionAdmin => 'ADMIN';
 
   @override
   String get welcomeMessage => 'Welcome back!';
@@ -178,4 +205,82 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get arabic => 'العربية';
+
+  @override
+  String get signIn => 'Sign In';
+
+  @override
+  String get signUp => 'Sign Up';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get fullName => 'Full Name';
+
+  @override
+  String get login => 'Login';
+
+  @override
+  String get register => 'Register';
+
+  @override
+  String get version => 'v1.0.0';
+
+  @override
+  String get expected => 'Expected';
+
+  @override
+  String get actual => 'Actual';
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get thisWeek => 'This Week';
+
+  @override
+  String get thisMonth => 'This Month';
+
+  @override
+  String get allTime => 'All Time';
+
+  @override
+  String get shiftSummary => 'Shift Summary';
+
+  @override
+  String get expectedCash => 'Expected Cash';
+
+  @override
+  String get actualCash => 'Actual Cash';
+
+  @override
+  String get difference => 'Difference';
+
+  @override
+  String get noShiftsClosed => 'No closed shifts in this period';
+
+  @override
+  String get importData => 'Import Data';
+
+  @override
+  String get importClients => 'Import Client Data';
+
+  @override
+  String get importWorkers => 'Import Worker Data';
+
+  @override
+  String get importShifts => 'Import Shift Data';
+
+  @override
+  String get importStation => 'Import Station Data';
+
+  @override
+  String get importFinancial => 'Import Financial Data';
+
+  @override
+  String get sectionImport => 'IMPORT';
 }

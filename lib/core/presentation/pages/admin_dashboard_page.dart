@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../../presentation/providers/dashboard_provider.dart';
+import '../../../l10n/app_localizations.dart';
 
 class AdminDashboardPage extends ConsumerWidget {
   const AdminDashboardPage({super.key});
@@ -45,6 +46,7 @@ class AdminDashboardPage extends ConsumerWidget {
   Widget _buildDashboard(BuildContext context, DashboardMetrics metrics) {
     final isWide = MediaQuery.of(context).size.width > 900;
     final currencyFormat = NumberFormat('#,##0.00', 'en_US');
+    final l10n = AppLocalizations.of(context)!;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -58,9 +60,9 @@ class AdminDashboardPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Dashboard',
-                      style: TextStyle(
+                    Text(
+                      l10n.dashboard,
+                      style: const TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -79,7 +81,7 @@ class AdminDashboardPage extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // === KPI Cards ===
-          _buildKpiRow(metrics, currencyFormat, isWide),
+          _buildKpiRow(metrics, currencyFormat, isWide, l10n),
           const SizedBox(height: 24),
 
           // === Charts Section ===
@@ -88,14 +90,14 @@ class AdminDashboardPage extends ConsumerWidget {
 
           // === Recent Activity ===
           _SectionCard(
-            title: 'Recent Activity',
+            title: l10n.recentActivity,
             child: metrics.recentSales.isEmpty
-                ? const Padding(
-                    padding: EdgeInsets.all(32),
+                ? Padding(
+                    padding: const EdgeInsets.all(32),
                     child: Center(
                       child: Text(
-                        'No recent sales',
-                        style: TextStyle(color: Colors.white38),
+                        l10n.noRecentSales,
+                        style: const TextStyle(color: Colors.white38),
                       ),
                     ),
                   )
@@ -140,7 +142,7 @@ class AdminDashboardPage extends ConsumerWidget {
   }
 
   Widget _buildKpiRow(
-      DashboardMetrics metrics, NumberFormat fmt, bool isWide) {
+      DashboardMetrics metrics, NumberFormat fmt, bool isWide, AppLocalizations l10n) {
     final crossCount = isWide ? 3 : 2;
 
     return GridView.count(
@@ -152,42 +154,42 @@ class AdminDashboardPage extends ConsumerWidget {
       childAspectRatio: 2.2,
       children: [
         _KpiCard(
-          title: 'Fuel Sales',
+          title: l10n.fuelSales,
           value: '${metrics.totalFuelVolume.toStringAsFixed(1)} L',
           subtitle: '${fmt.format(metrics.totalFuelRevenue)} MAD',
           icon: Icons.local_gas_station,
           color: const Color(0xFF0066CC),
         ),
         _KpiCard(
-          title: 'Product Sales',
+          title: l10n.productSales,
           value: '${metrics.totalProductCount} items',
           subtitle: '${fmt.format(metrics.totalProductRevenue)} MAD',
           icon: Icons.inventory_2,
           color: const Color(0xFF84CC16),
         ),
         _KpiCard(
-          title: 'Total Expenses',
+          title: l10n.totalExpenses,
           value: fmt.format(metrics.totalExpenses),
           subtitle: 'MAD',
           icon: Icons.money_off,
           color: Colors.redAccent,
         ),
         _KpiCard(
-          title: 'Active Shifts',
+          title: l10n.activeShifts,
           value: '${metrics.activeShifts}',
           subtitle: metrics.activeShifts == 1 ? 'shift open' : 'shifts open',
           icon: Icons.work_history,
           color: Colors.teal,
         ),
         _KpiCard(
-          title: 'Pending Payments',
+          title: l10n.pendingPayments,
           value: '${metrics.pendingPaymentsCount}',
           subtitle: '${fmt.format(metrics.pendingPaymentsAmount)} MAD',
           icon: Icons.pending_actions,
           color: Colors.amber,
         ),
         _KpiCard(
-          title: 'Total Clients',
+          title: l10n.totalClients,
           value: '${metrics.totalClients}',
           subtitle: 'registered',
           icon: Icons.people,
@@ -216,6 +218,25 @@ class AdminDashboardPage extends ConsumerWidget {
         ],
         const SizedBox(height: 16),
         _PaymentMethodsChart(paymentBreakdown: metrics.paymentBreakdown),
+        const SizedBox(height: 16),
+        if (isWide)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                  child: _ShiftPerformanceChart(
+                      shiftPerformance: metrics.shiftPerformance)),
+              const SizedBox(width: 16),
+              Expanded(
+                  child: _ExpenseBreakdownChart(
+                      expenseBreakdown: metrics.expenseBreakdown)),
+            ],
+          )
+        else ...[
+          _ShiftPerformanceChart(shiftPerformance: metrics.shiftPerformance),
+          const SizedBox(height: 16),
+          _ExpenseBreakdownChart(expenseBreakdown: metrics.expenseBreakdown),
+        ],
       ],
     );
   }
@@ -304,7 +325,7 @@ class _SalesTrendChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (dailyTrend.isEmpty) {
-      return const _EmptyChartCard(title: 'Sales Trend (7 days)');
+      return _EmptyChartCard(title: AppLocalizations.of(context)!.salesTrend);
     }
 
     final maxVal = dailyTrend.map((p) => p.total).reduce(max).ceilToDouble();
@@ -328,9 +349,9 @@ class _SalesTrendChart extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Sales Trend (7 days)',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.salesTrend,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -448,13 +469,14 @@ class _FuelMixChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fuelMixLabel = AppLocalizations.of(context)!.fuelMix;
     if (fuelBreakdown.isEmpty) {
-      return const _EmptyChartCard(title: 'Fuel Mix');
+      return _EmptyChartCard(title: fuelMixLabel);
     }
 
     final totalVol = fuelBreakdown.fold<double>(0, (s, e) => s + e.volume);
     if (totalVol <= 0) {
-      return const _EmptyChartCard(title: 'Fuel Mix');
+      return _EmptyChartCard(title: fuelMixLabel);
     }
 
     final sections = fuelBreakdown.asMap().entries.map((e) {
@@ -484,9 +506,9 @@ class _FuelMixChart extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Fuel Mix (Today)',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.fuelMix,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -568,8 +590,9 @@ class _PaymentMethodsChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final paymentLabel = AppLocalizations.of(context)!.paymentMethods;
     if (paymentBreakdown.isEmpty) {
-      return const _EmptyChartCard(title: 'Payment Methods');
+      return _EmptyChartCard(title: paymentLabel);
     }
 
     final maxVal = paymentBreakdown
@@ -608,9 +631,9 @@ class _PaymentMethodsChart extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Payment Methods',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.paymentMethods,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -685,6 +708,281 @@ class _PaymentMethodsChart extends StatelessWidget {
               duration: const Duration(milliseconds: 300),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+// ────────────────────────────────────────────────────────────────
+// Shift Performance (Grouped Bar Chart)
+// ────────────────────────────────────────────────────────────────
+
+class _ShiftPerformanceChart extends StatelessWidget {
+  final List<ShiftPerformancePoint> shiftPerformance;
+
+  const _ShiftPerformanceChart({required this.shiftPerformance});
+
+  @override
+  Widget build(BuildContext context) {
+    final shiftPerfLabel = AppLocalizations.of(context)!.shiftPerformance;
+    if (shiftPerformance.isEmpty) {
+      return _EmptyChartCard(title: shiftPerfLabel);
+    }
+
+    final maxVal = shiftPerformance.fold<double>(
+      0,
+      (s, e) => [s, e.expectedCash, e.actualCash].reduce(max),
+    );
+    final safeMax = maxVal < 1 ? 100.0 : maxVal * 1.3;
+
+    // Build grouped bars (expected vs actual per shift)
+    final groups = shiftPerformance.asMap().entries.map((entry) {
+      final idx = entry.key;
+      final sp = entry.value;
+      return BarChartGroupData(
+        x: idx,
+        barRods: [
+          BarChartRodData(
+            toY: sp.expectedCash,
+            color: const Color(0xFF0066CC),
+            width: 10,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(3),
+              topRight: Radius.circular(3),
+            ),
+          ),
+          BarChartRodData(
+            toY: sp.actualCash,
+            color: sp.actualCash >= sp.expectedCash
+                ? const Color(0xFF84CC16)
+                : Colors.redAccent,
+            width: 10,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(3),
+              topRight: Radius.circular(3),
+            ),
+          ),
+        ],
+      );
+    }).toList();
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A2332),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppLocalizations.of(context)!.shiftPerformance,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              _legendDot(const Color(0xFF0066CC), AppLocalizations.of(context)!.expected),
+              const SizedBox(width: 16),
+              _legendDot(const Color(0xFF84CC16), AppLocalizations.of(context)!.actual),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 200,
+            child: BarChart(
+              BarChartData(
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: safeMax / 4,
+                  getDrawingHorizontalLine: (value) => FlLine(
+                    color: Colors.white10,
+                    strokeWidth: 1,
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 50,
+                      getTitlesWidget: (value, meta) => Text(
+                        NumberFormat.compact().format(value),
+                        style: const TextStyle(
+                          color: Colors.white38,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        final idx = value.toInt();
+                        if (idx < 0 || idx >= shiftPerformance.length) {
+                          return const SizedBox.shrink();
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            DateFormat('MM/dd').format(shiftPerformance[idx].date),
+                            style: const TextStyle(
+                              color: Colors.white38,
+                              fontSize: 9,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                ),
+                borderData: FlBorderData(show: false),
+                minY: 0,
+                maxY: safeMax,
+                barGroups: groups,
+              ),
+              duration: const Duration(milliseconds: 300),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _legendDot(Color color, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white54, fontSize: 11),
+        ),
+      ],
+    );
+  }
+}
+
+// ────────────────────────────────────────────────────────────────
+// Expense Breakdown (Horizontal Bar Chart)
+// ────────────────────────────────────────────────────────────────
+
+class _ExpenseBreakdownChart extends StatelessWidget {
+  final List<ExpenseCategoryBreakdown> expenseBreakdown;
+
+  const _ExpenseBreakdownChart({required this.expenseBreakdown});
+
+  static const _chartColors = [
+    Color(0xFFEF4444),
+    Color(0xFFF59E0B),
+    Color(0xFF8B5CF6),
+    Color(0xFF06B6D4),
+    Color(0xFF84CC16),
+    Color(0xFFEC4899),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final expenseLabel = AppLocalizations.of(context)!.expenseBreakdown;
+    if (expenseBreakdown.isEmpty) {
+      return _EmptyChartCard(title: expenseLabel);
+    }
+
+    final totalAmt = expenseBreakdown.fold<double>(0, (s, e) => s + e.amount);
+    if (totalAmt <= 0) {
+      return _EmptyChartCard(title: expenseLabel);
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A2332),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppLocalizations.of(context)!.expenseBreakdown,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${NumberFormat('#,##0.00').format(totalAmt)} MAD total',
+            style: const TextStyle(color: Colors.white54, fontSize: 12),
+          ),
+          const SizedBox(height: 16),
+          ...expenseBreakdown.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final item = entry.value;
+            final pct = item.amount / totalAmt;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        item.category,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        '${NumberFormat('#,##0.00').format(item.amount)} MAD',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: pct,
+                      backgroundColor: Colors.white.withAlpha(15),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        _chartColors[idx % _chartColors.length],
+                      ),
+                      minHeight: 8,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );

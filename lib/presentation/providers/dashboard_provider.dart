@@ -32,6 +32,29 @@ class PaymentMethodBreakdown {
   const PaymentMethodBreakdown({required this.method, required this.amount});
 }
 
+/// Expense breakdown by category for pie charts.
+class ExpenseCategoryBreakdown {
+  final String category;
+  final double amount;
+
+  const ExpenseCategoryBreakdown({required this.category, required this.amount});
+}
+
+/// Shift performance data point for bar chart.
+class ShiftPerformancePoint {
+  final DateTime date;
+  final double expectedCash;
+  final double actualCash;
+  final String shiftId;
+
+  const ShiftPerformancePoint({
+    required this.date,
+    required this.expectedCash,
+    required this.actualCash,
+    required this.shiftId,
+  });
+}
+
 /// Aggregated dashboard metrics from real Firestore data.
 class DashboardMetrics {
   final double totalFuelVolume;
@@ -47,6 +70,8 @@ class DashboardMetrics {
   final double totalExpenses;
   final int activeShifts;
   final int totalClients;
+  final List<ExpenseCategoryBreakdown> expenseBreakdown;
+  final List<ShiftPerformancePoint> shiftPerformance;
 
   const DashboardMetrics({
     this.totalFuelVolume = 0,
@@ -62,6 +87,8 @@ class DashboardMetrics {
     this.totalExpenses = 0,
     this.activeShifts = 0,
     this.totalClients = 0,
+    this.expenseBreakdown = const [],
+    this.shiftPerformance = const [],
   });
 }
 
@@ -123,6 +150,12 @@ final dashboardMetricsProvider = FutureProvider<DashboardMetrics>((ref) async {
         .get(),
     // Fuel types for labels
     firestore.collection('gas_types').get(),
+    // Closed shifts in last 7 days (for shift performance)
+    firestore
+        .collection('work_shifts')
+        .where('status', isEqualTo: 'CLOSED')
+        .where('startTime', isGreaterThanOrEqualTo: Timestamp.fromDate(sevenDaysAgo))
+        .get(),
   ]);
 
   final allSalesSnap = results[0] as QuerySnapshot;
@@ -135,6 +168,7 @@ final dashboardMetricsProvider = FutureProvider<DashboardMetrics>((ref) async {
   final activeShiftsSnap = results[7] as QuerySnapshot;
   final clientsSnap = results[8] as QuerySnapshot;
   final fuelTypesSnap = results[9] as QuerySnapshot;
+  final closedShiftsSnap = results[10] as QuerySnapshot;
 
   // Build fuel type name lookup
   final fuelNames = <String, String>{};
@@ -224,10 +258,29 @@ final dashboardMetricsProvider = FutureProvider<DashboardMetrics>((ref) async {
 
   // === Expenses ===
   double totalExpenses = 0;
+  final expenseCategoryMap = <String, double>{};
   for (final doc in expensesSnap.docs) {
     final data = doc.data() as Map<String, dynamic>;
-    totalExpenses += (data['amount'] as num?)?.toDouble() ?? 0;
+    final amount = (data['amount'] as num?)?.toDouble() ?? 0;
+    totalExpenses += amount;
+    final category = data['category'] as String? ?? 'Other';
+    expenseCategoryMap[category] = (expenseCategoryMap[category] ?? 0) + amount;
   }
+  final expenseBreakdown = expenseCategoryMap.entries
+      .map((e) => ExpenseCategoryBreakdown(category: e.key, amount: e.value))
+      .toList();
+
+  // === Shift performance (last 7 days) ===
+  final shiftPerformance = closedShiftsSnap.docs.map((doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    final startTime = (data['startTime'] as Timestamp?)?.toDate() ?? now;
+    return ShiftPerformancePoint(
+      date: startTime,
+      expectedCash: (data['expectedCash'] as num?)?.toDouble() ?? 0,
+      actualCash: (data['actualCash'] as num?)?.toDouble() ?? 0,
+      shiftId: doc.id,
+    );
+  }).toList();
 
   return DashboardMetrics(
     totalFuelVolume: totalFuelVolume,
@@ -243,5 +296,7 @@ final dashboardMetricsProvider = FutureProvider<DashboardMetrics>((ref) async {
     totalExpenses: totalExpenses,
     activeShifts: activeShiftsSnap.docs.length,
     totalClients: clientsSnap.docs.length,
+    expenseBreakdown: expenseBreakdown,
+    shiftPerformance: shiftPerformance,
   );
 });
