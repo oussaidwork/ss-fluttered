@@ -384,7 +384,10 @@ class _ImportPageState extends ConsumerState<ImportPage> {
             'Copy the template above, fill in your data, then paste here and click Import.',
             style: TextStyle(color: Colors.white54, fontSize: 12),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
+          // ── Expected JSON structure guide ──
+          _JsonStructureGuide(),
+          const SizedBox(height: 8),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -502,4 +505,303 @@ class _ImportPageState extends ConsumerState<ImportPage> {
       ),
     );
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Expected JSON Structure Guide
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _JsonStructureGuide extends StatelessWidget {
+  const _JsonStructureGuide();
+
+  static const _collections = <_Schema>[
+    // ── Fuel & Payments ──
+    _Schema('gas_types', description: 'Fuel types sold at the station', fields: [
+      _Field('id', 'string', 'e.g. "gazole"'),
+      _Field('name', 'Map<String,String>', 'localized name: {"en":"Diesel","fr":"Gazole","ar":"الغازوال"}'),
+      _Field('unit_price', 'double', 'current selling price'),
+      _Field('isDeleted', 'bool', 'soft delete flag'),
+    ]),
+    _Schema('payment_types', description: 'Accepted payment methods', fields: [
+      _Field('id', 'string', 'e.g. "cash"'),
+      _Field('name', 'Map<String,String>', 'localized name'),
+      _Field('isDeleted', 'bool'),
+    ]),
+
+    // ── Station Layout ──
+    _Schema('pits', description: 'Fuel dispensing islands', fields: [
+      _Field('name', 'Map<String,String>', 'localized name'),
+      _Field('code', 'string', 'short code e.g. "P1"'),
+      _Field('isDeleted', 'bool'),
+    ]),
+    _Schema('pumps', description: 'Individual pumps within pits', fields: [
+      _Field('pit_id', 'string', 'ref -> pits.id'),
+      _Field('gas_type_id', 'string', 'ref -> gas_types.id'),
+      _Field('pump_number', 'int', 'display number'),
+      _Field('label', 'string', 'optional human label'),
+      _Field('meter_reading', 'double', 'current meter totalizer'),
+      _Field('isDeleted', 'bool'),
+    ]),
+
+    // ── Products & Services ──
+    _Schema('products', description: 'Convenience store products & services', fields: [
+      _Field('id', 'string'),
+      _Field('name', 'Map<String,String>', 'localized name'),
+      _Field('category', 'string', '"fuel" | "product" | "service"'),
+      _Field('unit_price', 'double'),
+      _Field('stock', 'double?', 'nullable for services'),
+      _Field('unit', 'string?', 'e.g. "L", "pcs", "service"'),
+      _Field('isDeleted', 'bool'),
+    ]),
+
+    // ── Clients ──
+    _Schema('clients', description: 'Individual walk-in clients', fields: [
+      _Field('id', 'string'),
+      _Field('name', 'string'),
+      _Field('phone', 'string?'),
+      _Field('client_type', 'string', '"individual" | "fleet"'),
+      _Field('credit_limit', 'double', '0 = no credit'),
+      _Field('balance', 'double', 'outstanding debt'),
+      _Field('isDeleted', 'bool'),
+    ]),
+    _Schema('client_fleet', description: 'Fleet vehicles for fleet clients', fields: [
+      _Field('client_id', 'string', 'ref -> clients.id'),
+      _Field('plate_number', 'string', 'e.g. "12345-67"'),
+      _Field('vehicle_type', 'string', 'e.g. "truck", "car"'),
+      _Field('gas_type_id', 'string', 'ref -> gas_types.id'),
+      _Field('isDeleted', 'bool'),
+    ]),
+
+    // ── Users ──
+    _Schema('users', description: 'Station employees', fields: [
+      _Field('id', 'string'),
+      _Field('email', 'string'),
+      _Field('display_name', 'string'),
+      _Field('role', 'string', '"admin" | "supervisor" | "cashier"'),
+      _Field('phone', 'string?'),
+      _Field('isDeleted', 'bool'),
+    ]),
+
+    // ── Operations ──
+    _Schema('work_shifts', description: 'Daily shift records', fields: [
+      _Field('id', 'string'),
+      _Field('user_id', 'string', 'ref -> users.id'),
+      _Field('start_time', 'Timestamp'),
+      _Field('end_time', 'Timestamp?'),
+      _Field('expected_total', 'double', 'expected cash total'),
+      _Field('actual_total', 'double', 'actual counted cash'),
+      _Field('notes', 'string?'),
+      _Field('isDeleted', 'bool'),
+    ]),
+    _Schema('shift_pumps', description: 'Per-pump readings per shift', fields: [
+      _Field('shift_id', 'string', 'ref -> work_shifts.id'),
+      _Field('pump_id', 'string', 'ref -> pumps.id'),
+      _Field('start_meter', 'double'),
+      _Field('end_meter', 'double?'),
+      _Field('isDeleted', 'bool'),
+    ]),
+    _Schema('sales', description: 'Sale transactions (header)', fields: [
+      _Field('id', 'string'),
+      _Field('shift_id', 'string?', 'ref -> work_shifts.id'),
+      _Field('user_id', 'string?', 'ref -> users.id'),
+      _Field('client_id', 'string?', 'ref -> clients.id'),
+      _Field('total', 'double'),
+      _Field('payment_method', 'string', 'ref -> payment_types.id'),
+      _Field('created_at', 'Timestamp'),
+      _Field('isDeleted', 'bool'),
+    ]),
+    _Schema('sale_items', description: 'Line items for a sale', fields: [
+      _Field('id', 'string'),
+      _Field('sale_id', 'string', 'ref -> sales.id'),
+      _Field('product_id', 'string', 'ref -> products.id'),
+      _Field('gas_type_id', 'string?', 'ref -> gas_types.id if fuel'),
+      _Field('pump_id', 'string?', 'ref -> pumps.id if fuel'),
+      _Field('quantity', 'double'),
+      _Field('unit_price', 'double'),
+      _Field('subtotal', 'double'),
+      _Field('isDeleted', 'bool'),
+    ]),
+    _Schema('payments', description: 'Individual payment splits', fields: [
+      _Field('id', 'string'),
+      _Field('sale_id', 'string', 'ref -> sales.id'),
+      _Field('payment_type_id', 'string', 'ref -> payment_types.id'),
+      _Field('amount', 'double'),
+      _Field('isDeleted', 'bool'),
+    ]),
+
+    _Schema('expenses', description: 'Operational expenses', fields: [
+      _Field('id', 'string'),
+      _Field('category', 'string', '"utilities" | "rent" | "supplies" | "maintenance" | "salary" | "other"'),
+      _Field('amount', 'double'),
+      _Field('description', 'string?'),
+      _Field('date', 'Timestamp'),
+      _Field('user_id', 'string?', 'ref -> users.id'),
+      _Field('isDeleted', 'bool'),
+    ]),
+
+    // ── Refills ──
+    _Schema('pit_refills', description: 'Fuel delivery / pit refill records', fields: [
+      _Field('id', 'string'),
+      _Field('pit_id', 'string', 'ref -> pits.id'),
+      _Field('gas_type_id', 'string', 'ref -> gas_types.id'),
+      _Field('volume', 'double', 'liters delivered'),
+      _Field('unit_cost', 'double', 'cost per liter'),
+      _Field('supplier', 'string?'),
+      _Field('invoice_ref', 'string?'),
+      _Field('date', 'Timestamp'),
+      _Field('isDeleted', 'bool'),
+    ]),
+    _Schema('refill_payments', description: 'Payments for fuel deliveries', fields: [
+      _Field('id', 'string'),
+      _Field('refill_id', 'string', 'ref -> pit_refills.id'),
+      _Field('payment_type_id', 'string', 'ref -> payment_types.id'),
+      _Field('amount', 'double'),
+      _Field('isDeleted', 'bool'),
+    ]),
+
+    // ── Financial ──
+    _Schema('debts', description: 'Client debt / credit records', fields: [
+      _Field('id', 'string'),
+      _Field('client_id', 'string', 'ref -> clients.id'),
+      _Field('amount', 'double', 'positive = debt, negative = payment'),
+      _Field('type', 'string', '"debt" | "payment"'),
+      _Field('description', 'string?'),
+      _Field('date', 'Timestamp'),
+      _Field('isDeleted', 'bool'),
+    ]),
+    _Schema('salary_advances', description: 'Employee salary advances', fields: [
+      _Field('id', 'string'),
+      _Field('user_id', 'string', 'ref -> users.id'),
+      _Field('amount', 'double'),
+      _Field('date', 'Timestamp'),
+      _Field('notes', 'string?'),
+      _Field('isDeleted', 'bool'),
+    ]),
+
+    // ── History & Logs ──
+    _Schema('fuel_price_history', description: 'Historical fuel price changes', fields: [
+      _Field('id', 'string'),
+      _Field('gas_type_id', 'string', 'ref -> gas_types.id'),
+      _Field('old_price', 'double'),
+      _Field('new_price', 'double'),
+      _Field('changed_by', 'string?', 'ref -> users.id'),
+      _Field('changed_at', 'Timestamp'),
+      _Field('isDeleted', 'bool'),
+    ]),
+    _Schema('daily_summaries', description: 'Daily aggregated KPIs (via cron)', fields: [
+      _Field('id', 'string'),
+      _Field('date', 'string', 'YYYY-MM-DD'),
+      _Field('total_sales', 'double'),
+      _Field('total_expenses', 'double'),
+      _Field('fuel_volume', 'Map<String,double>', 'gas_type_id -> liters'),
+      _Field('payment_breakdown', 'Map<String,double>', 'payment_type_id -> amount'),
+      _Field('shift_count', 'int'),
+      _Field('isDeleted', 'bool'),
+    ]),
+    _Schema('logs', description: 'Audit log (populated by Cloud Function)', fields: [
+      _Field('id', 'string'),
+      _Field('collection', 'string'),
+      _Field('doc_id', 'string'),
+      _Field('action', 'string', '"CREATE" | "UPDATE" | "DELETE"'),
+      _Field('before', 'Map?'),
+      _Field('after', 'Map?'),
+      _Field('timestamp', 'Timestamp'),
+      _Field('user_id', 'string?'),
+    ]),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF0B1220),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        leading: const Icon(Icons.schema_outlined, color: Color(0xFF0066CC), size: 18),
+        title: const Text(
+          'Expected JSON Structure',
+          style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+        ),
+        subtitle: const Text(
+          '21 collections — tap to view fields',
+          style: TextStyle(color: Colors.white38, fontSize: 11),
+        ),
+        children: _collections.map((schema) {
+          return Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.table_rows, size: 14, color: Colors.white38),
+                    const SizedBox(width: 6),
+                    Text(
+                      schema.name,
+                      style: const TextStyle(
+                        color: Color(0xFF84CC16),
+                        fontSize: 13,
+                        fontFamily: 'monospace',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        schema.description,
+                        style: const TextStyle(color: Colors.white38, fontSize: 11),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                ...schema.fields.map((f) => Padding(
+                      padding: const EdgeInsets.only(left: 24, top: 2),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(f.name, style: const TextStyle(color: Colors.white, fontSize: 12, fontFamily: 'monospace')),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0066CC).withAlpha(50),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                            child: Text(f.type, style: const TextStyle(color: Color(0xFF0066CC), fontSize: 10, fontFamily: 'monospace')),
+                          ),
+                          if (f.notes != null) ...[
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(f.notes!, style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                            ),
+                          ],
+                        ],
+                      ),
+                    )),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class _Schema {
+  final String name;
+  final String description;
+  final List<_Field> fields;
+  const _Schema(this.name, {this.description = '', required this.fields});
+}
+
+class _Field {
+  final String name;
+  final String type;
+  final String? notes;
+  const _Field(this.name, this.type, [this.notes]);
 }
