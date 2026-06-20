@@ -123,6 +123,48 @@ class Sidebar extends ConsumerWidget {
                   ],
                 ),
                 _NavSection(
+                  title: l10n.sectionImport,
+                  items: [
+                    _NavExpandoItem(
+                      icon: Icons.upload_file,
+                      label: l10n.importData,
+                      currentPath: currentPath,
+                      children: [
+                        _NavItem(
+                          icon: Icons.people,
+                          label: l10n.importClients,
+                          route: AppRoutes.importClients,
+                          currentPath: currentPath,
+                        ),
+                        _NavItem(
+                          icon: Icons.group,
+                          label: l10n.importWorkers,
+                          route: AppRoutes.importWorkers,
+                          currentPath: currentPath,
+                        ),
+                        _NavItem(
+                          icon: Icons.schedule,
+                          label: l10n.importShifts,
+                          route: AppRoutes.importShifts,
+                          currentPath: currentPath,
+                        ),
+                        _NavItem(
+                          icon: Icons.local_gas_station,
+                          label: l10n.importStation,
+                          route: AppRoutes.importStation,
+                          currentPath: currentPath,
+                        ),
+                        _NavItem(
+                          icon: Icons.receipt_long,
+                          label: l10n.importFinancial,
+                          route: AppRoutes.importFinancial,
+                          currentPath: currentPath,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                _NavSection(
                   title: l10n.sectionAdmin,
                   items: [
                     _NavItem(
@@ -169,7 +211,7 @@ class Sidebar extends ConsumerWidget {
 
 class _NavSection extends StatelessWidget {
   final String title;
-  final List<_NavItem> items;
+  final List<Widget> items;
   const _NavSection({required this.title, required this.items});
 
   @override
@@ -190,6 +232,88 @@ class _NavSection extends StatelessWidget {
           ),
         ),
         ...items,
+      ],
+    );
+  }
+}
+
+class _NavExpandoItem extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final String currentPath;
+  final List<_NavItem> children;
+
+  const _NavExpandoItem({
+    required this.icon,
+    required this.label,
+    required this.currentPath,
+    required this.children,
+  });
+
+  @override
+  State<_NavExpandoItem> createState() => _NavExpandoItemState();
+}
+
+class _NavExpandoItemState extends State<_NavExpandoItem> {
+  late bool _expanded;
+
+  bool get _anyChildActive => widget.children.any((c) => c.currentPath == c.route);
+  bool get _isActive => _anyChildActive;
+
+  @override
+  void initState() {
+    super.initState();
+    _expanded = _anyChildActive;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = _isActive;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ListTile(
+          leading: Icon(
+            widget.icon,
+            size: 20,
+            color: isActive ? const Color(0xFF84CC16) : Colors.white54,
+          ),
+          title: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  widget.label,
+                  style: TextStyle(
+                    color: isActive ? Colors.white : Colors.white70,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              Icon(
+                _expanded ? Icons.expand_less : Icons.expand_more,
+                size: 18,
+                color: Colors.white38,
+              ),
+            ],
+          ),
+          dense: true,
+          selected: isActive,
+          selectedTileColor: const Color(0xFF84CC16).withAlpha(25),
+          onTap: () {
+            setState(() => _expanded = !_expanded);
+          },
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+        ),
+        AnimatedCrossFade(
+          firstChild: const SizedBox.shrink(),
+          secondChild: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: widget.children,
+          ),
+          crossFadeState: _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 200),
+        ),
       ],
     );
   }

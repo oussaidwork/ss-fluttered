@@ -610,6 +610,12 @@ abstract class AppLocalizations {
   /// **'No closed shifts in this period'**
   String get noShiftsClosed;
 
+  /// No description provided for @sectionImport.
+  ///
+  /// In en, this message translates to:
+  /// **'IMPORT'**
+  String get sectionImport;
+
   /// No description provided for @importData.
   ///
   /// In en, this message translates to:
@@ -619,38 +625,32 @@ abstract class AppLocalizations {
   /// No description provided for @importClients.
   ///
   /// In en, this message translates to:
-  /// **'Import Client Data'**
+  /// **'Import Clients'**
   String get importClients;
 
   /// No description provided for @importWorkers.
   ///
   /// In en, this message translates to:
-  /// **'Import Worker Data'**
+  /// **'Import Workers'**
   String get importWorkers;
 
   /// No description provided for @importShifts.
   ///
   /// In en, this message translates to:
-  /// **'Import Shift Data'**
+  /// **'Import Shifts'**
   String get importShifts;
 
   /// No description provided for @importStation.
   ///
   /// In en, this message translates to:
-  /// **'Import Station Data'**
+  /// **'Import Station'**
   String get importStation;
 
   /// No description provided for @importFinancial.
   ///
   /// In en, this message translates to:
-  /// **'Import Financial Data'**
+  /// **'Import Financial'**
   String get importFinancial;
-
-  /// No description provided for @sectionImport.
-  ///
-  /// In en, this message translates to:
-  /// **'IMPORT'**
-  String get sectionImport;
 }
 
 class _AppLocalizationsDelegate

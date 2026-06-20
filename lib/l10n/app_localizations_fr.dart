@@ -264,23 +264,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noShiftsClosed => 'Aucun quart fermé dans cette période';
 
   @override
-  String get importData => 'Importer des Données';
+  String get sectionImport => 'IMPORTER';
 
   @override
-  String get importClients => 'Importer Clients';
+  String get importData => 'Importer les Données';
 
   @override
-  String get importWorkers => 'Importer Employés';
+  String get importClients => 'Importer les Clients';
 
   @override
-  String get importShifts => 'Importer Quarts';
+  String get importWorkers => 'Importer les Employés';
 
   @override
-  String get importStation => 'Importer Station';
+  String get importShifts => 'Importer les Quarts';
 
   @override
-  String get importFinancial => 'Importer Finances';
+  String get importStation => 'Importer la Station';
 
   @override
-  String get sectionImport => 'IMPORTATION';
+  String get importFinancial => 'Importer les Finances';
 }

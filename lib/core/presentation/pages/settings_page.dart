@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../presentation/providers/locale_provider.dart';
 import '../../router/app_router.dart';
+import '../../services/json_export_service.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -234,7 +235,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           title: 'Export Data',
           subtitle: 'Export all data to CSV or JSON format',
           color: const Color(0xFF84CC16),
-          onTap: () => _showComingSoon('Data Export'),
+          onTap: () => _exportData(),
         ),
         const SizedBox(height: 10),
         _buildActionTile(
@@ -358,6 +359,32 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ],
       ),
     );
+  }
+
+  void _exportData() async {
+    try {
+      final exportService = JsonExportService();
+      await exportService.downloadJson();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Data exported successfully!'),
+            backgroundColor: Color(0xFF84CC16),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export failed: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   void _showComingSoon(String feature) {

@@ -84,5 +84,12 @@
   "expectedCash": "النقد المتوقع",
   "actualCash": "النقد الفعلي",
   "difference": "الفرق",
-  "noShiftsClosed": "لا توجد ورديات مغلقة في هذه الفترة"
+  "noShiftsClosed": "لا توجد ورديات مغلقة في هذه الفترة",
+  "sectionImport": "استيراد",
+  "importData": "استيراد البيانات",
+  "importClients": "استيراد العملاء",
+  "importWorkers": "استيراد الموظفين",
+  "importShifts": "استيراد الورديات",
+  "importStation": "استيراد المحطة",
+  "importFinancial": "استيراد البيانات المالية"
 }

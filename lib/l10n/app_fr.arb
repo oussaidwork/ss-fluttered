@@ -84,5 +84,12 @@
   "expectedCash": "Espèces Attendues",
   "actualCash": "Espèces Réelles",
   "difference": "Différence",
-  "noShiftsClosed": "Aucun quart fermé dans cette période"
+  "noShiftsClosed": "Aucun quart fermé dans cette période",
+  "sectionImport": "IMPORTER",
+  "importData": "Importer les Données",
+  "importClients": "Importer les Clients",
+  "importWorkers": "Importer les Employés",
+  "importShifts": "Importer les Quarts",
+  "importStation": "Importer la Station",
+  "importFinancial": "Importer les Finances"
 }

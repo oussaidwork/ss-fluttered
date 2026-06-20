@@ -264,23 +264,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noShiftsClosed => 'لا توجد ورديات مغلقة في هذه الفترة';
 
   @override
+  String get sectionImport => 'استيراد';
+
+  @override
   String get importData => 'استيراد البيانات';
 
   @override
-  String get importClients => 'استيراد بيانات العملاء';
+  String get importClients => 'استيراد العملاء';
 
   @override
-  String get importWorkers => 'استيراد بيانات الموظفين';
+  String get importWorkers => 'استيراد الموظفين';
 
   @override
-  String get importShifts => 'استيراد بيانات الورديات';
+  String get importShifts => 'استيراد الورديات';
 
   @override
-  String get importStation => 'استيراد بيانات المحطة';
+  String get importStation => 'استيراد المحطة';
 
   @override
   String get importFinancial => 'استيراد البيانات المالية';
-
-  @override
-  String get sectionImport => 'استيراد';
 }

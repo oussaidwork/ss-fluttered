@@ -87,5 +87,12 @@
   "expectedCash": "Expected Cash",
   "actualCash": "Actual Cash",
   "difference": "Difference",
-  "noShiftsClosed": "No closed shifts in this period"
+  "noShiftsClosed": "No closed shifts in this period",
+  "sectionImport": "IMPORT",
+  "importData": "Import Data",
+  "importClients": "Import Clients",
+  "importWorkers": "Import Workers",
+  "importShifts": "Import Shifts",
+  "importStation": "Import Station",
+  "importFinancial": "Import Financial"
 }

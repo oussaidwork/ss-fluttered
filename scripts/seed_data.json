@@ -1,0 +1,58 @@
+{
+  "version": "1.0",
+  "appName": "SS-RAGRAGA Station OS",
+  "collections": {
+    "gas_types": [
+      {"id": "gas_gazole", "name": "Gazole (Diesel)", "abbreviation": "GZ", "price": 12.50, "unit": "L", "isDeleted": false, "isActive": true},
+      {"id": "gas_super", "name": "Super (Gasoline)", "abbreviation": "SP", "price": 14.80, "unit": "L", "isDeleted": false, "isActive": true},
+      {"id": "gas_premium", "name": "Premium", "abbreviation": "PR", "price": 16.20, "unit": "L", "isDeleted": false, "isActive": true}
+    ],
+    "payment_types": [
+      {"id": "pmt_cash", "name": "Cash", "code": "CASH", "isDeleted": false, "isActive": true},
+      {"id": "pmt_card", "name": "Credit Card", "code": "CARD", "isDeleted": false, "isActive": true},
+      {"id": "pmt_cb", "name": "Chèque Bancaire", "code": "CB", "isDeleted": false, "isActive": true},
+      {"id": "pmt_waiver", "name": "Bon / Waiver", "code": "WAIVER", "isDeleted": false, "isActive": true}
+    ],
+    "pits": [
+      {"id": "pit_a", "name": "Pit A", "capacity": 20000, "currentVolume": 18500, "gasTypeId": "gas_gazole", "isDeleted": false, "isActive": true},
+      {"id": "pit_b", "name": "Pit B", "capacity": 15000, "currentVolume": 12000, "gasTypeId": "gas_super", "isDeleted": false, "isActive": true},
+      {"id": "pit_c", "name": "Pit C", "capacity": 10000, "currentVolume": 9500, "gasTypeId": "gas_premium", "isDeleted": false, "isActive": true}
+    ],
+    "pumps": [
+      {"id": "pump_1", "name": "Pump 1", "pitId": "pit_a", "analogCounter": 1584320, "isDeleted": false, "isActive": true},
+      {"id": "pump_2", "name": "Pump 2", "pitId": "pit_a", "analogCounter": 1421890, "isDeleted": false, "isActive": true},
+      {"id": "pump_3", "name": "Pump 3", "pitId": "pit_b", "analogCounter": 985200, "isDeleted": false, "isActive": true},
+      {"id": "pump_4", "name": "Pump 4", "pitId": "pit_c", "analogCounter": 456700, "isDeleted": false, "isActive": true}
+    ],
+    "products": [
+      {"id": "prod_oil_10w40", "name": "Engine Oil 10W40 (1L)", "price": 65.00, "priceIn": 45.00, "stockQuantity": 48, "unit": "pcs", "category": "product", "isActive": true, "isDeleted": false},
+      {"id": "prod_oil_20w50", "name": "Engine Oil 20W50 (1L)", "price": 55.00, "priceIn": 38.00, "stockQuantity": 72, "unit": "pcs", "category": "product", "isActive": true, "isDeleted": false},
+      {"id": "prod_coolant", "name": "Coolant (1L)", "price": 35.00, "priceIn": 22.00, "stockQuantity": 30, "unit": "pcs", "category": "product", "isActive": true, "isDeleted": false},
+      {"id": "prod_water_bottle", "name": "Bottled Water (1.5L)", "price": 8.00, "priceIn": 5.00, "stockQuantity": 120, "unit": "pcs", "category": "product", "isActive": true, "isDeleted": false},
+      {"id": "serv_tire_inflate", "name": "Tire Inflation", "price": 5.00, "stockQuantity": 0, "unit": "service", "category": "service", "isActive": true, "isDeleted": false},
+      {"id": "serv_air_water", "name": "Air & Water", "price": 3.00, "stockQuantity": 0, "unit": "service", "category": "service", "isActive": true, "isDeleted": false}
+    ],
+    "users": [
+      {"id": "admin_user", "fullName": "Admin", "email": "admin@ss-ragrama.ma", "role": "admin", "isDeleted": false, "isActive": true},
+      {"id": "worker_ahmed", "fullName": "Ahmed Benali", "email": "ahmed@ss-ragrama.ma", "role": "worker", "isDeleted": false, "isActive": true},
+      {"id": "worker_fatima", "fullName": "Fatima Zahra", "email": "fatima@ss-ragrama.ma", "role": "worker", "isDeleted": false, "isActive": true}
+    ],
+    "clients": [
+      {"id": "client_transport_co", "name": "Transport Company SARL", "phone": "+212 6XX-XXXXXX", "email": "contact@transport.ma", "address": "Zone Industrielle, Casablanca", "creditLimit": 50000, "balance": 12350, "isDeleted": false, "isActive": true},
+      {"id": "client_taxi_union", "name": "Grand Taxi Union", "phone": "+212 5XX-XXXXXX", "email": "taxi@union.ma", "address": "Avenue Hassan II, Rabat", "creditLimit": 25000, "balance": 8400, "isDeleted": false, "isActive": true},
+      {"id": "client_agri_coop", "name": "Agri-Cooperative", "phone": "+212 6XX-YYYYYY", "email": "agri@coop.ma", "address": "Douar El Koudia, Meknès", "creditLimit": 30000, "balance": 6200, "isDeleted": false, "isActive": true}
+    ],
+    "client_fleet": [
+      {"id": "fleet_truck_01", "clientId": "client_transport_co", "plateNumber": "12345-A-6", "driverName": "Hassan", "vehicleType": "truck", "isActive": true, "isDeleted": false},
+      {"id": "fleet_truck_02", "clientId": "client_transport_co", "plateNumber": "67890-B-7", "driverName": "Mohamed", "vehicleType": "truck", "isActive": true, "isDeleted": false},
+      {"id": "fleet_taxi_01", "clientId": "client_taxi_union", "plateNumber": "11111-C-3", "driverName": "Karim", "vehicleType": "taxi", "isActive": true, "isDeleted": false},
+      {"id": "fleet_tractor_01", "clientId": "client_agri_coop", "plateNumber": "22222-D-4", "driverName": "Omar", "vehicleType": "tractor", "isActive": true, "isDeleted": false}
+    ],
+    "expenses": [
+      {"id": "exp_elec_01", "category": "Utilities", "amount": 4500.00, "description": "Monthly electricity bill", "timestamp": "2026-06-15T08:00:00.000", "paidBy": "admin_user", "isDeleted": false},
+      {"id": "exp_water_01", "category": "Utilities", "amount": 1200.00, "description": "Monthly water bill", "timestamp": "2026-06-15T08:00:00.000", "paidBy": "admin_user", "isDeleted": false},
+      {"id": "exp_cleaning", "category": "Maintenance", "amount": 800.00, "description": "Station cleaning supplies", "timestamp": "2026-06-16T10:30:00.000", "paidBy": "admin_user", "isDeleted": false},
+      {"id": "exp_salary_01", "category": "Salaries", "amount": 3500.00, "description": "Ahmed weekly salary", "timestamp": "2026-06-17T09:00:00.000", "paidBy": "admin_user", "isDeleted": false}
+    ]
+  }
+}
