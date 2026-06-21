@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../router/app_router.dart';
 
-/// An animated speed-dial FAB that expands into quick-action buttons.
-///
-/// Uses an [OverlayEntry] to render the action buttons in a separate layer
-/// so they are properly positioned within the viewport and never overflow
-/// beyond the screen bounds.
+/// Animated speed-dial FAB expanding into quick-action buttons.
 class FabSpeedDial extends StatefulWidget {
   const FabSpeedDial({super.key});
 
@@ -21,10 +17,6 @@ class _FabSpeedDialState extends State<FabSpeedDial>
   bool _isOpen = false;
   bool _isAnimating = false;
   OverlayEntry? _overlayEntry;
-
-  // ────────────────────────────────────────────────────────────────
-  // Lifecycle
-  // ────────────────────────────────────────────────────────────────
 
   @override
   void initState() {
@@ -48,13 +40,7 @@ class _FabSpeedDialState extends State<FabSpeedDial>
     super.dispose();
   }
 
-  // ────────────────────────────────────────────────────────────────
-  // Overlay management
-  // ────────────────────────────────────────────────────────────────
-
-  void _rebuildOverlay() {
-    _overlayEntry?.markNeedsBuild();
-  }
+  void _rebuildOverlay() => _overlayEntry?.markNeedsBuild();
 
   void _toggle() {
     if (_isAnimating) return;
@@ -83,10 +69,6 @@ class _FabSpeedDialState extends State<FabSpeedDial>
     setState(() => _isOpen = false);
   }
 
-  // ────────────────────────────────────────────────────────────────
-  // OverlayEntry
-  // ────────────────────────────────────────────────────────────────
-
   void _showOverlay() {
     _overlayEntry = OverlayEntry(
       builder: (_) => _FabOverlay(
@@ -103,27 +85,23 @@ class _FabSpeedDialState extends State<FabSpeedDial>
     _overlayEntry = null;
   }
 
-  // ────────────────────────────────────────────────────────────────
-  // Build
-  // ────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return FloatingActionButton(
       onPressed: _toggle,
-      backgroundColor: _isOpen ? Colors.red.shade400 : const Color(0xFF0066CC),
+      backgroundColor: _isOpen ? cs.error : cs.primary,
       child: AnimatedIcon(
         icon: AnimatedIcons.menu_close,
         progress: _controller,
-        color: Colors.white,
+        color: cs.onPrimary,
       ),
     );
   }
 }
 
-// ======================================================================
-// Overlay widget that positions the action buttons above the FAB
-// ======================================================================
+// ── Overlay ──────────────────────────────────────────────────────
 
 class _FabOverlay extends StatelessWidget {
   final Animation<double> expandAnimation;
@@ -140,8 +118,7 @@ class _FabOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final screenHeight = mediaQuery.size.height;
-    final bottomInset =
-        mediaQuery.viewInsets.bottom + mediaQuery.padding.bottom;
+    final bottomInset = mediaQuery.viewInsets.bottom + mediaQuery.padding.bottom;
     final isRtl = Directionality.of(context) == TextDirection.rtl;
 
     const fabSize = 56.0;
@@ -152,12 +129,9 @@ class _FabOverlay extends StatelessWidget {
     final fabBottomFromScreenBottom = safeGap + fabSize;
     final fabRightFromScreenRight = safeGap;
 
-    // The overlay is positioned relative to the standard scaffold FAB's
-    // bottom-right corner, but we still flip direction when there is not
-    // enough vertical room above it.
     final bool expandUpward =
         (screenHeight - fabBottomFromScreenBottom - bottomInset) >=
-        estimatedActionsHeight + actionSpacing;
+            estimatedActionsHeight + actionSpacing;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -183,9 +157,7 @@ class _FabOverlay extends StatelessWidget {
   }
 }
 
-// ======================================================================
-// The list of action buttons (animated)
-// ======================================================================
+// ── Action buttons ───────────────────────────────────────────────
 
 class _ActionsPanel extends StatelessWidget {
   final Animation<double> animation;
@@ -195,6 +167,8 @@ class _ActionsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -202,7 +176,7 @@ class _ActionsPanel extends StatelessWidget {
         _SpeedDialAction(
           icon: Icons.point_of_sale,
           label: 'New Sale',
-          color: const Color(0xFF84CC16),
+          color: cs.secondary,
           onTap: () {
             onAction();
             context.go(AppRoutes.pos);
@@ -213,7 +187,7 @@ class _ActionsPanel extends StatelessWidget {
         _SpeedDialAction(
           icon: Icons.work_history,
           label: 'New Shift',
-          color: const Color(0xFF0066CC),
+          color: cs.primary,
           onTap: () {
             onAction();
             context.go(AppRoutes.shifts);
@@ -224,7 +198,7 @@ class _ActionsPanel extends StatelessWidget {
         _SpeedDialAction(
           icon: Icons.monetization_on,
           label: 'Add Expense',
-          color: Colors.amber,
+          color: cs.tertiary,
           onTap: () {
             onAction();
             context.go(AppRoutes.expenses);
@@ -235,7 +209,7 @@ class _ActionsPanel extends StatelessWidget {
         _SpeedDialAction(
           icon: Icons.people,
           label: 'Add Client',
-          color: Colors.teal,
+          color: cs.primaryContainer,
           onTap: () {
             onAction();
             context.go(AppRoutes.clients);
@@ -246,7 +220,7 @@ class _ActionsPanel extends StatelessWidget {
         _SpeedDialAction(
           icon: Icons.local_gas_station,
           label: 'Fuel Prices',
-          color: Colors.orange,
+          color: cs.secondaryContainer,
           onTap: () {
             onAction();
             context.go(AppRoutes.fuel);
@@ -259,9 +233,7 @@ class _ActionsPanel extends StatelessWidget {
   }
 }
 
-// ======================================================================
-// Individual action button (label + small FAB)
-// ======================================================================
+// ── Individual action ────────────────────────────────────────────
 
 class _SpeedDialAction extends StatelessWidget {
   final IconData icon;
@@ -282,6 +254,8 @@ class _SpeedDialAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: SizeTransition(
@@ -293,18 +267,15 @@ class _SpeedDialAction extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1A2332),
+                  color: cs.surface,
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: Colors.white12),
+                  border: Border.all(color: cs.outlineVariant),
                 ),
                 child: Text(
                   label,
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  style: TextStyle(color: cs.onSurface, fontSize: 12),
                 ),
               ),
               const SizedBox(width: 8),
@@ -312,7 +283,7 @@ class _SpeedDialAction extends StatelessWidget {
                 heroTag: 'fab_action_$index',
                 backgroundColor: color,
                 onPressed: onTap,
-                child: Icon(icon, color: Colors.white, size: 20),
+                child: Icon(icon, color: cs.onPrimary, size: 20),
               ),
             ],
           ),

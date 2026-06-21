@@ -28,6 +28,7 @@ class _SystemLogsPageState extends State<SystemLogsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -35,11 +36,11 @@ class _SystemLogsPageState extends State<SystemLogsPage> {
         children: [
           Row(
             children: [
-              const Icon(Icons.list_alt, color: Color(0xFF0066CC), size: 28),
+              Icon(Icons.list_alt, color: cs.primary, size: 28),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'System Audit Logs',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: cs.onSurface),
               ),
               const Spacer(),
               _buildFilters(),
@@ -54,8 +55,9 @@ class _SystemLogsPageState extends State<SystemLogsPage> {
                   .limit(500)
                   .snapshots(),
               builder: (context, snapshot) {
+                final cs = Theme.of(context).colorScheme;
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0xFF0066CC)));
+                  return Center(child: CircularProgressIndicator(color: cs.primary));
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return _buildEmptyState();
@@ -75,24 +77,25 @@ class _SystemLogsPageState extends State<SystemLogsPage> {
   }
 
   Widget _buildFilters() {
+    final cs = Theme.of(context).colorScheme;
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: const Color(0xFF1A2332),
+            color: cs.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.white12),
+            border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String?>(
               value: _actionFilter,
-              dropdownColor: const Color(0xFF1A2332),
-              style: const TextStyle(color: Colors.white),
-              icon: const Icon(Icons.filter_list, color: Colors.white54, size: 20),
-              hint: const Text('All Actions', style: TextStyle(color: Colors.white54)),
+              dropdownColor: cs.surfaceContainerHighest,
+              style: TextStyle(color: cs.onSurface),
+              icon: Icon(Icons.filter_list, color: cs.onSurface.withValues(alpha: 0.54), size: 20),
+              hint: Text('All Actions', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54))),
               items: [
-                const DropdownMenuItem<String?>(value: null, child: Text('All Actions')),
+                DropdownMenuItem<String?>(value: null, child: Text('All Actions')),
                 ..._actionTypes.map((a) => DropdownMenuItem(value: a, child: Text(a))),
               ],
               onChanged: (val) => setState(() => _actionFilter = val),
@@ -107,11 +110,12 @@ class _SystemLogsPageState extends State<SystemLogsPage> {
               firstDate: DateTime(2020),
               lastDate: DateTime.now(),
               builder: (context, child) {
+                final pickerCs = Theme.of(context).colorScheme;
                 return Theme(
                   data: Theme.of(context).copyWith(
-                    colorScheme: const ColorScheme.dark(
-                      primary: Color(0xFF0066CC),
-                      surface: Color(0xFF1A2332),
+                    colorScheme: ColorScheme.dark(
+                      primary: pickerCs.primary,
+                      surface: pickerCs.surfaceContainerHighest,
                     ),
                   ),
                   child: child!,
@@ -122,7 +126,7 @@ class _SystemLogsPageState extends State<SystemLogsPage> {
           },
           icon: Icon(
             Icons.date_range,
-            color: _dateRange != null ? const Color(0xFF0066CC) : Colors.white54,
+            color: _dateRange != null ? cs.primary : cs.onSurface.withValues(alpha: 0.54),
           ),
           tooltip: _dateRange != null
               ? '${_dateRange!.start.day}/${_dateRange!.start.month} - ${_dateRange!.end.day}/${_dateRange!.end.month}'
@@ -131,7 +135,7 @@ class _SystemLogsPageState extends State<SystemLogsPage> {
         if (_dateRange != null)
           IconButton(
             onPressed: () => setState(() => _dateRange = null),
-            icon: const Icon(Icons.clear, color: Colors.white38, size: 18),
+            icon: Icon(Icons.clear, color: cs.onSurface.withValues(alpha: 0.38), size: 18),
             tooltip: 'Clear date filter',
           ),
       ],
@@ -150,6 +154,7 @@ class _SystemLogsPageState extends State<SystemLogsPage> {
   }
 
   Widget _buildEmptyState() {
+    final cs = Theme.of(context).colorScheme;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -157,14 +162,14 @@ class _SystemLogsPageState extends State<SystemLogsPage> {
           Icon(
             _actionFilter != null || _dateRange != null ? Icons.filter_list_off : Icons.list_alt,
             size: 64,
-            color: Colors.white24,
+            color: cs.onSurface.withValues(alpha: 0.24),
           ),
           const SizedBox(height: 16),
           Text(
             _actionFilter != null || _dateRange != null
                 ? 'No logs match the current filters'
                 : 'No audit logs yet',
-            style: const TextStyle(fontSize: 18, color: Colors.white54),
+            style: TextStyle(fontSize: 18, color: cs.onSurface.withValues(alpha: 0.54)),
           ),
         ],
       ),
@@ -172,26 +177,27 @@ class _SystemLogsPageState extends State<SystemLogsPage> {
   }
 
   Widget _buildLogsTable(List<LogEntry> logs) {
+    final cs = Theme.of(context).colorScheme;
     return Card(
-      color: const Color(0xFF1A2332),
+      color: cs.surfaceContainerHighest,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: SingleChildScrollView(
           child: DataTable(
-            headingRowColor: WidgetStateProperty.all(Colors.white.withValues(alpha: 0.05)),
-            columns: const [
-              DataColumn(label: Text('Timestamp', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('Action', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('Details', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('User', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
+            headingRowColor: WidgetStateProperty.all(cs.onSurface.withValues(alpha: 0.05)),
+            columns: [
+              DataColumn(label: Text('Timestamp', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600))),
+              DataColumn(label: Text('Action', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600))),
+              DataColumn(label: Text('Details', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600))),
+              DataColumn(label: Text('User', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600))),
             ],
             rows: logs.map((log) {
               return DataRow(
                 cells: [
                   DataCell(Text(
                     _formatDateTime(log.timestamp),
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                    style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontSize: 12),
                   )),
                   DataCell(_buildActionBadge(log.action)),
                   DataCell(
@@ -199,7 +205,7 @@ class _SystemLogsPageState extends State<SystemLogsPage> {
                       width: 300,
                       child: Text(
                         log.details ?? '--',
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: cs.onSurface),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
@@ -207,7 +213,7 @@ class _SystemLogsPageState extends State<SystemLogsPage> {
                   ),
                   DataCell(Text(
                     log.userId ?? '--',
-                    style: const TextStyle(color: Colors.white70),
+                    style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
                   )),
                 ],
               );
@@ -219,29 +225,30 @@ class _SystemLogsPageState extends State<SystemLogsPage> {
   }
 
   Widget _buildActionBadge(String action) {
+    final cs = Theme.of(context).colorScheme;
     Color color;
     switch (action) {
       case 'CREATE':
-        color = const Color(0xFF84CC16);
+        color = cs.secondary;
         break;
       case 'UPDATE':
-        color = const Color(0xFF0066CC);
+        color = cs.primary;
         break;
       case 'DELETE':
-        color = const Color(0xFFEF4444);
+        color = cs.error;
         break;
       case 'LOGIN':
       case 'LOGOUT':
-        color = const Color(0xFF8B5CF6);
+        color = cs.tertiaryContainer;
         break;
       case 'SALE':
-        color = const Color(0xFF06B6D4);
+        color = cs.primaryContainer;
         break;
       case 'PAYMENT':
-        color = const Color(0xFFF59E0B);
+        color = cs.tertiary;
         break;
       default:
-        color = Colors.white54;
+        color = cs.onSurface.withValues(alpha: 0.54);
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),

@@ -16,6 +16,7 @@ class ExpensesPage extends StatefulWidget {
 class _ExpensesPageState extends State<ExpensesPage> {
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -23,11 +24,11 @@ class _ExpensesPageState extends State<ExpensesPage> {
         children: [
           Row(
             children: [
-              const Icon(Icons.receipt_long, color: Color(0xFF0066CC), size: 28),
+              Icon(Icons.receipt_long, color: cs.primary, size: 28),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'Expense Tracking',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: cs.onSurface),
               ),
               const Spacer(),
               ElevatedButton.icon(
@@ -35,15 +36,15 @@ class _ExpensesPageState extends State<ExpensesPage> {
                 icon: const Icon(Icons.add, size: 18),
                 label: const Text('Add Expense'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0066CC),
-                  foregroundColor: Colors.white,
+                  backgroundColor: cs.primary,
+                  foregroundColor: cs.onSurface,
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          _buildTotalSummary(),
+          _buildTotalSummary(cs),
           const SizedBox(height: 16),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
@@ -52,16 +53,17 @@ class _ExpensesPageState extends State<ExpensesPage> {
                   .orderBy('timestamp', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
+                final innerCs = Theme.of(context).colorScheme;
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0xFF0066CC)));
+                  return Center(child: CircularProgressIndicator(color: innerCs.primary));
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return _buildEmptyState();
+                  return _buildEmptyState(innerCs);
                 }
                 final expenses = snapshot.data!.docs
                     .map((doc) => Expense.fromMap(doc.data() as Map<String, dynamic>))
                     .toList();
-                return _buildExpenseTable(expenses);
+                return _buildExpenseTable(expenses, innerCs);
               },
             ),
           ),
@@ -70,10 +72,11 @@ class _ExpensesPageState extends State<ExpensesPage> {
     );
   }
 
-  Widget _buildTotalSummary() {
+  Widget _buildTotalSummary(ColorScheme cs) {
     return StreamBuilder<QuerySnapshot>(
       stream: firestore.collection('expenses').snapshots(),
       builder: (context, snapshot) {
+        final innerCs = Theme.of(context).colorScheme;
         double total = 0;
         if (snapshot.hasData) {
           for (final doc in snapshot.data!.docs) {
@@ -84,23 +87,23 @@ class _ExpensesPageState extends State<ExpensesPage> {
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF1A2332),
+            color: innerCs.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.2)),
+            border: Border.all(color: innerCs.error.withValues(alpha: 0.2)),
           ),
           child: Row(
             children: [
-              const Icon(Icons.account_balance_wallet, color: Color(0xFFEF4444), size: 28),
+              Icon(Icons.account_balance_wallet, color: innerCs.error, size: 28),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Total Expenses', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                  Text('Total Expenses', style: TextStyle(color: innerCs.onSurface.withValues(alpha: 0.54), fontSize: 12)),
                   const SizedBox(height: 2),
                   Text(
                     '${total.toStringAsFixed(2)} DA',
-                    style: const TextStyle(
-                      color: Color(0xFFEF4444),
+                    style: TextStyle(
+                      color: innerCs.error,
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
@@ -111,12 +114,12 @@ class _ExpensesPageState extends State<ExpensesPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
+                  color: innerCs.onSurface.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   '${snapshot.data?.docs.length ?? 0} records',
-                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  style: TextStyle(color: innerCs.onSurface.withValues(alpha: 0.54), fontSize: 12),
                 ),
               ),
             ],
@@ -126,22 +129,22 @@ class _ExpensesPageState extends State<ExpensesPage> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(ColorScheme cs) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.receipt_long, size: 64, color: Colors.white24),
+          Icon(Icons.receipt_long, size: 64, color: cs.onSurface.withValues(alpha: 0.24)),
           const SizedBox(height: 16),
-          const Text('No expenses recorded', style: TextStyle(fontSize: 18, color: Colors.white54)),
+          Text('No expenses recorded', style: TextStyle(fontSize: 18, color: cs.onSurface.withValues(alpha: 0.54))),
           const SizedBox(height: 12),
           ElevatedButton.icon(
             onPressed: () => _showExpenseDialog(),
             icon: const Icon(Icons.add, size: 18),
             label: const Text('Record First Expense'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0066CC),
-              foregroundColor: Colors.white,
+              backgroundColor: cs.primary,
+              foregroundColor: cs.onSurface,
             ),
           ),
         ],
@@ -149,59 +152,59 @@ class _ExpensesPageState extends State<ExpensesPage> {
     );
   }
 
-  Widget _buildExpenseTable(List<Expense> expenses) {
+  Widget _buildExpenseTable(List<Expense> expenses, ColorScheme cs) {
     return Card(
-      color: const Color(0xFF1A2332),
+      color: cs.surfaceContainerHighest,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: SingleChildScrollView(
           child: DataTable(
-            headingRowColor: WidgetStateProperty.all(Colors.white.withValues(alpha: 0.05)),
-            columns: const [
-              DataColumn(label: Text('Description', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('Amount', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('Qty', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('Category', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('Date', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('Recorded By', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('Actions', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
+            headingRowColor: WidgetStateProperty.all(cs.onSurface.withValues(alpha: 0.05)),
+            columns: [
+              DataColumn(label: Text('Description', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600))),
+              DataColumn(label: Text('Amount', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600))),
+              DataColumn(label: Text('Qty', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600))),
+              DataColumn(label: Text('Category', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600))),
+              DataColumn(label: Text('Date', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600))),
+              DataColumn(label: Text('Recorded By', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600))),
+              DataColumn(label: Text('Actions', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600))),
             ],
             rows: expenses.map((expense) {
               return DataRow(
                 cells: [
                   DataCell(Text(
                     expense.description,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                    style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.w500),
                   )),
                   DataCell(Text(
                     '${expense.amount.toStringAsFixed(2)} DA',
-                    style: const TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.w600),
+                    style: TextStyle(color: cs.error, fontWeight: FontWeight.w600),
                   )),
                   DataCell(Text(
                     expense.quantity != null ? expense.quantity!.toStringAsFixed(0) : '--',
-                    style: const TextStyle(color: Colors.white70),
+                    style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
                   )),
-                  DataCell(_buildCategoryBadge(expense.category)),
+                  DataCell(_buildCategoryBadge(expense.category, cs)),
                   DataCell(Text(
                     _formatDate(expense.timestamp),
-                    style: const TextStyle(color: Colors.white70),
+                    style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
                   )),
                   DataCell(Text(
                     expense.recordedBy ?? '--',
-                    style: const TextStyle(color: Colors.white70),
+                    style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
                   )),
                   DataCell(
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.edit, size: 18, color: Color(0xFF0066CC)),
+                          icon: Icon(Icons.edit, size: 18, color: cs.primary),
                           onPressed: () => _showExpenseDialog(expense: expense),
                           tooltip: 'Edit',
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete_outline, size: 18, color: Color(0xFFEF4444)),
+                          icon: Icon(Icons.delete_outline, size: 18, color: cs.error),
                           onPressed: () => _deleteExpense(expense),
                           tooltip: 'Delete',
                         ),
@@ -217,20 +220,20 @@ class _ExpensesPageState extends State<ExpensesPage> {
     );
   }
 
-  Widget _buildCategoryBadge(ExpenseCategory? category) {
+  Widget _buildCategoryBadge(ExpenseCategory? category, ColorScheme cs) {
     if (category == null) {
-      return const Text('--', style: TextStyle(color: Colors.white38));
+      return Text('--', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38)));
     }
     final colors = {
-      ExpenseCategory.supplies: const Color(0xFF0066CC),
-      ExpenseCategory.maintenance: const Color(0xFFF59E0B),
-      ExpenseCategory.salary: const Color(0xFF84CC16),
-      ExpenseCategory.utilities: const Color(0xFF8B5CF6),
-      ExpenseCategory.rent: const Color(0xFFEF4444),
-      ExpenseCategory.transport: const Color(0xFF06B6D4),
-      ExpenseCategory.other: Colors.white54,
+      ExpenseCategory.supplies: cs.primary,
+      ExpenseCategory.maintenance: cs.tertiary,
+      ExpenseCategory.salary: cs.secondary,
+      ExpenseCategory.utilities: cs.secondaryContainer,
+      ExpenseCategory.rent: cs.error,
+      ExpenseCategory.transport: cs.primaryContainer,
+      ExpenseCategory.other: cs.onSurface.withValues(alpha: 0.54),
     };
-    final color = colors[category] ?? Colors.white54;
+    final color = colors[category] ?? cs.onSurface.withValues(alpha: 0.54);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -260,14 +263,16 @@ class _ExpensesPageState extends State<ExpensesPage> {
     await showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF1A2332),
+        builder: (ctx, setDialogState) {
+          final dialogCs = Theme.of(ctx).colorScheme;
+          return AlertDialog(
+          backgroundColor: dialogCs.surfaceContainerHighest,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
             children: [
-              Icon(isEdit ? Icons.edit : Icons.add_circle, color: const Color(0xFF0066CC), size: 22),
+              Icon(isEdit ? Icons.edit : Icons.add_circle, color: dialogCs.primary, size: 22),
               const SizedBox(width: 8),
-              Text(isEdit ? 'Edit Expense' : 'Add Expense', style: const TextStyle(color: Colors.white)),
+              Text(isEdit ? 'Edit Expense' : 'Add Expense', style: TextStyle(color: dialogCs.onSurface)),
             ],
           ),
           content: SizedBox(
@@ -276,14 +281,14 @@ class _ExpensesPageState extends State<ExpensesPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildTextField(descCtrl, 'Description', Icons.description),
+                  _buildTextField(descCtrl, 'Description', Icons.description, dialogCs),
                   const SizedBox(height: 12),
-                  _buildTextField(amountCtrl, 'Amount (DA)', Icons.attach_money, 
+                  _buildTextField(amountCtrl, 'Amount (DA)', Icons.attach_money, dialogCs,
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
                   ),
                   const SizedBox(height: 12),
-                  _buildTextField(qtyCtrl, 'Quantity', Icons.inventory_2, 
+                  _buildTextField(qtyCtrl, 'Quantity', Icons.inventory_2, dialogCs,
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
                   ),
@@ -291,17 +296,17 @@ class _ExpensesPageState extends State<ExpensesPage> {
                   const SizedBox(height: 12),
                   DropdownButtonFormField<ExpenseCategory>(
                     value: selectedCategory,
-                    dropdownColor: const Color(0xFF1A2332),
-                    style: const TextStyle(color: Colors.white),
+                    dropdownColor: dialogCs.surfaceContainerHighest,
+                    style: TextStyle(color: dialogCs.onSurface),
                     decoration: InputDecoration(
                       labelText: 'Category',
-                      labelStyle: const TextStyle(color: Colors.white54),
+                      labelStyle: TextStyle(color: dialogCs.onSurface.withValues(alpha: 0.54)),
                       enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+                        borderSide: BorderSide(color: dialogCs.onSurface.withValues(alpha: 0.15)),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      focusedBorder: const OutlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xFF0066CC)),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: dialogCs.primary),
                       ),
                     ),
                     items: ExpenseCategory.values
@@ -317,6 +322,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
                   const SizedBox(height: 12),
                   InkWell(
                     onTap: () async {
+                      final pickerCs = Theme.of(context).colorScheme;
                       final picked = await showDatePicker(
                         context: ctx,
                         initialDate: selectedDate,
@@ -325,9 +331,9 @@ class _ExpensesPageState extends State<ExpensesPage> {
                         builder: (context, child) {
                           return Theme(
                             data: Theme.of(context).copyWith(
-                              colorScheme: const ColorScheme.dark(
-                                primary: Color(0xFF0066CC),
-                                surface: Color(0xFF1A2332),
+                              colorScheme: ColorScheme.dark(
+                                primary: pickerCs.primary,
+                                surface: pickerCs.surfaceContainerHighest,
                               ),
                             ),
                             child: child!,
@@ -341,14 +347,14 @@ class _ExpensesPageState extends State<ExpensesPage> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                        border: Border.all(color: dialogCs.onSurface.withValues(alpha: 0.15)),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(_formatDate(selectedDate), style: const TextStyle(color: Colors.white)),
-                          const Icon(Icons.calendar_today, color: Color(0xFF0066CC), size: 20),
+                          Text(_formatDate(selectedDate), style: TextStyle(color: dialogCs.onSurface)),
+                          Icon(Icons.calendar_today, color: dialogCs.primary, size: 20),
                         ],
                       ),
                     ),
@@ -360,16 +366,16 @@ class _ExpensesPageState extends State<ExpensesPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+              child: Text('Cancel', style: TextStyle(color: dialogCs.onSurface.withValues(alpha: 0.54))),
             ),
             ElevatedButton(
               onPressed: () async {
                 if (descCtrl.text.trim().isEmpty || amountCtrl.text.trim().isEmpty) {
                   if (ctx.mounted) {
                     ScaffoldMessenger.of(ctx).showSnackBar(
-                      const SnackBar(
-                        content: Text('Please fill in description and amount'),
-                        backgroundColor: Color(0xFFEF4444),
+                      SnackBar(
+                        content: const Text('Please fill in description and amount'),
+                        backgroundColor: dialogCs.error,
                       ),
                     );
                   }
@@ -381,9 +387,9 @@ class _ExpensesPageState extends State<ExpensesPage> {
                   if (amount == null) {
                     if (ctx.mounted) {
                       ScaffoldMessenger.of(ctx).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please enter a valid amount'),
-                          backgroundColor: Color(0xFFEF4444),
+                        SnackBar(
+                          content: const Text('Please enter a valid amount'),
+                          backgroundColor: dialogCs.error,
                         ),
                       );
                     }
@@ -398,9 +404,9 @@ class _ExpensesPageState extends State<ExpensesPage> {
                   if (currentUser == null) {
                     if (ctx.mounted) {
                       ScaffoldMessenger.of(ctx).showSnackBar(
-                        const SnackBar(
-                          content: Text('You must be logged in to save expenses'),
-                          backgroundColor: Color(0xFFEF4444),
+                        SnackBar(
+                          content: const Text('You must be logged in to save expenses'),
+                          backgroundColor: dialogCs.error,
                         ),
                       );
                     }
@@ -421,9 +427,9 @@ class _ExpensesPageState extends State<ExpensesPage> {
                   if (ctx.mounted) {
                     Navigator.of(ctx).pop();
                     ScaffoldMessenger.of(ctx).showSnackBar(
-                      const SnackBar(
-                        content: Text('Expense saved successfully'),
-                        backgroundColor: Color(0xFF84CC16),
+                      SnackBar(
+                        content: const Text('Expense saved successfully'),
+                        backgroundColor: dialogCs.secondary,
                       ),
                     );
                   }
@@ -436,7 +442,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
                     ScaffoldMessenger.of(ctx).showSnackBar(
                       SnackBar(
                         content: Text(errorMessage),
-                        backgroundColor: const Color(0xFFEF4444),
+                        backgroundColor: dialogCs.error,
                       ),
                     );
                   }
@@ -444,38 +450,39 @@ class _ExpensesPageState extends State<ExpensesPage> {
 
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0066CC),
-                foregroundColor: Colors.white,
+                backgroundColor: dialogCs.primary,
+                foregroundColor: dialogCs.onSurface,
               ),
               child: Text(isEdit ? 'Update' : 'Add'),
             ),
           ],
-        ),
+        );
+},
       ),
     ).then((_) => setState(() {}));
   }
 
-  Widget _buildTextField(TextEditingController ctrl, String label, IconData icon,
+  Widget _buildTextField(TextEditingController ctrl, String label, IconData icon, ColorScheme cs,
       {TextInputType? keyboardType, List<TextInputFormatter>? inputFormatters}) {
     return TextField(
       controller: ctrl,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: cs.onSurface),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Colors.white54),
-        prefixIcon: Icon(icon, color: Colors.white38, size: 20),
+        labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
+        prefixIcon: Icon(icon, color: cs.onSurface.withValues(alpha: 0.38), size: 20),
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+          borderSide: BorderSide(color: cs.onSurface.withValues(alpha: 0.15)),
           borderRadius: BorderRadius.circular(8),
         ),
-        focusedBorder: const OutlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFF0066CC)),
-          borderRadius: BorderRadius.all(Radius.circular(8)),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: cs.primary),
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
         ),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.05),
+        fillColor: cs.onSurface.withValues(alpha: 0.05),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
     );
@@ -513,26 +520,29 @@ class _ExpensesPageState extends State<ExpensesPage> {
   Future<void> _deleteExpense(Expense expense) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A2332),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Delete Expense', style: TextStyle(color: Colors.white)),
-        content: Text(
-          'Delete "${expense.description}"?',
-          style: const TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+      builder: (ctx) {
+        final deleteCs = Theme.of(ctx).colorScheme;
+        return AlertDialog(
+          backgroundColor: deleteCs.surfaceContainerHighest,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text('Delete Expense', style: TextStyle(color: deleteCs.onSurface)),
+          content: Text(
+            'Delete "${expense.description}"?',
+            style: TextStyle(color: deleteCs.onSurface.withValues(alpha: 0.7)),
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
-            child: const Text('Delete', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text('Cancel', style: TextStyle(color: deleteCs.onSurface.withValues(alpha: 0.54))),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              style: ElevatedButton.styleFrom(backgroundColor: deleteCs.error),
+              child: Text('Delete', style: TextStyle(color: deleteCs.onSurface)),
+            ),
+          ],
+        );
+      },
     );
     if (confirmed == true) {
       await firestore.collection('expenses').doc(expense.id).update({'isDeleted': true});

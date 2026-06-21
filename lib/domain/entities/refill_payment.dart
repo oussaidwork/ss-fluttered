@@ -1,3 +1,5 @@
+import '../../core/utils/date_utils.dart';
+
 class RefillPayment {
   final String id;
   final double amount;
@@ -61,7 +63,7 @@ class RefillPayment {
       transferReference: map['transferReference'] as String?,
       bankName: map['bankName'] as String?,
       accountNumber: map['accountNumber'] as String?,
-      paymentDate: DateTime.tryParse(map['paymentDate'] as String? ?? ''),
+      paymentDate: DateUtilsApp.parseFirestoreDateTime(map['paymentDate'], fallback: null),
       refillId: map['refillId'] as String? ?? '',
       paymentTypeId: map['paymentTypeId'] as String?,
     );

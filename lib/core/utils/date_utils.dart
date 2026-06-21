@@ -1,8 +1,17 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 /// Date and time formatting utilities.
 class DateUtilsApp {
   DateUtilsApp._();
+
+  /// Parses a Firestore [Timestamp], an ISO-8601 [String], or falls back
+  /// to [fallback].
+  static DateTime parseFirestoreDateTime(dynamic value, {DateTime? fallback}) {
+    if (value is Timestamp) return value.toDate();
+    if (value is String) return DateTime.tryParse(value) ?? fallback ?? DateTime.now();
+    return fallback ?? DateTime.now();
+  }
 
   static final DateFormat _dateFormatter = DateFormat('yyyy-MM-dd');
   static final DateFormat _timeFormatter = DateFormat('HH:mm');

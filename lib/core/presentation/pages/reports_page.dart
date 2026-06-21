@@ -9,75 +9,64 @@ class _ReportType {
   final String title;
   final String description;
   final IconData icon;
-  final Color color;
   final bool requiresDateRange;
 
   const _ReportType({
     required this.title,
     required this.description,
     required this.icon,
-    required this.color,
     this.requiresDateRange = true,
   });
 }
 
-const _reportTypes = [
+List<_ReportType> _reportTypes(ColorScheme cs) => [
   _ReportType(
     title: 'Sales Report',
     description: 'Detailed breakdown of all sales by period',
     icon: Icons.receipt_long,
-    color: Color(0xFF0066CC),
   ),
   _ReportType(
     title: 'Shift Summary',
     description: 'Per-shift performance with cash reconciliation',
     icon: Icons.schedule,
-    color: Color(0xFF8B5CF6),
   ),
   _ReportType(
     title: 'Debts Report',
     description: 'Outstanding debts by client with due dates',
     icon: Icons.money_off,
-    color: Color(0xFFEF4444),
     requiresDateRange: false,
   ),
   _ReportType(
     title: 'Payments Settlement',
     description: 'Payment history and settlement status',
     icon: Icons.payments,
-    color: Color(0xFF84CC16),
   ),
   _ReportType(
     title: 'Pump Indexes',
     description: 'Current pump counter readings for all nozzles',
     icon: Icons.speed,
-    color: Color(0xFF06B6D4),
     requiresDateRange: false,
   ),
   _ReportType(
     title: 'Pit Refill',
     description: 'Fuel tank refill history and volume tracking',
     icon: Icons.local_shipping,
-    color: Color(0xFFF59E0B),
   ),
   _ReportType(
     title: 'Fuel Price History',
     description: 'Price changes over time for all fuel types',
     icon: Icons.trending_up,
-    color: Color(0xFF84CC16),
     requiresDateRange: false,
   ),
   _ReportType(
     title: 'Audit Log',
     description: 'System activity log with user actions',
     icon: Icons.security,
-    color: Colors.white54,
   ),
   _ReportType(
     title: 'Statistics',
     description: 'Aggregate metrics: totals, averages, and counts',
     icon: Icons.analytics,
-    color: Color(0xFF0066CC),
     requiresDateRange: false,
   ),
 ];
@@ -97,6 +86,8 @@ class _ReportsPageState extends State<ReportsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final types = _reportTypes(cs);
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -105,14 +96,14 @@ class _ReportsPageState extends State<ReportsPage> {
           // Header
           Row(
             children: [
-              const Icon(Icons.assessment, color: Color(0xFF0066CC), size: 28),
+              Icon(Icons.assessment, color: cs.primary, size: 28),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'Reports Hub',
                 style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white),
+                    color: cs.onSurface),
               ),
             ],
           ),
@@ -134,9 +125,9 @@ class _ReportsPageState extends State<ReportsPage> {
                       crossAxisSpacing: 16,
                       childAspectRatio: 1.4,
                     ),
-                    itemCount: _reportTypes.length,
+                    itemCount: types.length,
                     itemBuilder: (ctx, idx) =>
-                        _buildReportCard(_reportTypes[idx]),
+                        _buildReportCard(types[idx]),
                   ),
           ),
         ],
@@ -145,22 +136,23 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   Widget _buildDateRangeFilter() {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A2332),
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          const Icon(Icons.date_range, color: Color(0xFF0066CC), size: 20),
+          Icon(Icons.date_range, color: cs.primary, size: 20),
           const SizedBox(width: 12),
-          const Text('Period:', style: TextStyle(color: Colors.white54)),
+          Text('Period:', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54))),
           const SizedBox(width: 12),
           _dateChip(_from, isFrom: true),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            child: Text('—', style: TextStyle(color: Colors.white54)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text('—', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54))),
           ),
           _dateChip(_to, isFrom: false),
           const Spacer(),
@@ -176,6 +168,7 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   Widget _dateChip(DateTime date, {required bool isFrom}) {
+    final cs = Theme.of(context).colorScheme;
     return InkWell(
       onTap: () async {
         final picked = await showDatePicker(
@@ -183,15 +176,18 @@ class _ReportsPageState extends State<ReportsPage> {
           initialDate: date,
           firstDate: DateTime(2020),
           lastDate: DateTime.now(),
-          builder: (ctx, child) => Theme(
-            data: Theme.of(ctx).copyWith(
-              colorScheme: const ColorScheme.dark(
-                primary: Color(0xFF0066CC),
-                surface: Color(0xFF1A2332),
+          builder: (ctx, child) {
+            final pickerCs = Theme.of(ctx).colorScheme;
+            return Theme(
+              data: Theme.of(ctx).copyWith(
+                colorScheme: ColorScheme.dark(
+                  primary: pickerCs.primary,
+                  surface: pickerCs.surfaceContainerHighest,
+                ),
               ),
-            ),
-            child: child!,
-          ),
+              child: child!,
+            );
+          },
         );
         if (picked != null) {
           setState(() {
@@ -206,7 +202,7 @@ class _ReportsPageState extends State<ReportsPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: const Color(0xFF0066CC).withValues(alpha: 0.15),
+          color: cs.primary.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -214,14 +210,14 @@ class _ReportsPageState extends State<ReportsPage> {
           children: [
             Text(
               _formatDate(date),
-              style: const TextStyle(
-                  color: Color(0xFF0066CC),
+              style: TextStyle(
+                  color: cs.primary,
                   fontWeight: FontWeight.w600,
                   fontSize: 13),
             ),
             const SizedBox(width: 4),
-            const Icon(Icons.edit_calendar,
-                size: 14, color: Color(0xFF0066CC)),
+            Icon(Icons.edit_calendar,
+                size: 14, color: cs.primary),
           ],
         ),
       ),
@@ -229,6 +225,7 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   Widget _presetChip(String label, int days) {
+    final cs = Theme.of(context).colorScheme;
     final isActive = _to == DateTime.now() &&
         _from == DateTime.now().subtract(Duration(days: days));
     return GestureDetector(
@@ -242,19 +239,19 @@ class _ReportsPageState extends State<ReportsPage> {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
           color: isActive
-              ? const Color(0xFF0066CC).withValues(alpha: 0.2)
-              : Colors.white.withValues(alpha: 0.05),
+              ? cs.primary.withValues(alpha: 0.2)
+              : cs.onSurface.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isActive
-                ? const Color(0xFF0066CC)
-                : Colors.white.withValues(alpha: 0.1),
+                ? cs.primary
+                : cs.onSurface.withValues(alpha: 0.1),
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isActive ? const Color(0xFF0066CC) : Colors.white54,
+            color: isActive ? cs.primary : cs.onSurface.withValues(alpha: 0.54),
             fontSize: 12,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
           ),
@@ -264,8 +261,10 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   Widget _buildReportCard(_ReportType type) {
+    final cs = Theme.of(context).colorScheme;
+    final color = _reportTypeColor(type.title, cs);
     return Card(
-      color: const Color(0xFF1A2332),
+      color: cs.surfaceContainerHighest,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: _isGenerating ? null : () => _generateReport(type),
@@ -280,21 +279,21 @@ class _ReportsPageState extends State<ReportsPage> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: type.color.withValues(alpha: 0.15),
+                      color: color.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(type.icon, color: type.color, size: 24),
+                    child: Icon(type.icon, color: color, size: 24),
                   ),
                   const Spacer(),
                   Icon(Icons.arrow_forward_ios,
-                      color: Colors.white24, size: 16),
+                      color: cs.onSurface.withValues(alpha: 0.24), size: 16),
                 ],
               ),
               const Spacer(),
               Text(
                 type.title,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: cs.onSurface,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
@@ -302,7 +301,7 @@ class _ReportsPageState extends State<ReportsPage> {
               const SizedBox(height: 6),
               Text(
                 type.description,
-                style: const TextStyle(color: Colors.white54, fontSize: 12),
+                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 12),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -314,25 +313,26 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   Widget _buildLoadingState() {
+    final cs = Theme.of(context).colorScheme;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(
+          SizedBox(
             width: 48,
             height: 48,
             child: CircularProgressIndicator(
-                strokeWidth: 3, color: Color(0xFF0066CC)),
+                strokeWidth: 3, color: cs.primary),
           ),
           const SizedBox(height: 20),
           Text(
             'Generating $_generatingTitle...',
-            style: const TextStyle(color: Colors.white70, fontSize: 16),
+            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontSize: 16),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Please wait while we compile your report',
-            style: TextStyle(color: Colors.white38, fontSize: 13),
+            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 13),
           ),
         ],
       ),
@@ -414,7 +414,7 @@ class _ReportsPageState extends State<ReportsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${type.title} downloaded successfully'),
-            backgroundColor: const Color(0xFF84CC16),
+            backgroundColor: Theme.of(context).colorScheme.secondary,
           ),
         );
       }
@@ -423,7 +423,7 @@ class _ReportsPageState extends State<ReportsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error generating report: $e'),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -451,10 +451,25 @@ class _ReportsPageState extends State<ReportsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Could not save report: $e'),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
+    }
+  }
+
+  Color _reportTypeColor(String title, ColorScheme cs) {
+    switch (title) {
+      case 'Sales Report': return cs.primary;
+      case 'Shift Summary': return cs.secondaryContainer;
+      case 'Debts Report': return cs.error;
+      case 'Payments Settlement': return cs.secondary;
+      case 'Pump Indexes': return cs.primaryContainer;
+      case 'Pit Refill': return cs.tertiary;
+      case 'Fuel Price History': return cs.secondary;
+      case 'Audit Log': return cs.onSurface.withValues(alpha: 0.54);
+      case 'Statistics': return cs.primary;
+      default: return cs.primary;
     }
   }
 

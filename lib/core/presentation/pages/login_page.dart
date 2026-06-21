@@ -33,62 +33,85 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 768;
-
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.topLeft,
-            radius: 1.5,
-            colors: [Color(0xFF1A2332), Color(0xFF0B1220)],
-          ),
-        ),
-        child: isDesktop ? _buildDesktopLayout() : _buildMobileLayout(),
+  InputDecoration _inputDecoration({
+    required String label,
+    required IconData icon,
+    required ColorScheme cs,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(color: cs.onSurfaceVariant),
+      prefixIcon: Icon(icon, color: cs.onSurfaceVariant),
+      filled: true,
+      fillColor: cs.surfaceContainerHighest,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: cs.secondary),
       ),
     );
   }
 
-  Widget _buildDesktopLayout() {
+  @override
+  Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width >= 768;
+    final cs = Theme.of(context).colorScheme;
+
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.topLeft,
+            radius: 1.5,
+            colors: [cs.surface, cs.surfaceContainerHighest],
+          ),
+        ),
+        child: isDesktop ? _buildDesktopLayout(cs) : _buildMobileLayout(cs),
+      ),
+    );
+  }
+
+  Widget _buildDesktopLayout(ColorScheme cs) {
     return Row(
       children: [
         Expanded(
           child: Container(
             padding: const EdgeInsets.all(64),
-            child: const Column(
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.local_gas_station, size: 64, color: Color(0xFF84CC16)),
-                SizedBox(height: 24),
+                Icon(Icons.local_gas_station, size: 64, color: cs.secondary),
+                const SizedBox(height: 24),
                 Text(
                   'SS-RAGRAGA',
                   style: TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: cs.onSurface,
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
                   'Station OS',
-                  style: TextStyle(fontSize: 24, color: Colors.white54),
+                  style: TextStyle(fontSize: 24, color: cs.onSurfaceVariant),
                 ),
-                SizedBox(height: 32),
+                const SizedBox(height: 32),
                 Text(
                   'Industrial-grade POS and operations management\nfor fuel/gas stations',
-                  style: TextStyle(fontSize: 16, color: Colors.white38, height: 1.5),
+                  style: TextStyle(fontSize: 16, color: cs.onSurface.withValues(alpha: 0.6), height: 1.5),
                 ),
-                SizedBox(height: 48),
-                _FeatureRow(icon: Icons.local_gas_station, text: 'Fuel dispensing & inventory'),
-                SizedBox(height: 12),
-                _FeatureRow(icon: Icons.schedule, text: 'Shift management'),
-                SizedBox(height: 12),
-                _FeatureRow(icon: Icons.assessment, text: 'Reports & analytics'),
-                SizedBox(height: 12),
-                _FeatureRow(icon: Icons.people, text: 'Client & debt ledger'),
+                const SizedBox(height: 48),
+                _FeatureRow(icon: Icons.local_gas_station, text: 'Fuel dispensing & inventory', cs: cs),
+                const SizedBox(height: 12),
+                _FeatureRow(icon: Icons.schedule, text: 'Shift management', cs: cs),
+                const SizedBox(height: 12),
+                _FeatureRow(icon: Icons.assessment, text: 'Reports & analytics', cs: cs),
+                const SizedBox(height: 12),
+                _FeatureRow(icon: Icons.people, text: 'Client & debt ledger', cs: cs),
               ],
             ),
           ),
@@ -97,7 +120,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
-              child: _buildLoginForm(),
+              child: _buildLoginForm(cs),
             ),
           ),
         ),
@@ -105,92 +128,64 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildMobileLayout() {
+  Widget _buildMobileLayout(ColorScheme cs) {
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.local_gas_station, size: 48, color: Color(0xFF84CC16)),
+            Icon(Icons.local_gas_station, size: 48, color: cs.secondary),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'SS-RAGRAGA',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: cs.onSurface,
               ),
             ),
             const SizedBox(height: 32),
-            _buildLoginForm(),
+            _buildLoginForm(cs),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLoginForm() {
+  Widget _buildLoginForm(ColorScheme cs) {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A2332),
+        color: cs.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
+          Text(
             'Sign In',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: cs.onSurface,
             ),
           ),
           const SizedBox(height: 8),
-          const Text('Enter your credentials', style: TextStyle(color: Colors.white54)),
+          Text('Enter your credentials', style: TextStyle(color: cs.onSurfaceVariant)),
           const SizedBox(height: 32),
           TextField(
             controller: _emailController,
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              labelText: 'Email',
-              labelStyle: const TextStyle(color: Colors.white54),
-              prefixIcon: const Icon(Icons.email, color: Colors.white54),
-              filled: true,
-              fillColor: const Color(0xFF0B1220),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF84CC16)),
-              ),
-            ),
+            style: TextStyle(color: cs.onSurface),
+            decoration: _inputDecoration(label: 'Email', icon: Icons.email, cs: cs),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _passwordController,
             obscureText: true,
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              labelText: 'Password',
-              labelStyle: const TextStyle(color: Colors.white54),
-              prefixIcon: const Icon(Icons.lock, color: Colors.white54),
-              filled: true,
-              fillColor: const Color(0xFF0B1220),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF84CC16)),
-              ),
-            ),
+            style: TextStyle(color: cs.onSurface),
+            decoration: _inputDecoration(label: 'Password', icon: Icons.lock, cs: cs),
           ),
           const SizedBox(height: 16),
           Row(
@@ -203,14 +198,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   onChanged: (value) {
                     setState(() => _rememberMe = value ?? false);
                   },
-                  activeColor: const Color(0xFF84CC16),
-                  side: const BorderSide(color: Colors.white54),
+                  activeColor: cs.secondary,
+                  side: BorderSide(color: cs.onSurfaceVariant),
                 ),
               ),
               const SizedBox(width: 12),
               Text(
                 'Remember me',
-                style: const TextStyle(color: Colors.white54, fontSize: 14),
+                style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14),
               ),
             ],
           ),
@@ -237,7 +232,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           await prefs.remove('remember_me');
                           await prefs.remove('remembered_email');
                         }
-                        // Successful sign‑in will trigger authStateProvider and router redirect.
                       } on FirebaseAuthException catch (e) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -255,17 +249,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       }
                     },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF84CC16),
-                foregroundColor: const Color(0xFF0B1220),
+                backgroundColor: cs.secondary,
+                foregroundColor: cs.onSecondary,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               child: _isLoading
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Color(0xFF0B1220),
+                        color: cs.onSecondary,
                       ),
                     )
                   : const Text('Sign In', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -274,9 +268,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           const SizedBox(height: 16),
           TextButton(
             onPressed: () => context.go(AppRoutes.signup),
-            child: const Text(
+            child: Text(
               "Don't have an account? Create one",
-              style: TextStyle(color: Color(0xFF84CC16)),
+              style: TextStyle(color: cs.secondary),
             ),
           ),
         ],
@@ -288,15 +282,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 class _FeatureRow extends StatelessWidget {
   final IconData icon;
   final String text;
-  const _FeatureRow({required this.icon, required this.text});
+  final ColorScheme cs;
+  const _FeatureRow({required this.icon, required this.text, required this.cs});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: const Color(0xFF84CC16)),
+        Icon(icon, size: 20, color: cs.secondary),
         const SizedBox(width: 12),
-        Text(text, style: const TextStyle(color: Colors.white54, fontSize: 14)),
+        Text(text, style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14)),
       ],
     );
   }

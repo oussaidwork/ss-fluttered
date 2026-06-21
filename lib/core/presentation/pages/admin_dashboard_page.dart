@@ -12,11 +12,12 @@ class AdminDashboardPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final metricsAsync = ref.watch(dashboardMetricsProvider);
+    final cs = Theme.of(context).colorScheme;
 
     return metricsAsync.when(
       data: (metrics) => _buildDashboard(context, metrics),
-      loading: () => const Center(
-        child: CircularProgressIndicator(color: Color(0xFF0066CC)),
+      loading: () => Center(
+        child: CircularProgressIndicator(color: cs.primary),
       ),
       error: (err, stack) => Center(
         child: Padding(
@@ -24,16 +25,16 @@ class AdminDashboardPage extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.cloud_off, color: Colors.white38, size: 48),
+              Icon(Icons.cloud_off, color: cs.onSurface.withValues(alpha: 0.38), size: 48),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Could not load dashboard',
-                style: TextStyle(color: Colors.white70, fontSize: 16),
+                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontSize: 16),
               ),
               const SizedBox(height: 8),
               Text(
                 '$err',
-                style: const TextStyle(color: Colors.white38, fontSize: 12),
+                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 12),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -44,6 +45,7 @@ class AdminDashboardPage extends ConsumerWidget {
   }
 
   Widget _buildDashboard(BuildContext context, DashboardMetrics metrics) {
+    final cs = Theme.of(context).colorScheme;
     final isWide = MediaQuery.of(context).size.width > 900;
     final currencyFormat = NumberFormat('#,##0.00', 'en_US');
     final l10n = AppLocalizations.of(context)!;
@@ -62,16 +64,16 @@ class AdminDashboardPage extends ConsumerWidget {
                   children: [
                     Text(
                       l10n.dashboard,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: cs.onSurface,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '${DateFormat('EEEE, MMMM d, yyyy').format(DateTime.now())}',
-                      style: const TextStyle(color: Colors.white54, fontSize: 14),
+                      style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 14),
                     ),
                   ],
                 ),
@@ -81,7 +83,7 @@ class AdminDashboardPage extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // === KPI Cards ===
-          _buildKpiRow(metrics, currencyFormat, isWide, l10n),
+          _buildKpiRow(cs, metrics, currencyFormat, isWide, l10n),
           const SizedBox(height: 24),
 
           // === Charts Section ===
@@ -97,7 +99,7 @@ class AdminDashboardPage extends ConsumerWidget {
                     child: Center(
                       child: Text(
                         l10n.noRecentSales,
-                        style: const TextStyle(color: Colors.white38),
+                        style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38)),
                       ),
                     ),
                   )
@@ -106,28 +108,28 @@ class AdminDashboardPage extends ConsumerWidget {
                         .map(
                           (sale) => ListTile(
                             leading: CircleAvatar(
-                              backgroundColor: const Color(0xFF0066CC).withAlpha(30),
-                              child: const Icon(
+                              backgroundColor: cs.primary.withAlpha(30),
+                              child: Icon(
                                 Icons.receipt_long,
-                                color: Color(0xFF0066CC),
+                                color: cs.primary,
                                 size: 20,
                               ),
                             ),
                             title: Text(
                               'Sale #${sale.id.isNotEmpty ? sale.id.substring(0, min(6, sale.id.length)).toUpperCase() : 'N/A'}',
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: cs.onSurface,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                             subtitle: Text(
                               '${sale.totalPrice.toStringAsFixed(2)} MAD',
-                              style: const TextStyle(color: Colors.white54),
+                              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
                             ),
                             trailing: Text(
                               '${sale.timestamp.hour.toString().padLeft(2, '0')}:${sale.timestamp.minute.toString().padLeft(2, '0')}',
-                              style: const TextStyle(
-                                color: Colors.white38,
+                              style: TextStyle(
+                                color: cs.onSurface.withValues(alpha: 0.38),
                                 fontSize: 12,
                               ),
                             ),
@@ -142,7 +144,7 @@ class AdminDashboardPage extends ConsumerWidget {
   }
 
   Widget _buildKpiRow(
-      DashboardMetrics metrics, NumberFormat fmt, bool isWide, AppLocalizations l10n) {
+      ColorScheme cs, DashboardMetrics metrics, NumberFormat fmt, bool isWide, AppLocalizations l10n) {
     final crossCount = isWide ? 3 : 2;
 
     return GridView.count(
@@ -158,42 +160,42 @@ class AdminDashboardPage extends ConsumerWidget {
           value: '${metrics.totalFuelVolume.toStringAsFixed(1)} L',
           subtitle: '${fmt.format(metrics.totalFuelRevenue)} MAD',
           icon: Icons.local_gas_station,
-          color: const Color(0xFF0066CC),
+          color: cs.primary,
         ),
         _KpiCard(
           title: l10n.productSales,
           value: '${metrics.totalProductCount} items',
           subtitle: '${fmt.format(metrics.totalProductRevenue)} MAD',
           icon: Icons.inventory_2,
-          color: const Color(0xFF84CC16),
+          color: cs.secondary,
         ),
         _KpiCard(
           title: l10n.totalExpenses,
           value: fmt.format(metrics.totalExpenses),
           subtitle: 'MAD',
           icon: Icons.money_off,
-          color: Colors.redAccent,
+          color: cs.error,
         ),
         _KpiCard(
           title: l10n.activeShifts,
           value: '${metrics.activeShifts}',
           subtitle: metrics.activeShifts == 1 ? 'shift open' : 'shifts open',
           icon: Icons.work_history,
-          color: Colors.teal,
+          color: cs.tertiary,
         ),
         _KpiCard(
           title: l10n.pendingPayments,
           value: '${metrics.pendingPaymentsCount}',
           subtitle: '${fmt.format(metrics.pendingPaymentsAmount)} MAD',
           icon: Icons.pending_actions,
-          color: Colors.amber,
+          color: cs.tertiary,
         ),
         _KpiCard(
           title: l10n.totalClients,
           value: '${metrics.totalClients}',
           subtitle: 'registered',
           icon: Icons.people,
-          color: Colors.purpleAccent,
+          color: cs.secondaryContainer,
         ),
       ],
     );
@@ -263,12 +265,13 @@ class _KpiCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A2332),
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
       ),
       child: Row(
         children: [
@@ -288,13 +291,13 @@ class _KpiCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(color: Colors.white54, fontSize: 11),
+                  style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 11),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: cs.onSurface,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -324,6 +327,7 @@ class _SalesTrendChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     if (dailyTrend.isEmpty) {
       return _EmptyChartCard(title: AppLocalizations.of(context)!.salesTrend);
     }
@@ -342,17 +346,17 @@ class _SalesTrendChart extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A2332),
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             AppLocalizations.of(context)!.salesTrend,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: cs.onSurface,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
@@ -367,7 +371,7 @@ class _SalesTrendChart extends StatelessWidget {
                   drawVerticalLine: false,
                   horizontalInterval: safeMax / 4,
                   getDrawingHorizontalLine: (value) => FlLine(
-                    color: Colors.white10,
+                    color: cs.onSurface.withValues(alpha: 0.1),
                     strokeWidth: 1,
                   ),
                 ),
@@ -378,8 +382,8 @@ class _SalesTrendChart extends StatelessWidget {
                       reservedSize: 50,
                       getTitlesWidget: (value, meta) => Text(
                         NumberFormat.compact().format(value),
-                        style: const TextStyle(
-                          color: Colors.white38,
+                        style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.38),
                           fontSize: 10,
                         ),
                       ),
@@ -398,8 +402,8 @@ class _SalesTrendChart extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 4),
                           child: Text(
                             dayLabels[idx],
-                            style: const TextStyle(
-                              color: Colors.white38,
+                            style: TextStyle(
+                              color: cs.onSurface.withValues(alpha: 0.38),
                               fontSize: 9,
                             ),
                           ),
@@ -422,21 +426,21 @@ class _SalesTrendChart extends StatelessWidget {
                     spots: spots,
                     isCurved: true,
                     preventCurveOverShooting: true,
-                    color: const Color(0xFF0066CC),
+                    color: cs.primary,
                     barWidth: 3,
                     dotData: FlDotData(
                       show: true,
                       getDotPainter: (spot, percent, barData, index) =>
                           FlDotCirclePainter(
                         radius: 4,
-                        color: const Color(0xFF0066CC),
+                        color: cs.primary,
                         strokeWidth: 2,
-                        strokeColor: const Color(0xFF1A2332),
+                        strokeColor: cs.surfaceContainerHighest,
                       ),
                     ),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: const Color(0xFF0066CC).withAlpha(40),
+                      color: cs.primary.withAlpha(40),
                     ),
                   ),
                 ],
@@ -459,16 +463,17 @@ class _FuelMixChart extends StatelessWidget {
 
   const _FuelMixChart({required this.fuelBreakdown});
 
-  static const _chartColors = [
-    Color(0xFF0066CC),
-    Color(0xFF84CC16),
-    Color(0xFFF59E0B),
-    Color(0xFFEF4444),
-    Color(0xFF8B5CF6),
+  static List<Color> _chartColors(ColorScheme cs) => [
+    cs.primary,
+    cs.secondary,
+    cs.tertiary,
+    cs.error,
+    cs.secondaryContainer,
   ];
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final fuelMixLabel = AppLocalizations.of(context)!.fuelMix;
     if (fuelBreakdown.isEmpty) {
       return _EmptyChartCard(title: fuelMixLabel);
@@ -486,10 +491,10 @@ class _FuelMixChart extends StatelessWidget {
       return PieChartSectionData(
         value: item.volume,
         title: '${pct.toStringAsFixed(0)}%',
-        color: _chartColors[idx % _chartColors.length],
+        color: _chartColors(cs)[idx % _chartColors(cs).length],
         radius: 60,
-        titleStyle: const TextStyle(
-          color: Colors.white,
+        titleStyle: TextStyle(
+          color: cs.onSurface,
           fontSize: 12,
           fontWeight: FontWeight.bold,
         ),
@@ -499,17 +504,17 @@ class _FuelMixChart extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A2332),
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             AppLocalizations.of(context)!.fuelMix,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: cs.onSurface,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
@@ -545,15 +550,15 @@ class _FuelMixChart extends StatelessWidget {
                             width: 10,
                             height: 10,
                             decoration: BoxDecoration(
-                              color: _chartColors[idx % _chartColors.length],
+                              color: _chartColors(cs)[idx % _chartColors(cs).length],
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ),
                           const SizedBox(width: 6),
                           Text(
                             '${item.label} (${item.volume.toStringAsFixed(0)}L)',
-                            style: const TextStyle(
-                              color: Colors.white70,
+                            style: TextStyle(
+                              color: cs.onSurface.withValues(alpha: 0.7),
                               fontSize: 11,
                             ),
                           ),
@@ -580,16 +585,17 @@ class _PaymentMethodsChart extends StatelessWidget {
 
   const _PaymentMethodsChart({required this.paymentBreakdown});
 
-  static const _barColors = [
-    Color(0xFF84CC16),
-    Color(0xFF0066CC),
-    Color(0xFFF59E0B),
-    Color(0xFF8B5CF6),
-    Color(0xFFEF4444),
+  static List<Color> _barColors(ColorScheme cs) => [
+    cs.secondary,
+    cs.primary,
+    cs.tertiary,
+    cs.secondaryContainer,
+    cs.error,
   ];
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final paymentLabel = AppLocalizations.of(context)!.paymentMethods;
     if (paymentBreakdown.isEmpty) {
       return _EmptyChartCard(title: paymentLabel);
@@ -610,7 +616,7 @@ class _PaymentMethodsChart extends StatelessWidget {
         barRods: [
           BarChartRodData(
             toY: item.amount,
-            color: _barColors[idx % _barColors.length],
+            color: _barColors(cs)[idx % _barColors(cs).length],
             width: 28,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(4),
@@ -624,17 +630,17 @@ class _PaymentMethodsChart extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A2332),
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             AppLocalizations.of(context)!.paymentMethods,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: cs.onSurface,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
@@ -642,7 +648,7 @@ class _PaymentMethodsChart extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             '${NumberFormat('#,##0.00').format(totalAmt)} MAD total',
-            style: const TextStyle(color: Colors.white54, fontSize: 12),
+            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 12),
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -654,7 +660,7 @@ class _PaymentMethodsChart extends StatelessWidget {
                   drawVerticalLine: false,
                   horizontalInterval: safeMax / 4,
                   getDrawingHorizontalLine: (value) => FlLine(
-                    color: Colors.white10,
+                    color: cs.onSurface.withValues(alpha: 0.1),
                     strokeWidth: 1,
                   ),
                 ),
@@ -665,8 +671,8 @@ class _PaymentMethodsChart extends StatelessWidget {
                       reservedSize: 50,
                       getTitlesWidget: (value, meta) => Text(
                         NumberFormat.compact().format(value),
-                        style: const TextStyle(
-                          color: Colors.white38,
+                        style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.38),
                           fontSize: 10,
                         ),
                       ),
@@ -684,8 +690,8 @@ class _PaymentMethodsChart extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 4),
                           child: Text(
                             paymentBreakdown[idx].method,
-                            style: const TextStyle(
-                              color: Colors.white54,
+                            style: TextStyle(
+                              color: cs.onSurface.withValues(alpha: 0.54),
                               fontSize: 10,
                             ),
                           ),
@@ -725,6 +731,7 @@ class _ShiftPerformanceChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final shiftPerfLabel = AppLocalizations.of(context)!.shiftPerformance;
     if (shiftPerformance.isEmpty) {
       return _EmptyChartCard(title: shiftPerfLabel);
@@ -745,7 +752,7 @@ class _ShiftPerformanceChart extends StatelessWidget {
         barRods: [
           BarChartRodData(
             toY: sp.expectedCash,
-            color: const Color(0xFF0066CC),
+            color: cs.primary,
             width: 10,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(3),
@@ -755,8 +762,8 @@ class _ShiftPerformanceChart extends StatelessWidget {
           BarChartRodData(
             toY: sp.actualCash,
             color: sp.actualCash >= sp.expectedCash
-                ? const Color(0xFF84CC16)
-                : Colors.redAccent,
+                ? cs.secondary
+                : cs.error,
             width: 10,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(3),
@@ -770,17 +777,17 @@ class _ShiftPerformanceChart extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A2332),
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             AppLocalizations.of(context)!.shiftPerformance,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: cs.onSurface,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
@@ -788,9 +795,9 @@ class _ShiftPerformanceChart extends StatelessWidget {
           const SizedBox(height: 4),
           Row(
             children: [
-              _legendDot(const Color(0xFF0066CC), AppLocalizations.of(context)!.expected),
+              _legendDot(cs.primary, AppLocalizations.of(context)!.expected, cs),
               const SizedBox(width: 16),
-              _legendDot(const Color(0xFF84CC16), AppLocalizations.of(context)!.actual),
+              _legendDot(cs.secondary, AppLocalizations.of(context)!.actual, cs),
             ],
           ),
           const SizedBox(height: 16),
@@ -803,7 +810,7 @@ class _ShiftPerformanceChart extends StatelessWidget {
                   drawVerticalLine: false,
                   horizontalInterval: safeMax / 4,
                   getDrawingHorizontalLine: (value) => FlLine(
-                    color: Colors.white10,
+                    color: cs.onSurface.withValues(alpha: 0.1),
                     strokeWidth: 1,
                   ),
                 ),
@@ -814,8 +821,8 @@ class _ShiftPerformanceChart extends StatelessWidget {
                       reservedSize: 50,
                       getTitlesWidget: (value, meta) => Text(
                         NumberFormat.compact().format(value),
-                        style: const TextStyle(
-                          color: Colors.white38,
+                        style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.38),
                           fontSize: 10,
                         ),
                       ),
@@ -833,8 +840,8 @@ class _ShiftPerformanceChart extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 4),
                           child: Text(
                             DateFormat('MM/dd').format(shiftPerformance[idx].date),
-                            style: const TextStyle(
-                              color: Colors.white38,
+                            style: TextStyle(
+                              color: cs.onSurface.withValues(alpha: 0.38),
                               fontSize: 9,
                             ),
                           ),
@@ -862,7 +869,7 @@ class _ShiftPerformanceChart extends StatelessWidget {
     );
   }
 
-  Widget _legendDot(Color color, String label) {
+  Widget _legendDot(Color color, String label, ColorScheme cs) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -877,7 +884,7 @@ class _ShiftPerformanceChart extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(color: Colors.white54, fontSize: 11),
+          style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 11),
         ),
       ],
     );
@@ -893,17 +900,18 @@ class _ExpenseBreakdownChart extends StatelessWidget {
 
   const _ExpenseBreakdownChart({required this.expenseBreakdown});
 
-  static const _chartColors = [
-    Color(0xFFEF4444),
-    Color(0xFFF59E0B),
-    Color(0xFF8B5CF6),
-    Color(0xFF06B6D4),
-    Color(0xFF84CC16),
-    Color(0xFFEC4899),
+  static List<Color> _chartColors(ColorScheme cs) => [
+    cs.error,
+    cs.tertiary,
+    cs.secondaryContainer,
+    cs.primaryContainer,
+    cs.secondary,
+    const Color(0xFFEC4899),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final expenseLabel = AppLocalizations.of(context)!.expenseBreakdown;
     if (expenseBreakdown.isEmpty) {
       return _EmptyChartCard(title: expenseLabel);
@@ -917,17 +925,17 @@ class _ExpenseBreakdownChart extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A2332),
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             AppLocalizations.of(context)!.expenseBreakdown,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: cs.onSurface,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
@@ -935,7 +943,7 @@ class _ExpenseBreakdownChart extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             '${NumberFormat('#,##0.00').format(totalAmt)} MAD total',
-            style: const TextStyle(color: Colors.white54, fontSize: 12),
+            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 12),
           ),
           const SizedBox(height: 16),
           ...expenseBreakdown.asMap().entries.map((entry) {
@@ -952,15 +960,15 @@ class _ExpenseBreakdownChart extends StatelessWidget {
                     children: [
                       Text(
                         item.category,
-                        style: const TextStyle(
-                          color: Colors.white70,
+                        style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.7),
                           fontSize: 12,
                         ),
                       ),
                       Text(
                         '${NumberFormat('#,##0.00').format(item.amount)} MAD',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: cs.onSurface,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -972,9 +980,9 @@ class _ExpenseBreakdownChart extends StatelessWidget {
                     borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(
                       value: pct,
-                      backgroundColor: Colors.white.withAlpha(15),
+                      backgroundColor: cs.onSurface.withValues(alpha: 0.05),
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        _chartColors[idx % _chartColors.length],
+                        _chartColors(cs)[idx % _chartColors(cs).length],
                       ),
                       minHeight: 8,
                     ),
@@ -999,29 +1007,30 @@ class _EmptyChartCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A2332),
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
       ),
       child: Column(
         children: [
           Text(
             title,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: cs.onSurface,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 24),
-          const Icon(Icons.bar_chart, color: Colors.white24, size: 40),
+          Icon(Icons.bar_chart, color: cs.onSurface.withValues(alpha: 0.24), size: 40),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'No data available yet',
-            style: TextStyle(color: Colors.white38, fontSize: 12),
+            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 12),
           ),
         ],
       ),
@@ -1041,12 +1050,13 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFF1A2332),
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1055,8 +1065,8 @@ class _SectionCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
             child: Text(
               title,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: cs.onSurface,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),

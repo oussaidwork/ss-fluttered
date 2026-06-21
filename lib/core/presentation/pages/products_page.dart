@@ -52,32 +52,34 @@ class _ProductsPageState extends State<ProductsPage> {
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF1A2332),
+        builder: (ctx, setDialogState) {
+          final cs = Theme.of(ctx).colorScheme;
+          return AlertDialog(
+          backgroundColor: cs.surfaceContainerHighest,
           title: Text(docId == null ? 'Add Product' : 'Edit Product',
-              style: const TextStyle(color: Colors.white)),
+              style: TextStyle(color: cs.onSurface)),
           content: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               TextField(
                 controller: nameCtrl,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
+                style: TextStyle(color: cs.onSurface),
+                decoration: InputDecoration(
                     labelText: 'Name',
-                    labelStyle: TextStyle(color: Colors.white54),
+                    labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
                     enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white24))),
+                        borderSide: BorderSide(color: cs.onSurface.withValues(alpha: 0.24)))),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: priceCtrl,
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
+                style: TextStyle(color: cs.onSurface),
+                decoration: InputDecoration(
                     labelText: 'Selling Price (MAD)',
-                    labelStyle: TextStyle(color: Colors.white54),
+                    labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
                     enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white24))),
+                        borderSide: BorderSide(color: cs.onSurface.withValues(alpha: 0.24)))),
               ),
               const SizedBox(height: 12),
               Row(children: [
@@ -86,12 +88,12 @@ class _ProductsPageState extends State<ProductsPage> {
                     controller: priceInCtrl,
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(
+                    style: TextStyle(color: cs.onSurface),
+                    decoration: InputDecoration(
                         labelText: 'Price In',
-                        labelStyle: TextStyle(color: Colors.white54, fontSize: 12),
+                        labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 12),
                         enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white24))),
+                            borderSide: BorderSide(color: cs.onSurface.withValues(alpha: 0.24)))),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -100,12 +102,12 @@ class _ProductsPageState extends State<ProductsPage> {
                     controller: priceOutCtrl,
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(
+                    style: TextStyle(color: cs.onSurface),
+                    decoration: InputDecoration(
                         labelText: 'Price Out',
-                        labelStyle: TextStyle(color: Colors.white54, fontSize: 12),
+                        labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 12),
                         enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white24))),
+                            borderSide: BorderSide(color: cs.onSurface.withValues(alpha: 0.24)))),
                   ),
                 ),
               ]),
@@ -114,12 +116,12 @@ class _ProductsPageState extends State<ProductsPage> {
                 Expanded(
                   child: TextField(
                     controller: unitCtrl,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(
+                    style: TextStyle(color: cs.onSurface),
+                    decoration: InputDecoration(
                         labelText: 'Unit (pcs/L/kg)',
-                        labelStyle: TextStyle(color: Colors.white54),
+                        labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
                         enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white24))),
+                            borderSide: BorderSide(color: cs.onSurface.withValues(alpha: 0.24)))),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -128,23 +130,23 @@ class _ProductsPageState extends State<ProductsPage> {
                     controller: stockCtrl,
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(
+                    style: TextStyle(color: cs.onSurface),
+                    decoration: InputDecoration(
                         labelText: 'Stock Qty',
-                        labelStyle: TextStyle(color: Colors.white54),
+                        labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
                         enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white24))),
+                            borderSide: BorderSide(color: cs.onSurface.withValues(alpha: 0.24)))),
                   ),
                 ),
               ]),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 value: categoryCtrl.text.isEmpty ? null : categoryCtrl.text,
-                dropdownColor: const Color(0xFF1A2332),
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
+                dropdownColor: cs.surfaceContainerHighest,
+                style: TextStyle(color: cs.onSurface),
+                decoration: InputDecoration(
                     labelText: 'Category',
-                    labelStyle: TextStyle(color: Colors.white54)),
+                    labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.54))),
                 items: _categories
                     .where((c) => c != 'All')
                     .map((c) => DropdownMenuItem(value: c, child: Text(c)))
@@ -156,8 +158,8 @@ class _ProductsPageState extends State<ProductsPage> {
                 value: isActive,
                 onChanged: (v) => setDialogState(() => isActive = v),
                 title:
-                    const Text('Active', style: TextStyle(color: Colors.white)),
-                activeColor: const Color(0xFF84CC16),
+                    Text('Active', style: TextStyle(color: cs.onSurface)),
+                activeColor: cs.secondary,
                 contentPadding: EdgeInsets.zero,
               ),
             ]),
@@ -165,12 +167,12 @@ class _ProductsPageState extends State<ProductsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel',
-                  style: TextStyle(color: Colors.white54)),
+              child: Text('Cancel',
+                  style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54))),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0066CC)),
+                  backgroundColor: cs.primary),
               onPressed: () async {
                 final name = nameCtrl.text.trim();
                 if (name.isEmpty) return;
@@ -202,32 +204,33 @@ class _ProductsPageState extends State<ProductsPage> {
                 if (ctx.mounted) Navigator.pop(ctx);
               },
               child: Text(docId == null ? 'Add' : 'Save',
-                  style: const TextStyle(color: Colors.white)),
+                  style: TextStyle(color: cs.onSurface)),
             ),
           ],
-        ),
+        );},
       ),
     );
   }
 
   // ─── Stock Health ─────────────────────────────────────────────
   Widget _stockRing(double qty) {
+    final cs = Theme.of(context).colorScheme;
     Color color;
     String label;
     if (qty <= 0) {
-      color = Colors.red;
+      color = cs.error;
       label = 'OUT';
     } else if (qty < 5) {
-      color = Colors.red;
+      color = cs.error;
       label = 'CRIT';
     } else if (qty < 15) {
       color = Colors.orange;
       label = 'LOW';
     } else if (qty < 50) {
-      color = const Color(0xFF0066CC);
+      color = cs.primary;
       label = 'OK';
     } else {
-      color = const Color(0xFF84CC16);
+      color = cs.secondary;
       label = 'GOOD';
     }
     return Column(mainAxisSize: MainAxisSize.min, children: [
@@ -256,12 +259,13 @@ class _ProductsPageState extends State<ProductsPage> {
   // ─── Build ────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1220),
+      backgroundColor: cs.surface,
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF0066CC),
+        backgroundColor: cs.primary,
         onPressed: () => _showDialog(),
-        child: const Icon(Icons.add, color: Colors.white),
+        child: Icon(Icons.add, color: cs.onSurface),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: firestore
@@ -270,8 +274,8 @@ class _ProductsPageState extends State<ProductsPage> {
             .snapshots(),
         builder: (ctx, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
-            return const Center(
-                child: CircularProgressIndicator(color: Color(0xFF0066CC)));
+            return Center(
+                child: CircularProgressIndicator(color: cs.primary));
           }
           final docs = snap.data?.docs ?? [];
           // Filter
@@ -288,53 +292,53 @@ class _ProductsPageState extends State<ProductsPage> {
 
           return Column(children: [
             // Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
-              child: Row(children: [
-                const Icon(Icons.inventory_2,
-                    color: Color(0xFF0066CC), size: 28),
-                const SizedBox(width: 12),
-                const Text('Retail Stock',
-                    style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white)),
-                const Spacer(),
-                // Search
-                SizedBox(
-                  width: 200,
-                  child: TextField(
-                    onChanged: (v) => setState(() => _searchQuery = v),
-                    style:
-                        const TextStyle(color: Colors.white, fontSize: 13),
-                    decoration: InputDecoration(
-                      hintText: 'Search products...',
-                      hintStyle: const TextStyle(
-                          color: Colors.white38, fontSize: 12),
-                      prefixIcon: const Icon(Icons.search,
-                          color: Colors.white38, size: 18),
-                      filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.05),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 0),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+                child: Row(children: [
+                  Icon(Icons.inventory_2,
+                      color: cs.primary, size: 28),
+                  const SizedBox(width: 12),
+                  Text('Retail Stock',
+                      style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: cs.onSurface)),
+                  const Spacer(),
+                  // Search
+                  SizedBox(
+                    width: 200,
+                    child: TextField(
+                      onChanged: (v) => setState(() => _searchQuery = v),
+                      style:
+                          TextStyle(color: cs.onSurface, fontSize: 13),
+                      decoration: InputDecoration(
+                        hintText: 'Search products...',
+                        hintStyle: TextStyle(
+                            color: cs.onSurface.withValues(alpha: 0.38), fontSize: 12),
+                        prefixIcon: Icon(Icons.search,
+                            color: cs.onSurface.withValues(alpha: 0.38), size: 18),
+                        filled: true,
+                        fillColor: cs.onSurface.withValues(alpha: 0.05),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 0),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                // View toggle
-                IconButton(
-                  icon: Icon(
-                      _gridView ? Icons.view_list : Icons.grid_view,
-                      color: Colors.white54,
-                      size: 20),
-                  onPressed: () =>
-                      setState(() => _gridView = !_gridView),
-                ),
-              ]),
-            ),
+                  const SizedBox(width: 12),
+                  // View toggle
+                  IconButton(
+                    icon: Icon(
+                        _gridView ? Icons.view_list : Icons.grid_view,
+                        color: cs.onSurface.withValues(alpha: 0.54),
+                        size: 20),
+                    onPressed: () =>
+                        setState(() => _gridView = !_gridView),
+                  ),
+                ]),
+              ),
             // Category filter chips
             SizedBox(
               height: 40,
@@ -350,15 +354,15 @@ class _ProductsPageState extends State<ProductsPage> {
                     label: Text(cat,
                         style: TextStyle(
                             color:
-                                selected ? Colors.white : Colors.white54,
+                                selected ? cs.onSurface : cs.onSurface.withValues(alpha: 0.54),
                             fontSize: 12)),
                     selected: selected,
                     onSelected: (_) => setState(
                         () => _selectedCategory = cat),
-                    selectedColor: const Color(0xFF0066CC),
+                    selectedColor: cs.primary,
                     backgroundColor:
-                        Colors.white.withValues(alpha: 0.05),
-                    checkmarkColor: Colors.white,
+                        cs.onSurface.withValues(alpha: 0.05),
+                    checkmarkColor: cs.onSurface,
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     visualDensity: VisualDensity.compact,
                   );
@@ -369,12 +373,12 @@ class _ProductsPageState extends State<ProductsPage> {
             // Content
             Expanded(
               child: filtered.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Text('No products found',
-                          style: TextStyle(color: Colors.white54)))
+                          style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54))))
                   : _gridView
-                      ? _buildGrid(filtered)
-                      : _buildList(filtered),
+                      ? _buildGrid(cs, filtered)
+                      : _buildList(cs, filtered),
             ),
           ]);
         },
@@ -383,7 +387,7 @@ class _ProductsPageState extends State<ProductsPage> {
   }
 
   // ─── Grid View ────────────────────────────────────────────────
-  Widget _buildGrid(List<QueryDocumentSnapshot> docs) {
+  Widget _buildGrid(ColorScheme cs, List<QueryDocumentSnapshot> docs) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: GridView.builder(
@@ -394,12 +398,12 @@ class _ProductsPageState extends State<ProductsPage> {
           childAspectRatio: 0.85,
         ),
         itemCount: docs.length,
-        itemBuilder: (ctx, idx) => _buildProductCard(docs[idx]),
+        itemBuilder: (ctx, idx) => _buildProductCard(cs, docs[idx]),
       ),
     );
   }
 
-  Widget _buildProductCard(QueryDocumentSnapshot doc) {
+  Widget _buildProductCard(ColorScheme cs, QueryDocumentSnapshot doc) {
     final d = doc.data() as Map<String, dynamic>;
     final id = doc.id;
     final name = d['name'] ?? '';
@@ -409,7 +413,7 @@ class _ProductsPageState extends State<ProductsPage> {
     final catIcon = _categoryIcons[category] ?? Icons.inventory_2;
 
     return Card(
-      color: const Color(0xFF1A2332),
+      color: cs.surfaceContainerHighest,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -417,12 +421,12 @@ class _ProductsPageState extends State<ProductsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(children: [
-                Icon(catIcon, color: const Color(0xFF0066CC), size: 20),
+                Icon(catIcon, color: cs.primary, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(name,
-                      style: const TextStyle(
-                          color: Colors.white,
+                      style: TextStyle(
+                          color: cs.onSurface,
                           fontWeight: FontWeight.w600,
                           fontSize: 14),
                       maxLines: 2,
@@ -434,8 +438,8 @@ class _ProductsPageState extends State<ProductsPage> {
               Center(child: _stockRing(stock)),
               const SizedBox(height: 8),
               Text('DA $price',
-                  style: const TextStyle(
-                      color: Colors.white,
+                  style: TextStyle(
+                      color: cs.onSurface,
                       fontWeight: FontWeight.bold,
                       fontSize: 16)),
               const SizedBox(height: 4),
@@ -444,12 +448,12 @@ class _ProductsPageState extends State<ProductsPage> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0066CC).withValues(alpha: 0.15),
+                  color: cs.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(category,
-                    style: const TextStyle(
-                        color: Color(0xFF0066CC), fontSize: 10)),
+                    style: TextStyle(
+                        color: cs.primary, fontSize: 10)),
               ),
               const Spacer(),
               // Actions
@@ -458,8 +462,8 @@ class _ProductsPageState extends State<ProductsPage> {
                   child: OutlinedButton(
                     onPressed: () => _showDialog(product: d, docId: id),
                     style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF0066CC),
-                        side: const BorderSide(color: Color(0xFF0066CC)),
+                        foregroundColor: cs.primary,
+                        side: BorderSide(color: cs.primary),
                         padding: const EdgeInsets.symmetric(vertical: 4)),
                     child: const Text('Edit', style: TextStyle(fontSize: 11)),
                   ),
@@ -474,8 +478,8 @@ class _ProductsPageState extends State<ProductsPage> {
                           .update({'isDeleted': true});
                     },
                     style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red),
+                        foregroundColor: cs.error,
+                        side: BorderSide(color: cs.error),
                         padding: const EdgeInsets.symmetric(vertical: 4)),
                     child: const Text('Delete', style: TextStyle(fontSize: 11)),
                   ),
@@ -487,18 +491,18 @@ class _ProductsPageState extends State<ProductsPage> {
   }
 
   // ─── List View (DataTable) ────────────────────────────────────
-  Widget _buildList(List<QueryDocumentSnapshot> docs) {
+  Widget _buildList(ColorScheme cs, List<QueryDocumentSnapshot> docs) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: SingleChildScrollView(
         child: DataTable(
-          columns: const [
-            DataColumn(label: Text('Name', style: TextStyle(color: Colors.white))),
-            DataColumn(label: Text('Price', style: TextStyle(color: Colors.white))),
-            DataColumn(label: Text('Stock', style: TextStyle(color: Colors.white))),
-            DataColumn(label: Text('Category', style: TextStyle(color: Colors.white))),
-            DataColumn(label: Text('Active', style: TextStyle(color: Colors.white))),
-            DataColumn(label: Text('Actions', style: TextStyle(color: Colors.white))),
+          columns: [
+            DataColumn(label: Text('Name', style: TextStyle(color: cs.onSurface))),
+            DataColumn(label: Text('Price', style: TextStyle(color: cs.onSurface))),
+            DataColumn(label: Text('Stock', style: TextStyle(color: cs.onSurface))),
+            DataColumn(label: Text('Category', style: TextStyle(color: cs.onSurface))),
+            DataColumn(label: Text('Active', style: TextStyle(color: cs.onSurface))),
+            DataColumn(label: Text('Actions', style: TextStyle(color: cs.onSurface))),
           ],
           rows: docs.map((doc) {
             final d = doc.data() as Map<String, dynamic>;
@@ -510,29 +514,29 @@ class _ProductsPageState extends State<ProductsPage> {
             final active = d['isActive'] ?? false;
             return DataRow(cells: [
               DataCell(Text(name,
-                  style: const TextStyle(color: Colors.white))),
+                  style: TextStyle(color: cs.onSurface))),
               DataCell(Text(price.toStringAsFixed(2),
-                  style: const TextStyle(color: Colors.white54))),
+                  style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)))),
               DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
                 _stockRing(stock),
                 const SizedBox(width: 8),
                 Text(stock.toStringAsFixed(0),
-                    style: const TextStyle(color: Colors.white54)),
+                    style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54))),
               ])),
               DataCell(Text(category,
-                  style: const TextStyle(color: Colors.white54))),
+                  style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)))),
               DataCell(Icon(
                   active ? Icons.check_circle : Icons.cancel,
-                  color: active ? const Color(0xFF84CC16) : Colors.red,
+                  color: active ? cs.secondary : cs.error,
                   size: 20)),
               DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
                 IconButton(
-                    icon: const Icon(Icons.edit,
-                        size: 20, color: Color(0xFF0066CC)),
+                    icon: Icon(Icons.edit,
+                        size: 20, color: cs.primary),
                     onPressed: () => _showDialog(product: d, docId: id)),
                 IconButton(
-                    icon: const Icon(Icons.delete,
-                        size: 20, color: Colors.red),
+                    icon: Icon(Icons.delete,
+                        size: 20, color: cs.error),
                     onPressed: () async {
                       await firestore
                           .collection('products')

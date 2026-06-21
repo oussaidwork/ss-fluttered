@@ -1,3 +1,4 @@
+import '../../core/utils/date_utils.dart';
 import '../enums/expense_category.dart';
 
 class Expense {
@@ -60,7 +61,7 @@ class Expense {
       category: map['category'] != null
           ? ExpenseCategory.fromString(map['category'] as String)
           : null,
-      timestamp: DateTime.tryParse(map['timestamp'] as String? ?? '') ?? DateTime.now(),
+      timestamp: DateUtilsApp.parseFirestoreDateTime(map['timestamp']),
       recordedBy: map['recordedBy'] as String?,
     );
   }

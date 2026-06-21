@@ -1,3 +1,5 @@
+import '../../core/utils/date_utils.dart';
+
 class GasType {
   final String id;
   final String name;
@@ -62,8 +64,8 @@ class GasType {
       priceOut: (map['priceOut'] as num?)?.toDouble() ?? 0.0,
       color: map['color'] as String?,
       isDeleted: map['isDeleted'] as bool? ?? false,
-      createdAt: DateTime.parse(map['createdAt'] as String? ?? DateTime.now().toIso8601String()),
-      updatedAt: DateTime.parse(map['updatedAt'] as String? ?? DateTime.now().toIso8601String()),
+      createdAt: DateUtilsApp.parseFirestoreDateTime(map['createdAt']),
+      updatedAt: DateUtilsApp.parseFirestoreDateTime(map['updatedAt']),
     );
   }
 }

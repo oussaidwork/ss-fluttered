@@ -1,3 +1,4 @@
+import '../../core/utils/date_utils.dart';
 import '../enums/sale_type.dart';
 
 class SaleItem {
@@ -95,7 +96,7 @@ class SaleItem {
       driverName: map['driverName'] as String?,
       vehiclePlate: map['vehiclePlate'] as String?,
       notes: map['notes'] as String?,
-      timestamp: DateTime.tryParse(map['timestamp'] as String? ?? '') ?? DateTime.now(),
+      timestamp: DateUtilsApp.parseFirestoreDateTime(map['timestamp']),
     );
   }
 }

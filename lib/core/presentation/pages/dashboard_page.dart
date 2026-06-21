@@ -36,14 +36,15 @@ class DashboardPage extends ConsumerWidget {
       loading: () => user?.email ?? 'User',
       error: (_, _a) => user?.email ?? 'User',
     );
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0B1220),
+        backgroundColor: cs.surface,
         elevation: 0,
         title: Row(
           children: [
-            const Icon(Icons.local_gas_station, color: Color(0xFF84CC16), size: 22),
+            Icon(Icons.local_gas_station, color: cs.secondary, size: 22),
             const SizedBox(width: 8),
             const Text(
               'SS-RAGRAGA',
@@ -54,11 +55,11 @@ class DashboardPage extends ConsumerWidget {
         actions: [
           CircleAvatar(
             radius: 14,
-            backgroundColor: const Color(0xFF1A2332),
+            backgroundColor: cs.surfaceContainerHighest,
             child: Text(
               displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
-              style: const TextStyle(
-                color: Color(0xFF84CC16),
+              style: TextStyle(
+                color: cs.secondary,
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
               ),
@@ -66,8 +67,8 @@ class DashboardPage extends ConsumerWidget {
           ),
           const SizedBox(width: 4),
           PopupMenuButton<String>(
-            icon: const Icon(Icons.arrow_drop_down, color: Colors.white54, size: 20),
-            color: const Color(0xFF1A2332),
+            icon: Icon(Icons.arrow_drop_down, size: 20),
+            color: cs.surface,
             onSelected: (value) {
               if (value == 'logout') {
                 _showLogoutDialog(context, ref);
@@ -78,7 +79,7 @@ class DashboardPage extends ConsumerWidget {
                 enabled: false,
                 child: Text(
                   displayName,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                  style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.w500),
                 ),
               ),
               const PopupMenuDivider(),
@@ -86,9 +87,9 @@ class DashboardPage extends ConsumerWidget {
                 value: 'logout',
                 child: Row(
                   children: [
-                    Icon(Icons.logout, color: Colors.red.shade300, size: 18),
+                    Icon(Icons.logout, color: cs.error, size: 18),
                     const SizedBox(width: 8),
-                    Text('Sign Out', style: TextStyle(color: Colors.red.shade300)),
+                    Text('Sign Out', style: TextStyle(color: cs.error)),
                   ],
                 ),
               ),
@@ -104,19 +105,21 @@ class DashboardPage extends ConsumerWidget {
 }
 
 void _showLogoutDialog(BuildContext context, WidgetRef ref) {
+  final cs = Theme.of(context).colorScheme;
+
   showDialog(
     context: context,
     builder: (_) => AlertDialog(
-      backgroundColor: const Color(0xFF1A2332),
-      title: const Text('Sign Out', style: TextStyle(color: Colors.white)),
-      content: const Text(
+      backgroundColor: cs.surface,
+      title: Text('Sign Out', style: TextStyle(color: cs.onSurface)),
+      content: Text(
         'Are you sure you want to sign out?',
-        style: TextStyle(color: Colors.white70),
+        style: TextStyle(color: cs.onSurfaceVariant),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+          child: Text('Cancel', style: TextStyle(color: cs.onSurfaceVariant)),
         ),
         TextButton(
           onPressed: () async {
@@ -124,7 +127,7 @@ void _showLogoutDialog(BuildContext context, WidgetRef ref) {
             await firebaseAuthProvider.signOut();
             if (context.mounted) context.go(AppRoutes.login);
           },
-          child: Text('Sign Out', style: TextStyle(color: Colors.red.shade300)),
+          child: Text('Sign Out', style: TextStyle(color: cs.error)),
         ),
       ],
     ),

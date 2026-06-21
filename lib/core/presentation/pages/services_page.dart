@@ -21,11 +21,12 @@ class _ServicesPageState extends State<ServicesPage> {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
+            final cs = Theme.of(ctx).colorScheme;
             return AlertDialog(
-              backgroundColor: const Color(0xFF1A2332),
+              backgroundColor: cs.surfaceContainerHighest,
               title: Text(
                 docId == null ? 'Add Service' : 'Edit Service',
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: cs.onSurface),
               ),
               content: SingleChildScrollView(
                 child: Column(
@@ -33,43 +34,43 @@ class _ServicesPageState extends State<ServicesPage> {
                   children: [
                     TextField(
                       controller: nameCtrl,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: cs.onSurface),
+                      decoration: InputDecoration(
                         labelText: 'Name',
-                        labelStyle: TextStyle(color: Colors.white54),
-                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
+                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: cs.onSurface.withValues(alpha: 0.24))),
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: priceInCtrl,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: cs.onSurface),
+                      decoration: InputDecoration(
                         labelText: 'Price In (MAD)',
-                        labelStyle: TextStyle(color: Colors.white54),
-                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
+                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: cs.onSurface.withValues(alpha: 0.24))),
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: priceOutCtrl,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: cs.onSurface),
+                      decoration: InputDecoration(
                         labelText: 'Price Out (MAD)',
-                        labelStyle: TextStyle(color: Colors.white54),
-                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
+                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: cs.onSurface.withValues(alpha: 0.24))),
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: unitCtrl,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: cs.onSurface),
+                      decoration: InputDecoration(
                         labelText: 'Unit',
-                        labelStyle: TextStyle(color: Colors.white54),
-                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                        labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
+                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: cs.onSurface.withValues(alpha: 0.24))),
                       ),
                     ),
                   ],
@@ -78,10 +79,10 @@ class _ServicesPageState extends State<ServicesPage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                  child: Text('Cancel', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54))),
                 ),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0066CC)),
+                  style: ElevatedButton.styleFrom(backgroundColor: cs.primary),
                   onPressed: () async {
                     final name = nameCtrl.text.trim();
                     final priceIn = double.tryParse(priceInCtrl.text);
@@ -109,7 +110,7 @@ class _ServicesPageState extends State<ServicesPage> {
                     }
                     if (ctx.mounted) Navigator.pop(ctx);
                   },
-                  child: Text(docId == null ? 'Add' : 'Save', style: const TextStyle(color: Colors.white)),
+                  child: Text(docId == null ? 'Add' : 'Save', style: TextStyle(color: cs.onPrimary)),
                 ),
               ],
             );
@@ -121,12 +122,13 @@ class _ServicesPageState extends State<ServicesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1220),
+      backgroundColor: cs.surface,
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF0066CC),
+        backgroundColor: cs.primary,
         onPressed: () => _showDialog(),
-        child: const Icon(Icons.add, color: Colors.white),
+        child: Icon(Icons.add, color: cs.onPrimary),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: firestore
@@ -135,18 +137,19 @@ class _ServicesPageState extends State<ServicesPage> {
             .where('isDeleted', isEqualTo: false)
             .snapshots(),
         builder: (ctx, snap) {
+          final cs = Theme.of(context).colorScheme;
           if (snap.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFF0066CC)));
+            return Center(child: CircularProgressIndicator(color: cs.primary));
           }
           final docs = snap.data?.docs ?? [];
           if (docs.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.design_services, size: 64, color: Color(0xFF0066CC)),
-                  SizedBox(height: 16),
-                  Text('No services', style: TextStyle(color: Colors.white54, fontSize: 18)),
+                  Icon(Icons.design_services, size: 64, color: cs.primary),
+                  const SizedBox(height: 16),
+                  Text('No services', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 18)),
                 ],
               ),
             );
@@ -155,11 +158,11 @@ class _ServicesPageState extends State<ServicesPage> {
             scrollDirection: Axis.horizontal,
             child: SingleChildScrollView(
               child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('Name', style: TextStyle(color: Colors.white))),
-                  DataColumn(label: Text('Price Out (MAD)', style: TextStyle(color: Colors.white))),
-                  DataColumn(label: Text('Unit', style: TextStyle(color: Colors.white))),
-                  DataColumn(label: Text('Actions', style: TextStyle(color: Colors.white))),
+                columns: [
+                  DataColumn(label: Text('Name', style: TextStyle(color: cs.onSurface))),
+                  DataColumn(label: Text('Price Out (MAD)', style: TextStyle(color: cs.onSurface))),
+                  DataColumn(label: Text('Unit', style: TextStyle(color: cs.onSurface))),
+                  DataColumn(label: Text('Actions', style: TextStyle(color: cs.onSurface))),
                 ],
                 rows: docs.map((doc) {
                   final d = doc.data() as Map<String, dynamic>;
@@ -168,18 +171,18 @@ class _ServicesPageState extends State<ServicesPage> {
                   final priceOut = (d['price'] as num?)?.toDouble() ?? (d['priceOut'] as num?)?.toDouble() ?? 0;
                   final unit = d['unit'] ?? '-';
                   return DataRow(cells: [
-                    DataCell(Text(name, style: const TextStyle(color: Colors.white))),
-                    DataCell(Text(priceOut.toStringAsFixed(2), style: const TextStyle(color: Colors.white54))),
-                    DataCell(Text(unit, style: const TextStyle(color: Colors.white54))),
+                    DataCell(Text(name, style: TextStyle(color: cs.onSurface))),
+                    DataCell(Text(priceOut.toStringAsFixed(2), style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)))),
+                    DataCell(Text(unit, style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)))),
                     DataCell(Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.edit, size: 20, color: Color(0xFF0066CC)),
+                          icon: Icon(Icons.edit, size: 20, color: cs.primary),
                           onPressed: () => _showDialog(service: d, docId: id),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+                          icon: Icon(Icons.delete, size: 20, color: cs.error),
                           onPressed: () async {
                             await firestore.collection('products').doc(id).update({'isDeleted': true});
                           },

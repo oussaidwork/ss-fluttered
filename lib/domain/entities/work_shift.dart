@@ -1,3 +1,4 @@
+import '../../core/utils/date_utils.dart';
 import '../enums/shift_status.dart';
 
 class WorkShift {
@@ -59,8 +60,8 @@ class WorkShift {
   factory WorkShift.fromMap(Map<String, dynamic> map) {
     return WorkShift(
       id: map['id'] as String? ?? '',
-      startTime: DateTime.tryParse(map['startTime'] as String? ?? '') ?? DateTime.now(),
-      endTime: DateTime.tryParse(map['endTime'] as String? ?? '') ?? DateTime.now(),
+      startTime: DateUtilsApp.parseFirestoreDateTime(map['startTime']),
+      endTime: DateUtilsApp.parseFirestoreDateTime(map['endTime']),
       status: ShiftStatus.fromString(map['status'] as String? ?? 'CLOSED'),
       actualCash: (map['actualCash'] as num?)?.toDouble(),
       expectedCash: (map['expectedCash'] as num?)?.toDouble(),

@@ -41,6 +41,7 @@ class _RoleManagementPageState extends ConsumerState<RoleManagementPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -48,23 +49,23 @@ class _RoleManagementPageState extends ConsumerState<RoleManagementPage> {
         children: [
           Row(
             children: [
-              const Icon(Icons.shield, color: Color(0xFF0066CC), size: 28),
+              Icon(Icons.shield, color: cs.primary, size: 28),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'Role Management',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: cs.onSurface),
               ),
               const SizedBox(width: 16),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                  color: cs.tertiary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
+                child: Text(
                   'SUPER_USER ONLY',
                   style: TextStyle(
-                    color: Color(0xFFF59E0B),
+                    color: cs.tertiary,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
@@ -85,8 +86,9 @@ class _RoleManagementPageState extends ConsumerState<RoleManagementPage> {
     return StreamBuilder<List<AppPermission>>(
       stream: permissionRepository.watchPermissions(),
       builder: (context, snapshot) {
+        final cs = Theme.of(context).colorScheme;
         if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -95,13 +97,13 @@ class _RoleManagementPageState extends ConsumerState<RoleManagementPage> {
                   height: 40,
                   child: CircularProgressIndicator(
                     strokeWidth: 3,
-                    color: Color(0xFF0066CC),
+                    color: cs.primary,
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
                   'Accessing Security Protocols...',
-                  style: TextStyle(color: Colors.white54, fontSize: 14),
+                  style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 14),
                 ),
               ],
             ),
@@ -113,11 +115,11 @@ class _RoleManagementPageState extends ConsumerState<RoleManagementPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 48),
+                Icon(Icons.error_outline, color: cs.error, size: 48),
                 const SizedBox(height: 16),
                 Text(
                   'Failed to load permissions: ${snapshot.error}',
-                  style: const TextStyle(color: Colors.redAccent),
+                  style: TextStyle(color: cs.error),
                 ),
               ],
             ),
@@ -136,18 +138,18 @@ class _RoleManagementPageState extends ConsumerState<RoleManagementPage> {
           scrollDirection: Axis.horizontal,
           child: SingleChildScrollView(
             child: Card(
-              color: const Color(0xFF1A2332),
+              color: cs.surfaceContainerHighest,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               child: DataTable(
-                headingRowColor: WidgetStateProperty.all(Colors.white.withValues(alpha: 0.05)),
+                headingRowColor: WidgetStateProperty.all(cs.onSurface.withValues(alpha: 0.05)),
                 columnSpacing: 20,
                 horizontalMargin: 16,
                 columns: [
-                  const DataColumn(
+                  DataColumn(
                     label: Text(
                       'Permission Section',
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: cs.onSurface.withValues(alpha: 0.7),
                         fontWeight: FontWeight.w600,
                         fontSize: 12,
                       ),
@@ -157,17 +159,17 @@ class _RoleManagementPageState extends ConsumerState<RoleManagementPage> {
                     label: Text(
                       role.value,
                       style: TextStyle(
-                        color: _roleColor(role),
+                        color: _roleColor(role, cs),
                         fontWeight: FontWeight.w600,
                         fontSize: 11,
                       ),
                     ),
                   )),
-                  const DataColumn(
+                  DataColumn(
                     label: Text(
                       'Save',
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: cs.onSurface.withValues(alpha: 0.7),
                         fontWeight: FontWeight.w600,
                         fontSize: 12,
                       ),
@@ -180,7 +182,7 @@ class _RoleManagementPageState extends ConsumerState<RoleManagementPage> {
                   return DataRow(
                     color: WidgetStateProperty.all(
                       _allSections.indexOf(section).isEven
-                          ? Colors.white.withValues(alpha: 0.02)
+                          ? cs.onSurface.withValues(alpha: 0.02)
                           : Colors.transparent,
                     ),
                     cells: [
@@ -190,8 +192,8 @@ class _RoleManagementPageState extends ConsumerState<RoleManagementPage> {
                           width: 160,
                           child: Text(
                             section,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: cs.onSurface,
                               fontWeight: FontWeight.w500,
                               fontSize: 13,
                             ),
@@ -221,10 +223,10 @@ class _RoleManagementPageState extends ConsumerState<RoleManagementPage> {
                                             _localPermissions[section] = List.from(allowedRoles);
                                           });
                                         },
-                                  activeTrackColor: const Color(0xFF84CC16),
-                                  activeThumbColor: Colors.white,
-                                  inactiveTrackColor: Colors.white12,
-                                  inactiveThumbColor: Colors.white38,
+                                  activeTrackColor: cs.secondary,
+                                  activeThumbColor: cs.onSurface,
+                                  inactiveTrackColor: cs.onSurface.withValues(alpha: 0.12),
+                                  inactiveThumbColor: cs.onSurface.withValues(alpha: 0.38),
                                 ),
                               ),
                             ),
@@ -234,19 +236,19 @@ class _RoleManagementPageState extends ConsumerState<RoleManagementPage> {
                       // Save button
                       DataCell(
                         isSaving
-                            ? const SizedBox(
+                            ? SizedBox(
                                 width: 20,
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: Color(0xFF84CC16),
+                                  color: cs.secondary,
                                 ),
                               )
                             : IconButton(
-                                icon: const Icon(
+                                icon: Icon(
                                   Icons.save,
                                   size: 18,
-                                  color: Color(0xFF0066CC),
+                                  color: cs.primary,
                                 ),
                                 onPressed: () => _saveSection(section, allowedRoles),
                                 tooltip: 'Save ${section} permissions',
@@ -264,6 +266,7 @@ class _RoleManagementPageState extends ConsumerState<RoleManagementPage> {
   }
 
   Future<void> _saveSection(String section, List<String> allowedRoles) async {
+    final cs = Theme.of(context).colorScheme;
     setState(() => _savingSections.add(section));
 
     try {
@@ -289,7 +292,7 @@ class _RoleManagementPageState extends ConsumerState<RoleManagementPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('$section permissions updated'),
-            backgroundColor: const Color(0xFF84CC16),
+            backgroundColor: cs.secondary,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -299,7 +302,7 @@ class _RoleManagementPageState extends ConsumerState<RoleManagementPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to save: $e'),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: cs.error,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -309,10 +312,10 @@ class _RoleManagementPageState extends ConsumerState<RoleManagementPage> {
     }
   }
 
-  Color _roleColor(UserRole role) {
-    if (role == UserRole.superUser) return const Color(0xFFF59E0B);
-    if (role == UserRole.admin) return const Color(0xFF0066CC);
-    if (role == UserRole.worker) return const Color(0xFF84CC16);
-    return Colors.white54;
+  Color _roleColor(UserRole role, ColorScheme cs) {
+    if (role == UserRole.superUser) return cs.tertiary;
+    if (role == UserRole.admin) return cs.primary;
+    if (role == UserRole.worker) return cs.secondary;
+    return cs.onSurface.withValues(alpha: 0.54);
   }
 }

@@ -15,6 +15,7 @@ class WorkersPage extends StatefulWidget {
 class _WorkersPageState extends State<WorkersPage> {
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -22,11 +23,11 @@ class _WorkersPageState extends State<WorkersPage> {
         children: [
           Row(
             children: [
-              const Icon(Icons.group, color: Color(0xFF0066CC), size: 28),
+              Icon(Icons.group, color: cs.primary, size: 28),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'Worker Profiles',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: cs.onSurface),
               ),
               const Spacer(),
               ElevatedButton.icon(
@@ -34,8 +35,8 @@ class _WorkersPageState extends State<WorkersPage> {
                 icon: const Icon(Icons.person_add, size: 18),
                 label: const Text('Add Worker'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0066CC),
-                  foregroundColor: Colors.white,
+                  backgroundColor: cs.primary,
+                  foregroundColor: cs.onPrimary,
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),
               ),
@@ -46,8 +47,9 @@ class _WorkersPageState extends State<WorkersPage> {
             child: StreamBuilder<QuerySnapshot>(
               stream: firestore.collection('users').snapshots(),
               builder: (context, snapshot) {
+                final cs = Theme.of(context).colorScheme;
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0xFF0066CC)));
+                  return Center(child: CircularProgressIndicator(color: cs.primary));
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return _buildEmptyState();
@@ -73,21 +75,22 @@ class _WorkersPageState extends State<WorkersPage> {
   }
 
   Widget _buildEmptyState() {
+    final cs = Theme.of(context).colorScheme;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.group_add, size: 64, color: Colors.white24),
+          Icon(Icons.group_add, size: 64, color: cs.onSurface.withValues(alpha: 0.24)),
           const SizedBox(height: 16),
-          const Text('No workers yet', style: TextStyle(fontSize: 18, color: Colors.white54)),
+          Text('No workers yet', style: TextStyle(fontSize: 18, color: cs.onSurface.withValues(alpha: 0.54))),
           const SizedBox(height: 12),
           ElevatedButton.icon(
             onPressed: () => _showWorkerDialog(),
             icon: const Icon(Icons.person_add, size: 18),
             label: const Text('Add First Worker'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0066CC),
-              foregroundColor: Colors.white,
+              backgroundColor: cs.primary,
+              foregroundColor: cs.onPrimary,
             ),
           ),
         ],
@@ -96,40 +99,41 @@ class _WorkersPageState extends State<WorkersPage> {
   }
 
   Widget _buildWorkerTable(List<UserProfile> workers) {
+    final cs = Theme.of(context).colorScheme;
     return Card(
-      color: const Color(0xFF1A2332),
+      color: cs.surfaceContainerHighest,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: SingleChildScrollView(
           child: DataTable(
-            headingRowColor: WidgetStateProperty.all(Colors.white.withValues(alpha: 0.05)),
-            columns: const [
-              DataColumn(label: Text('Name', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('Role', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('Status', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('Monthly Salary', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('Actions', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
+            headingRowColor: WidgetStateProperty.all(cs.onSurface.withValues(alpha: 0.05)),
+            columns: [
+              DataColumn(label: Text('Name', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600))),
+              DataColumn(label: Text('Role', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600))),
+              DataColumn(label: Text('Status', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600))),
+              DataColumn(label: Text('Monthly Salary', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600))),
+              DataColumn(label: Text('Actions', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.w600))),
             ],
             rows: workers.map((worker) {
               return DataRow(
                 cells: [
                   DataCell(Text(
                     worker.fullName ?? worker.email,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                    style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.w500),
                   )),
                   DataCell(_buildRoleBadge(worker.role)),
                   DataCell(_buildActiveBadge(worker.isActive)),
                   DataCell(Text(
                     worker.monthlySalary != null ? '${worker.monthlySalary!.toStringAsFixed(0)} DA' : '--',
-                    style: const TextStyle(color: Colors.white70),
+                    style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
                   )),
                   DataCell(
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.edit, size: 18, color: Color(0xFF0066CC)),
+                          icon: Icon(Icons.edit, size: 18, color: cs.primary),
                           onPressed: () => _showWorkerDialog(worker: worker),
                           tooltip: 'Edit',
                         ),
@@ -146,19 +150,20 @@ class _WorkersPageState extends State<WorkersPage> {
   }
 
   Widget _buildRoleBadge(UserRole role) {
+    final cs = Theme.of(context).colorScheme;
     Color color;
     switch (role) {
       case UserRole.superUser:
-        color = const Color(0xFFF59E0B);
+        color = cs.tertiary;
         break;
       case UserRole.admin:
-        color = const Color(0xFF0066CC);
+        color = cs.primary;
         break;
       case UserRole.worker:
-        color = const Color(0xFF84CC16);
+        color = cs.secondary;
         break;
       case UserRole.audit:
-        color = Colors.white54;
+        color = cs.onSurface.withValues(alpha: 0.54);
         break;
     }
     return Container(
@@ -176,16 +181,17 @@ class _WorkersPageState extends State<WorkersPage> {
   }
 
   Widget _buildActiveBadge(bool isActive) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: (isActive ? const Color(0xFF84CC16) : const Color(0xFFEF4444)).withValues(alpha: 0.15),
+        color: (isActive ? cs.secondary : cs.error).withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         isActive ? 'Active' : 'Inactive',
         style: TextStyle(
-          color: isActive ? const Color(0xFF84CC16) : const Color(0xFFEF4444),
+          color: isActive ? cs.secondary : cs.error,
           fontWeight: FontWeight.w600,
           fontSize: 12,
         ),
@@ -200,12 +206,13 @@ class _WorkersPageState extends State<WorkersPage> {
           .where('status', isEqualTo: 'PENDING')
           .snapshots(),
       builder: (context, snapshot) {
+        final cs = Theme.of(context).colorScheme;
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) return const SizedBox.shrink();
         final advances = snapshot.data!.docs
             .map((doc) => SalaryAdvance.fromMap(doc.data() as Map<String, dynamic>))
             .toList();
         return Card(
-          color: const Color(0xFF1A2332),
+          color: cs.surfaceContainerHighest,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -214,11 +221,11 @@ class _WorkersPageState extends State<WorkersPage> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.account_balance_wallet, color: Color(0xFFF59E0B), size: 20),
+                    Icon(Icons.account_balance_wallet, color: cs.tertiary, size: 20),
                     const SizedBox(width: 8),
                     Text(
                       'Pending Salary Advances (${advances.length})',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                      style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -236,6 +243,7 @@ class _WorkersPageState extends State<WorkersPage> {
     return FutureBuilder<DocumentSnapshot>(
       future: firestore.collection('users').doc(advance.workerId).get(),
       builder: (ctx, snap) {
+        final cs = Theme.of(ctx).colorScheme;
         final workerName = snap.data?.exists == true
             ? ((snap.data!.data() as Map<String, dynamic>?)?['fullName'] ?? advance.workerId)
             : advance.workerId;
@@ -243,7 +251,7 @@ class _WorkersPageState extends State<WorkersPage> {
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.04),
+            color: cs.onSurface.withValues(alpha: 0.04),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -252,11 +260,11 @@ class _WorkersPageState extends State<WorkersPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(workerName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+                    Text(workerName, style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 2),
                     Text(
                       '${advance.amount.toStringAsFixed(0)} DA — ${_formatDate(advance.requestDate)}',
-                      style: const TextStyle(color: Colors.white54, fontSize: 12),
+                      style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 12),
                     ),
                   ],
                 ),
@@ -264,12 +272,12 @@ class _WorkersPageState extends State<WorkersPage> {
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.check_circle, color: Color(0xFF84CC16), size: 20),
+                    icon: Icon(Icons.check_circle, color: cs.secondary, size: 20),
                     onPressed: () => _resolveAdvance(advance, 'APPROVED'),
                     tooltip: 'Approve',
                   ),
                   IconButton(
-                    icon: const Icon(Icons.cancel, color: Color(0xFFEF4444), size: 20),
+                    icon: Icon(Icons.cancel, color: cs.error, size: 20),
                     onPressed: () => _resolveAdvance(advance, 'REJECTED'),
                     tooltip: 'Reject',
                   ),
@@ -302,113 +310,116 @@ class _WorkersPageState extends State<WorkersPage> {
     await showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF1A2332),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(
-            children: [
-              Icon(isEdit ? Icons.edit : Icons.person_add, color: const Color(0xFF0066CC), size: 22),
-              const SizedBox(width: 8),
-              Text(isEdit ? 'Edit Worker' : 'Add Worker', style: const TextStyle(color: Colors.white)),
-            ],
-          ),
-          content: SizedBox(
-            width: 400,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildTextField(nameCtrl, 'Full Name', Icons.person),
-                  const SizedBox(height: 12),
-                  _buildTextField(emailCtrl, 'Email', Icons.email, keyboardType: TextInputType.emailAddress),
-                  const SizedBox(height: 12),
-                  _buildTextField(salaryCtrl, 'Monthly Salary (DA)', Icons.attach_money, keyboardType: TextInputType.number),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<UserRole>(
-                    initialValue: selectedRole,
-                    dropdownColor: const Color(0xFF1A2332),
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: 'Role',
-                      labelStyle: const TextStyle(color: Colors.white54),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
-                        borderRadius: BorderRadius.circular(8),
+        builder: (ctx, setDialogState) {
+          final cs = Theme.of(ctx).colorScheme;
+          return AlertDialog(
+            backgroundColor: cs.surfaceContainerHighest,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Row(
+              children: [
+                Icon(isEdit ? Icons.edit : Icons.person_add, color: cs.primary, size: 22),
+                const SizedBox(width: 8),
+                Text(isEdit ? 'Edit Worker' : 'Add Worker', style: TextStyle(color: cs.onSurface)),
+              ],
+            ),
+            content: SizedBox(
+              width: 400,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildTextField(cs, nameCtrl, 'Full Name', Icons.person),
+                    const SizedBox(height: 12),
+                    _buildTextField(cs, emailCtrl, 'Email', Icons.email, keyboardType: TextInputType.emailAddress),
+                    const SizedBox(height: 12),
+                    _buildTextField(cs, salaryCtrl, 'Monthly Salary (DA)', Icons.attach_money, keyboardType: TextInputType.number),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<UserRole>(
+                      initialValue: selectedRole,
+                      dropdownColor: cs.surfaceContainerHighest,
+                      style: TextStyle(color: cs.onSurface),
+                      decoration: InputDecoration(
+                        labelText: 'Role',
+                        labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: cs.onSurface.withValues(alpha: 0.15)),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: cs.primary),
+                        ),
                       ),
-                      focusedBorder: const OutlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xFF0066CC)),
-                      ),
+                      items: [UserRole.worker, UserRole.admin, UserRole.superUser]
+                          .map((r) => DropdownMenuItem(value: r, child: Text(r.value)))
+                          .toList(),
+                      onChanged: (val) {
+                        if (val != null) setDialogState(() => selectedRole = val);
+                      },
                     ),
-                    items: [UserRole.worker, UserRole.admin, UserRole.superUser]
-                        .map((r) => DropdownMenuItem(value: r, child: Text(r.value)))
-                        .toList(),
-                    onChanged: (val) {
-                      if (val != null) setDialogState(() => selectedRole = val);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  SwitchListTile(
-                    title: const Text('Active', style: TextStyle(color: Colors.white70)),
-                    value: isActive,
-                    activeThumbColor: const Color(0xFF84CC16),
-                    onChanged: (val) => setDialogState(() => isActive = val),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    SwitchListTile(
+                      title: Text('Active', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7))),
+                      value: isActive,
+                      activeThumbColor: cs.secondary,
+                      onChanged: (val) => setDialogState(() => isActive = val),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (nameCtrl.text.trim().isEmpty || emailCtrl.text.trim().isEmpty) return;
-                await _saveWorker(
-                  id: worker?.id,
-                  fullName: nameCtrl.text.trim(),
-                  email: emailCtrl.text.trim(),
-                  role: selectedRole,
-                  isActive: isActive,
-                  monthlySalary: double.tryParse(salaryCtrl.text),
-                  isEdit: isEdit,
-                );
-                if (ctx.mounted) Navigator.of(ctx).pop();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0066CC),
-                foregroundColor: Colors.white,
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text('Cancel', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54))),
               ),
-              child: Text(isEdit ? 'Update' : 'Add'),
-            ),
-          ],
-        ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (nameCtrl.text.trim().isEmpty || emailCtrl.text.trim().isEmpty) return;
+                  await _saveWorker(
+                    id: worker?.id,
+                    fullName: nameCtrl.text.trim(),
+                    email: emailCtrl.text.trim(),
+                    role: selectedRole,
+                    isActive: isActive,
+                    monthlySalary: double.tryParse(salaryCtrl.text),
+                    isEdit: isEdit,
+                  );
+                  if (ctx.mounted) Navigator.of(ctx).pop();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: cs.primary,
+                  foregroundColor: cs.onPrimary,
+                ),
+                child: Text(isEdit ? 'Update' : 'Add'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildTextField(TextEditingController ctrl, String label, IconData icon,
+  Widget _buildTextField(ColorScheme cs, TextEditingController ctrl, String label, IconData icon,
       {TextInputType? keyboardType}) {
     return TextField(
       controller: ctrl,
       keyboardType: keyboardType,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: cs.onSurface),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Colors.white54),
-        prefixIcon: Icon(icon, color: Colors.white38, size: 20),
+        labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
+        prefixIcon: Icon(icon, color: cs.onSurface.withValues(alpha: 0.38), size: 20),
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+          borderSide: BorderSide(color: cs.onSurface.withValues(alpha: 0.15)),
           borderRadius: BorderRadius.circular(8),
         ),
-        focusedBorder: const OutlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFF0066CC)),
-          borderRadius: BorderRadius.all(Radius.circular(8)),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: cs.primary),
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
         ),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.05),
+        fillColor: cs.onSurface.withValues(alpha: 0.05),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
     );

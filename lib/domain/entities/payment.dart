@@ -1,3 +1,4 @@
+import '../../core/utils/date_utils.dart';
 import '../enums/payment_status.dart';
 
 class Payment {
@@ -93,15 +94,15 @@ class Payment {
       status: PaymentStatus.fromString(map['status'] as String? ?? 'PENDING'),
       checkBankName: map['checkBankName'] as String?,
       checkNumber: map['checkNumber'] as String?,
-      dueDate: DateTime.tryParse(map['dueDate'] as String? ?? ''),
-      clearedAt: DateTime.tryParse(map['clearedAt'] as String? ?? ''),
+      dueDate: DateUtilsApp.parseFirestoreDateTime(map['dueDate'], fallback: null),
+      clearedAt: DateUtilsApp.parseFirestoreDateTime(map['clearedAt'], fallback: null),
       notes: map['notes'] as String?,
       clientId: map['clientId'] as String?,
       saleId: map['saleId'] as String?,
       paymentTypeId: map['paymentTypeId'] as String?,
       recordedBy: map['recordedBy'] as String?,
       isDeleted: map['isDeleted'] as bool? ?? false,
-      createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt: DateUtilsApp.parseFirestoreDateTime(map['createdAt']),
     );
   }
 }

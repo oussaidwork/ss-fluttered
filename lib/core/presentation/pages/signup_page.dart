@@ -31,28 +31,30 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   }
 
   void _showError(String message) {
+    final cs = Theme.of(context).colorScheme;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red.shade700),
+      SnackBar(content: Text(message), backgroundColor: cs.error),
     );
   }
 
   InputDecoration _inputDecoration({
     required String label,
     required IconData icon,
+    required ColorScheme cs,
   }) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: Colors.white54),
-      prefixIcon: Icon(icon, color: Colors.white54),
+      labelStyle: TextStyle(color: cs.onSurfaceVariant),
+      prefixIcon: Icon(icon, color: cs.onSurfaceVariant),
       filled: true,
-      fillColor: const Color(0xFF0B1220),
+      fillColor: cs.surfaceContainerHighest,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFF84CC16)),
+        borderSide: BorderSide(color: cs.secondary),
       ),
     );
   }
@@ -60,50 +62,51 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   @override
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width >= 768;
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: RadialGradient(
             center: Alignment.topLeft,
             radius: 1.5,
-            colors: [Color(0xFF1A2332), Color(0xFF0B1220)],
+            colors: [cs.surface, cs.surfaceContainerHighest],
           ),
         ),
-        child: isDesktop ? _buildDesktopLayout() : _buildMobileLayout(),
+        child: isDesktop ? _buildDesktopLayout(cs) : _buildMobileLayout(cs),
       ),
     );
   }
 
-  Widget _buildDesktopLayout() {
+  Widget _buildDesktopLayout(ColorScheme cs) {
     return Row(
       children: [
         Expanded(
           child: Container(
             padding: const EdgeInsets.all(64),
-            child: const Column(
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.local_gas_station, size: 64, color: Color(0xFF84CC16)),
-                SizedBox(height: 24),
+                Icon(Icons.local_gas_station, size: 64, color: cs.secondary),
+                const SizedBox(height: 24),
                 Text(
                   'SS-RAGRAGA',
                   style: TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: cs.onSurface,
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
                   'Station OS',
-                  style: TextStyle(fontSize: 24, color: Colors.white54),
+                  style: TextStyle(fontSize: 24, color: cs.onSurfaceVariant),
                 ),
-                SizedBox(height: 32),
+                const SizedBox(height: 32),
                 Text(
                   'Create your account to get started\nwith industrial-grade station management.',
-                  style: TextStyle(fontSize: 16, color: Colors.white38, height: 1.5),
+                  style: TextStyle(fontSize: 16, color: cs.onSurface.withValues(alpha: 0.6), height: 1.5),
                 ),
               ],
             ),
@@ -113,7 +116,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
-              child: _buildSignupForm(),
+              child: _buildSignupForm(cs),
             ),
           ),
         ),
@@ -121,79 +124,79 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     );
   }
 
-  Widget _buildMobileLayout() {
+  Widget _buildMobileLayout(ColorScheme cs) {
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.local_gas_station, size: 48, color: Color(0xFF84CC16)),
+            Icon(Icons.local_gas_station, size: 48, color: cs.secondary),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'SS-RAGRAGA',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: cs.onSurface,
               ),
             ),
             const SizedBox(height: 32),
-            _buildSignupForm(),
+            _buildSignupForm(cs),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSignupForm() {
+  Widget _buildSignupForm(ColorScheme cs) {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A2332),
+        color: cs.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
+          Text(
             'Create Account',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: cs.onSurface,
             ),
           ),
           const SizedBox(height: 8),
-          const Text('Fill in the details below', style: TextStyle(color: Colors.white54)),
+          Text('Fill in the details below', style: TextStyle(color: cs.onSurfaceVariant)),
           const SizedBox(height: 32),
           TextField(
             controller: _nameController,
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(color: cs.onSurface),
             textCapitalization: TextCapitalization.words,
-            decoration: _inputDecoration(label: 'Full Name', icon: Icons.person),
+            decoration: _inputDecoration(label: 'Full Name', icon: Icons.person, cs: cs),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _emailController,
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(color: cs.onSurface),
             keyboardType: TextInputType.emailAddress,
-            decoration: _inputDecoration(label: 'Email', icon: Icons.email),
+            decoration: _inputDecoration(label: 'Email', icon: Icons.email, cs: cs),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _passwordController,
             obscureText: true,
-            style: const TextStyle(color: Colors.white),
-            decoration: _inputDecoration(label: 'Password', icon: Icons.lock),
+            style: TextStyle(color: cs.onSurface),
+            decoration: _inputDecoration(label: 'Password', icon: Icons.lock, cs: cs),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _confirmPasswordController,
             obscureText: true,
-            style: const TextStyle(color: Colors.white),
-            decoration: _inputDecoration(label: 'Confirm Password', icon: Icons.lock_outline),
+            style: TextStyle(color: cs.onSurface),
+            decoration: _inputDecoration(label: 'Confirm Password', icon: Icons.lock_outline, cs: cs),
           ),
           const SizedBox(height: 24),
           SizedBox(
@@ -202,17 +205,17 @@ class _SignupPageState extends ConsumerState<SignupPage> {
             child: ElevatedButton(
               onPressed: _isLoading ? null : _handleSignup,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF84CC16),
-                foregroundColor: const Color(0xFF0B1220),
+                backgroundColor: cs.secondary,
+                foregroundColor: cs.onSecondary,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               child: _isLoading
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Color(0xFF0B1220),
+                        color: cs.onSecondary,
                       ),
                     )
                   : const Text('Create Account', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -221,9 +224,9 @@ class _SignupPageState extends ConsumerState<SignupPage> {
           const SizedBox(height: 16),
           TextButton(
             onPressed: () => context.go(AppRoutes.login),
-            child: const Text(
+            child: Text(
               'Already have an account? Sign In',
-              style: TextStyle(color: Color(0xFF84CC16)),
+              style: TextStyle(color: cs.secondary),
             ),
           ),
         ],
@@ -266,10 +269,11 @@ class _SignupPageState extends ConsumerState<SignupPage> {
       });
 
       if (mounted) {
+        final cs = Theme.of(context).colorScheme;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Account created successfully! You can now sign in.'),
-            backgroundColor: Color(0xFF84CC16),
+          SnackBar(
+            content: const Text('Account created successfully! You can now sign in.'),
+            backgroundColor: cs.secondary,
           ),
         );
         context.go(AppRoutes.login);

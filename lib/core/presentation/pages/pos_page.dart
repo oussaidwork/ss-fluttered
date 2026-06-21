@@ -1,42 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../data/firestore/firestore_provider.dart';
 import '../../../domain/entities/gas_type.dart';
 import '../../../domain/entities/product.dart';
-import '../../../domain/entities/payment_type.dart';
-import '../../../domain/entities/client.dart';
 import '../../../domain/enums/sale_type.dart';
-
-/// A line item in the POS cart.
-class _CartItem {
-  SaleType saleType;
-  String? gasTypeId;
-  String? productId;
-  String label;
-  double unitPrice;
-  double quantity;
-  double volume;
-  String? driverName;
-  String? vehiclePlate;
-
-  _CartItem({
-    required this.saleType,
-    this.gasTypeId,
-    this.productId,
-    required this.label,
-    required this.unitPrice,
-    this.quantity = 1.0,
-    this.volume = 0.0,
-    this.driverName,
-    this.vehiclePlate,
-  });
-
-  double get lineTotal {
-    if (saleType == SaleType.fuel) return volume * unitPrice;
-    return quantity * unitPrice;
-  }
-}
+import '../widgets/pos_cart_item.dart';
+import '../widgets/pos_cart_panel.dart';
+import '../widgets/pos_item_selection_panel.dart';
 
 class PosPage extends StatefulWidget {
   const PosPage({super.key});
@@ -47,7 +17,7 @@ class PosPage extends StatefulWidget {
 
 class _PosPageState extends State<PosPage> with TickerProviderStateMixin {
   late TabController _tabController;
-  final List<_CartItem> _cart = [];
+  final List<PosCartItem> _cart = [];
   String? _selectedPaymentTypeId;
   String? _selectedClientId;
   String? _selectedShiftId;
@@ -87,22 +57,20 @@ class _PosPageState extends State<PosPage> with TickerProviderStateMixin {
         .limit(1)
         .get();
     if (snap.docs.isNotEmpty && mounted) {
-      setState(() {
-        _selectedShiftId = snap.docs.first.id;
-      });
+      setState(() => _selectedShiftId = snap.docs.first.id);
     }
   }
 
-  void _addFuelItem(GasType gasType, double volume, String? driver, String? plate) {
+  void _addFuelItem(GasType gasType, double volume, String driver, String plate) {
     setState(() {
-      _cart.add(_CartItem(
+      _cart.add(PosCartItem(
         saleType: SaleType.fuel,
         gasTypeId: gasType.id,
         label: '${gasType.name} — ${volume.toStringAsFixed(1)}L',
         unitPrice: gasType.priceOut,
         volume: volume,
-        driverName: driver?.isNotEmpty == true ? driver : null,
-        vehiclePlate: plate?.isNotEmpty == true ? plate : null,
+        driverName: driver.isNotEmpty ? driver : null,
+        vehiclePlate: plate.isNotEmpty ? plate : null,
       ));
       _selectedGasTypeId = null;
       _volumeController.clear();
@@ -113,10 +81,10 @@ class _PosPageState extends State<PosPage> with TickerProviderStateMixin {
 
   void _addProductItem(Product product, double qty) {
     setState(() {
-      _cart.add(_CartItem(
+      _cart.add(PosCartItem(
         saleType: product.category == 'service' ? SaleType.service : SaleType.product,
         productId: product.id,
-        label: '${product.name} x$qty',
+        label: '${product.name} x${qty.toStringAsFixed(0)}',
         unitPrice: product.price,
         quantity: qty,
       ));
@@ -125,15 +93,17 @@ class _PosPageState extends State<PosPage> with TickerProviderStateMixin {
     });
   }
 
-  void _removeCartItem(int index) {
-    setState(() => _cart.removeAt(index));
-  }
+  void _removeCartItem(int index) => setState(() => _cart.removeAt(index));
 
   Future<void> _submitSale() async {
     if (_cart.isEmpty) return;
     if (_selectedPaymentTypeId == null) {
+      final cs = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select a payment method'), backgroundColor: Color(0xFFEF4444)),
+        SnackBar(
+          content: Text('Select a payment method'),
+          backgroundColor: cs.error,
+        ),
       );
       return;
     }
@@ -142,16 +112,14 @@ class _PosPageState extends State<PosPage> with TickerProviderStateMixin {
 
     try {
       final now = DateTime.now();
-      final totalPrice =
-          _cart.fold<double>(0, (total, item) => total + item.lineTotal);
+      final totalPrice = _cart.fold<double>(0, (t, i) => t + i.lineTotal);
       final saleId = firestore.collection('sales').doc().id;
 
-      // Create Sale header
       await firestore.collection('sales').doc(saleId).set({
         'id': saleId,
         'shiftId': _selectedShiftId,
         'clientId': _selectedClientId,
-        'workerId': null, // will be set to current user in future
+        'workerId': null,
         'paymentTypeId': _selectedPaymentTypeId,
         'totalPrice': totalPrice,
         'notes': null,
@@ -160,12 +128,10 @@ class _PosPageState extends State<PosPage> with TickerProviderStateMixin {
         'createdAt': Timestamp.fromDate(now),
       });
 
-      // Create SaleItems in batch
       final batch = firestore.batch();
       for (final item in _cart) {
         final itemId = firestore.collection('sale_items').doc().id;
-        final itemDoc = firestore.collection('sale_items').doc(itemId);
-        batch.set(itemDoc, {
+        batch.set(firestore.collection('sale_items').doc(itemId), {
           'id': itemId,
           'saleId': saleId,
           'saleType': item.saleType.value,
@@ -182,9 +148,7 @@ class _PosPageState extends State<PosPage> with TickerProviderStateMixin {
         });
       }
 
-      // Update pit volumes for fuel sales
       for (final item in _cart.where((i) => i.saleType == SaleType.fuel && i.gasTypeId != null)) {
-        // Find the pit linked to this gas type
         final pitsSnap = await firestore
             .collection('pits')
             .where('gasTypeId', isEqualTo: item.gasTypeId)
@@ -192,10 +156,10 @@ class _PosPageState extends State<PosPage> with TickerProviderStateMixin {
             .limit(1)
             .get();
         for (final pitDoc in pitsSnap.docs) {
-          final currentVol =
-              (pitDoc.data()['currentVolume'] as num?)?.toDouble() ?? 0;
-          final newVol = (currentVol - item.volume).clamp(0, double.infinity);
-          batch.update(pitDoc.reference, {'currentVolume': newVol});
+          final currentVol = (pitDoc.data()['currentVolume'] as num?)?.toDouble() ?? 0;
+          batch.update(pitDoc.reference, {
+            'currentVolume': (currentVol - item.volume).clamp(0, double.infinity)
+          });
         }
       }
 
@@ -207,19 +171,21 @@ class _PosPageState extends State<PosPage> with TickerProviderStateMixin {
           _selectedPaymentTypeId = null;
           _selectedClientId = null;
         });
+        final cs = Theme.of(context).colorScheme;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Sale recorded: ${totalPrice.toStringAsFixed(2)} DA'),
-            backgroundColor: const Color(0xFF84CC16),
+            backgroundColor: cs.secondary,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
+        final cs = Theme.of(context).colorScheme;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to record sale: $e'),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: cs.error,
           ),
         );
       }
@@ -242,633 +208,53 @@ class _PosPageState extends State<PosPage> with TickerProviderStateMixin {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Left: Item Selection
-        Expanded(
-          flex: 3,
-          child: _buildItemSelectionPanel(),
-        ),
+        Expanded(flex: 3, child: _buildSelectionPanel()),
         const SizedBox(width: 16),
-        // Right: Cart
-        SizedBox(
-          width: 380,
-          child: _buildCartPanel(),
-        ),
+        SizedBox(width: 380, child: _buildCartPanel()),
       ],
     );
   }
 
   Widget _buildMobileLayout() {
+    final cs = Theme.of(context).colorScheme;
     return Column(
       children: [
-        Expanded(
-          flex: 3,
-          child: _buildItemSelectionPanel(),
-        ),
-        const Divider(color: Colors.white12),
-        Expanded(
-          flex: 2,
-          child: _buildCartPanel(),
-        ),
+        Expanded(flex: 3, child: _buildSelectionPanel()),
+        Divider(color: cs.onSurface.withValues(alpha: 0.12)),
+        Expanded(flex: 2, child: _buildCartPanel()),
       ],
     );
   }
 
-  // ──────────────────────────────────────────────
-  // ITEM SELECTION PANEL
-  // ──────────────────────────────────────────────
-
-  Widget _buildItemSelectionPanel() {
-    return Card(
-      color: const Color(0xFF1A2332),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: Row(
-              children: [
-                const Icon(Icons.point_of_sale, color: Color(0xFF0066CC), size: 24),
-                const SizedBox(width: 8),
-                const Text('Point of Sale',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                const Spacer(),
-                if (_selectedShiftId != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF84CC16).withAlpha(20),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF84CC16).withAlpha(60)),
-                    ),
-                    child: Text('Shift: ${_selectedShiftId!.substring(0, 6).toUpperCase()}',
-                        style: const TextStyle(color: Color(0xFF84CC16), fontSize: 11)),
-                  )
-                else
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEF4444).withAlpha(20),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFEF4444).withAlpha(60)),
-                    ),
-                    child: const Text('No open shift',
-                        style: TextStyle(color: Color(0xFFEF4444), fontSize: 11)),
-                  ),
-              ],
-            ),
-          ),
-          // Tabs
-          TabBar(
-            controller: _tabController,
-            indicatorColor: const Color(0xFF0066CC),
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white54,
-            tabs: const [
-              Tab(icon: Icon(Icons.local_gas_station, size: 18), text: 'Fuel'),
-              Tab(icon: Icon(Icons.inventory_2, size: 18), text: 'Products'),
-              Tab(icon: Icon(Icons.design_services, size: 18), text: 'Services'),
-            ],
-          ),
-          const Divider(color: Colors.white12, height: 1),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildFuelTab(),
-                _buildProductTab(false),
-                _buildProductTab(true),
-              ],
-            ),
-          ),
-        ],
-      ),
+  Widget _buildSelectionPanel() {
+    return PosItemSelectionPanel(
+      tabController: _tabController,
+      selectedShiftId: _selectedShiftId,
+      selectedGasTypeId: _selectedGasTypeId,
+      volumeController: _volumeController,
+      driverNameController: _driverNameController,
+      vehiclePlateController: _vehiclePlateController,
+      selectedProductId: _selectedProductId,
+      quantityController: _quantityController,
+      onGasTypeChanged: (val) => setState(() => _selectedGasTypeId = val),
+      onFuelChanged: () => setState(() {}),
+      onAddFuelToCart: _addFuelItem,
+      onProductSelected: (val) => setState(() => _selectedProductId = val),
+      onProductChanged: () => setState(() {}),
+      onAddProductToCart: _addProductItem,
     );
   }
-
-  // ──────────────────────────────────────────────
-  // FUEL TAB
-  // ──────────────────────────────────────────────
-
-  Widget _buildFuelTab() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: firestore.collection('gas_types').where('isDeleted', isEqualTo: false).snapshots(),
-      builder: (ctx, snap) {
-        if (!snap.hasData) return const Center(child: CircularProgressIndicator());
-        final gasTypes = snap.data!.docs
-            .map((d) => GasType.fromMap(d.data() as Map<String, dynamic>))
-            .toList();
-
-        final selectedGasType = gasTypes.where((g) => g.id == _selectedGasTypeId).firstOrNull;
-        final volume = double.tryParse(_volumeController.text) ?? 0;
-        final computedPrice = selectedGasType != null ? volume * selectedGasType.priceOut : 0.0;
-
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Fuel Type', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _selectedGasTypeId,
-                dropdownColor: const Color(0xFF0B1220),
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: const Color(0xFF0B1220),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                ),
-                hint: const Text('Select fuel type', style: TextStyle(color: Colors.white38)),
-                items: gasTypes.map((g) {
-                  return DropdownMenuItem(
-                    value: g.id,
-                    child: Text('${g.name} — ${g.priceOut.toStringAsFixed(2)} DA/L'),
-                  );
-                }).toList(),
-                onChanged: (val) => setState(() => _selectedGasTypeId = val),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _volumeController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'Volume (Liters)',
-                        labelStyle: const TextStyle(color: Colors.white54),
-                        filled: true,
-                        fillColor: const Color(0xFF0B1220),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                        ),
-                      ),
-                      onChanged: (_) => setState(() {}),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0B1220),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.white12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Total',
-                            style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                        Text('${computedPrice.toStringAsFixed(2)} DA',
-                            style: const TextStyle(
-                                color: Color(0xFF84CC16),
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _driverNameController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'Driver Name (optional)',
-                        labelStyle: const TextStyle(color: Colors.white54),
-                        filled: true,
-                        fillColor: const Color(0xFF0B1220),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _vehiclePlateController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'Vehicle Plate (optional)',
-                        labelStyle: const TextStyle(color: Colors.white54),
-                        filled: true,
-                        fillColor: const Color(0xFF0B1220),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton.icon(
-                  onPressed: (_selectedGasTypeId != null && volume > 0)
-                      ? () => _addFuelItem(
-                            selectedGasType!,
-                            volume,
-                            _driverNameController.text,
-                            _vehiclePlateController.text,
-                          )
-                      : null,
-                  icon: const Icon(Icons.add_shopping_cart, size: 20),
-                  label: const Text('Add to Cart'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0066CC),
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: Colors.white12,
-                    disabledForegroundColor: Colors.white24,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  // ──────────────────────────────────────────────
-  // PRODUCTS / SERVICES TAB
-  // ──────────────────────────────────────────────
-
-  Widget _buildProductTab(bool isService) {
-    final categoryFilter = isService ? 'service' : null;
-
-    return StreamBuilder<QuerySnapshot>(
-      stream: categoryFilter != null
-          ? firestore
-              .collection('products')
-              .where('category', isEqualTo: categoryFilter)
-              .where('isDeleted', isEqualTo: false)
-              .snapshots()
-          : firestore
-              .collection('products')
-              .where('isDeleted', isEqualTo: false)
-              .snapshots(),
-      builder: (ctx, snap) {
-        if (!snap.hasData) {
-          return const Center(child: CircularProgressIndicator(color: Color(0xFF0066CC)));
-        }
-        final products = snap.data!.docs
-            .map((d) => Product.fromMap(d.data() as Map<String, dynamic>))
-            .where((p) => isService ? p.category == 'service' : (p.category == null || p.category != 'service'))
-            .where((p) => p.isActive)
-            .toList();
-
-        final selectedProduct = products.where((p) => p.id == _selectedProductId).firstOrNull;
-        final qty = double.tryParse(_quantityController.text) ?? 1;
-        final computedPrice = selectedProduct != null ? qty * selectedProduct.price : 0.0;
-
-        return Column(
-          children: [
-            Expanded(
-              child: products.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(isService ? Icons.design_services : Icons.inventory_2,
-                              size: 48, color: Colors.white24),
-                          const SizedBox(height: 8),
-                          Text(isService ? 'No services configured' : 'No products found',
-                              style: const TextStyle(color: Colors.white38)),
-                        ],
-                      ),
-                    )
-                  : GridView.builder(
-                      padding: const EdgeInsets.all(12),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        mainAxisSpacing: 8,
-                        crossAxisSpacing: 8,
-                        childAspectRatio: 1.8,
-                      ),
-                      itemCount: products.length,
-                      itemBuilder: (ctx, idx) {
-                        final p = products[idx];
-                        final isSelected = _selectedProductId == p.id;
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedProductId = p.id;
-                            });
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: isSelected ? const Color(0xFF0066CC).withAlpha(30) : const Color(0xFF0B1220),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: isSelected ? const Color(0xFF0066CC) : Colors.white12,
-                              ),
-                            ),
-                            padding: const EdgeInsets.all(10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(p.name,
-                                    style: TextStyle(
-                                        color: isSelected ? Colors.white : Colors.white70,
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 13),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis),
-                                const SizedBox(height: 2),
-                                Text('${p.price.toStringAsFixed(2)} DA',
-                                    style: TextStyle(
-                                        color: isSelected ? const Color(0xFF84CC16) : Colors.white54,
-                                        fontSize: 12)),
-                                if (p.stockQuantity > 0)
-                                  Text('Stock: ${p.stockQuantity.toStringAsFixed(0)}',
-                                      style: const TextStyle(color: Colors.white38, fontSize: 11)),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-            if (selectedProduct != null)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0B1220),
-                  border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
-                ),
-                child: Row(
-                  children: [
-                    Text('${selectedProduct.name}: ',
-                        style: const TextStyle(color: Colors.white70)),
-                    SizedBox(
-                      width: 80,
-                      child: TextField(
-                        controller: _quantityController,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                        style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(
-                          isDense: true,
-                          labelText: 'Qty',
-                          labelStyle: TextStyle(color: Colors.white54),
-                        ),
-                        onChanged: (_) => setState(() {}),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text('= ${computedPrice.toStringAsFixed(2)} DA',
-                        style: const TextStyle(
-                            color: Color(0xFF84CC16), fontWeight: FontWeight.bold)),
-                    const Spacer(),
-                    ElevatedButton.icon(
-                      onPressed: () => _addProductItem(selectedProduct, qty),
-                      icon: const Icon(Icons.add_shopping_cart, size: 18),
-                      label: const Text('Add'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0066CC),
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        );
-      },
-    );
-  }
-
-  // ──────────────────────────────────────────────
-  // CART PANEL
-  // ──────────────────────────────────────────────
 
   Widget _buildCartPanel() {
-    final subtotal = _cart.fold<double>(0, (total, item) => total + item.lineTotal);
-
-    return Card(
-      color: const Color(0xFF1A2332),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Row(
-              children: [
-                const Icon(Icons.shopping_cart, color: Color(0xFF0066CC), size: 20),
-                const SizedBox(width: 8),
-                Text('Cart (${_cart.length})',
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-              ],
-            ),
-          ),
-          const Divider(color: Colors.white12, height: 1),
-          Expanded(
-            child: _cart.isEmpty
-                ? const Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.add_shopping_cart, size: 48, color: Colors.white24),
-                        SizedBox(height: 8),
-                        Text('Cart is empty', style: TextStyle(color: Colors.white38)),
-                        SizedBox(height: 4),
-                        Text('Add items from the left panel',
-                            style: TextStyle(color: Colors.white24, fontSize: 12)),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(8),
-                    itemCount: _cart.length,
-                    itemBuilder: (ctx, idx) {
-                      final item = _cart[idx];
-                      return Dismissible(
-                        key: ValueKey('${item.saleType.value}_$idx'),
-                        direction: DismissDirection.endToStart,
-                        background: Container(
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 16),
-                          color: const Color(0xFFEF4444),
-                          child: const Icon(Icons.delete, color: Colors.white),
-                        ),
-                        onDismissed: (_) => _removeCartItem(idx),
-                        child: Card(
-                          color: const Color(0xFF0B1220),
-                          margin: const EdgeInsets.only(bottom: 4),
-                          child: ListTile(
-                            dense: true,
-                            leading: Icon(
-                              item.saleType == SaleType.fuel
-                                  ? Icons.local_gas_station
-                                  : item.saleType == SaleType.service
-                                      ? Icons.build
-                                      : Icons.inventory_2,
-                              size: 20,
-                              color: item.saleType == SaleType.fuel
-                                  ? const Color(0xFF84CC16)
-                                  : const Color(0xFF0066CC),
-                            ),
-                            title: Text(item.label,
-                                style: const TextStyle(color: Colors.white, fontSize: 13),
-                                overflow: TextOverflow.ellipsis),
-                            trailing: Text('${item.lineTotal.toStringAsFixed(2)} DA',
-                                style: const TextStyle(
-                                    color: Color(0xFF84CC16),
-                                    fontWeight: FontWeight.w600)),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-          const Divider(color: Colors.white12, height: 1),
-          // Payment & Client section
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Client selection
-                StreamBuilder<QuerySnapshot>(
-                  stream: firestore
-                      .collection('clients')
-                      .where('isDeleted', isEqualTo: false)
-                      .snapshots(),
-                  builder: (ctx, snap) {
-                    final clients = snap.hasData
-                        ? snap.data!.docs
-                            .map((d) => Client.fromMap(d.data() as Map<String, dynamic>))
-                            .toList()
-                        : <Client>[];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedClientId,
-                        dropdownColor: const Color(0xFF0B1220),
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
-                        decoration: InputDecoration(
-                          labelText: 'Client (optional)',
-                          labelStyle: const TextStyle(color: Colors.white54, fontSize: 13),
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                          ),
-                        ),
-                        items: [
-                          const DropdownMenuItem(
-                            value: null,
-                            child: Text('Walk-in Customer',
-                                style: TextStyle(color: Colors.white38, fontSize: 13)),
-                          ),
-                          ...clients.map((c) => DropdownMenuItem(
-                                value: c.id,
-                                child: Text(c.name, style: const TextStyle(fontSize: 13)),
-                              )),
-                        ],
-                        onChanged: (val) => setState(() => _selectedClientId = val),
-                      ),
-                    );
-                  },
-                ),
-                // Payment method
-                StreamBuilder<QuerySnapshot>(
-                  stream: firestore.collection('payment_types').snapshots(),
-                  builder: (ctx, snap) {
-                    final types = snap.hasData
-                        ? snap.data!.docs
-                            .map((d) =>
-                                PaymentType.fromMap(d.data() as Map<String, dynamic>))
-                            .toList()
-                        : <PaymentType>[];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedPaymentTypeId,
-                        dropdownColor: const Color(0xFF0B1220),
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
-                        decoration: InputDecoration(
-                          labelText: 'Payment Method *',
-                          labelStyle: const TextStyle(color: Colors.white54, fontSize: 13),
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                          ),
-                        ),
-                        items: types.map((t) => DropdownMenuItem(
-                              value: t.id,
-                              child: Text(t.name, style: const TextStyle(fontSize: 13)),
-                            )).toList(),
-                        onChanged: (val) => setState(() => _selectedPaymentTypeId = val),
-                      ),
-                    );
-                  },
-                ),
-                // Total & Submit
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Total', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                        Text('${subtotal.toStringAsFixed(2)} DA',
-                            style: const TextStyle(
-                                color: Color(0xFF84CC16),
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 44,
-                      child: ElevatedButton.icon(
-                        onPressed: (_cart.isNotEmpty && _selectedPaymentTypeId != null && !_isSubmitting)
-                            ? _submitSale
-                            : null,
-                        icon: _isSubmitting
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                            : const Icon(Icons.payment, size: 18),
-                        label: Text(_isSubmitting ? 'Saving...' : 'Pay ${subtotal.toStringAsFixed(2)} DA'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF84CC16),
-                          foregroundColor: const Color(0xFF0B1220),
-                          disabledBackgroundColor: Colors.white12,
-                          disabledForegroundColor: Colors.white24,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return PosCartPanel(
+      cart: _cart,
+      selectedPaymentTypeId: _selectedPaymentTypeId,
+      selectedClientId: _selectedClientId,
+      isSubmitting: _isSubmitting,
+      onRemoveItem: _removeCartItem,
+      onPaymentTypeChanged: (val) => setState(() => _selectedPaymentTypeId = val),
+      onClientChanged: (val) => setState(() => _selectedClientId = val),
+      onSubmit: _submitSale,
     );
   }
 }

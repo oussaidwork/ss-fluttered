@@ -1,3 +1,5 @@
+import '../../core/utils/date_utils.dart';
+
 class PitRefill {
   final String id;
   final double volume;
@@ -111,7 +113,7 @@ class PitRefill {
       costPerLiter: (map['costPerLiter'] as num?)?.toDouble(),
       totalCost: (map['totalCost'] as num?)?.toDouble(),
       profitMargin: (map['profitMargin'] as num?)?.toDouble(),
-      timestamp: DateTime.tryParse(map['timestamp'] as String? ?? '') ?? DateTime.now(),
+      timestamp: DateUtilsApp.parseFirestoreDateTime(map['timestamp']),
       pitId: map['pitId'] as String? ?? '',
       recordedBy: map['recordedBy'] as String?,
       supplierId: map['supplierId'] as String?,

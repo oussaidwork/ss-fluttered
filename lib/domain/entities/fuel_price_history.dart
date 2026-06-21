@@ -1,3 +1,5 @@
+import '../../core/utils/date_utils.dart';
+
 class FuelPriceHistory {
   final String id;
   final double? oldPriceIn;
@@ -66,7 +68,7 @@ class FuelPriceHistory {
       newPriceIn: (map['newPriceIn'] as num?)?.toDouble(),
       oldPriceOut: (map['oldPriceOut'] as num?)?.toDouble(),
       newPriceOut: (map['newPriceOut'] as num?)?.toDouble(),
-      changedAt: DateTime.tryParse(map['changedAt'] as String? ?? '') ?? DateTime.now(),
+      changedAt: DateUtilsApp.parseFirestoreDateTime(map['changedAt']),
       gasTypeId: map['gasTypeId'] as String? ?? '',
       changedBy: map['changedBy'] as String?,
       isDeleted: map['isDeleted'] as bool? ?? false,

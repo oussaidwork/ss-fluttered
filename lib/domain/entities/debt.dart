@@ -1,3 +1,5 @@
+import '../../core/utils/date_utils.dart';
+
 class Debt {
   final String id;
   final double amount;
@@ -58,12 +60,12 @@ class Debt {
     return Debt(
       id: map['id'] as String? ?? '',
       amount: (map['amount'] as num?)?.toDouble() ?? 0.0,
-      dueDate: DateTime.tryParse(map['dueDate'] as String? ?? ''),
+      dueDate: DateUtilsApp.parseFirestoreDateTime(map['dueDate'], fallback: null),
       clientId: map['clientId'] as String? ?? '',
       driverName: map['driverName'] as String?,
       vehiclePlate: map['vehiclePlate'] as String?,
       isDeleted: map['isDeleted'] as bool? ?? false,
-      created: DateTime.tryParse(map['created'] as String? ?? '') ?? DateTime.now(),
+      created: DateUtilsApp.parseFirestoreDateTime(map['created']),
     );
   }
 }

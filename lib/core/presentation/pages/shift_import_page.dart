@@ -279,12 +279,13 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
       });
 
       if (mounted) {
+        final cs = Theme.of(context).colorScheme;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               'Import completed: $shiftPumpsCount pump readings, $fuelHistoryCount price records',
             ),
-            backgroundColor: const Color(0xFF84CC16),
+            backgroundColor: cs.secondary,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -303,6 +304,7 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -311,14 +313,14 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
           // Header
           Row(
             children: [
-              const Icon(Icons.schedule, color: Color(0xFF0066CC), size: 28),
+              Icon(Icons.schedule, color: cs.primary, size: 28),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'Shift Import',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: cs.onSurface,
                 ),
               ),
               const Spacer(),
@@ -328,8 +330,8 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                   icon: const Icon(Icons.file_upload, size: 18),
                   label: const Text('Select XLSX'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0066CC),
-                    foregroundColor: Colors.white,
+                    backgroundColor: cs.primary,
+                    foregroundColor: cs.onSurface,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 12,
@@ -342,8 +344,8 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                   icon: const Icon(Icons.cloud_upload, size: 18),
                   label: const Text('Import to Firestore'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF84CC16),
-                    foregroundColor: const Color(0xFF0B1220),
+                    backgroundColor: cs.secondary,
+                    foregroundColor: cs.surface,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 12,
@@ -353,16 +355,16 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Upload the shift readings XLSX template to preview and import shift data.',
-            style: TextStyle(color: Colors.white54, fontSize: 13),
+            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 13),
           ),
           const SizedBox(height: 20),
 
           if (_isLoading)
-            const Expanded(
+            Expanded(
               child: Center(
-                child: CircularProgressIndicator(color: Color(0xFF0066CC)),
+                child: CircularProgressIndicator(color: cs.primary),
               ),
             ),
 
@@ -370,21 +372,21 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withAlpha(20),
+                color: cs.error.withAlpha(20),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: const Color(0xFFEF4444).withAlpha(60),
+                  color: cs.error.withAlpha(60),
                 ),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.error_outline, color: Color(0xFFEF4444)),
+                  Icon(Icons.error_outline, color: cs.error),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       _error!,
-                      style: const TextStyle(
-                        color: Color(0xFFEF4444),
+                      style: TextStyle(
+                        color: cs.error,
                         fontSize: 13,
                       ),
                     ),
@@ -399,16 +401,16 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
             Expanded(child: _buildPreview()),
 
           if (!_parsed && !_isLoading && _error == null)
-            const Expanded(
+            Expanded(
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.upload_file, color: Colors.white24, size: 64),
-                    SizedBox(height: 16),
+                    Icon(Icons.upload_file, color: cs.onSurface.withValues(alpha: 0.24), size: 64),
+                    const SizedBox(height: 16),
                     Text(
                       'Select a shift readings XLSX file to begin',
-                      style: TextStyle(color: Colors.white38, fontSize: 16),
+                      style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 16),
                     ),
                   ],
                 ),
@@ -420,28 +422,29 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
   }
 
   Widget _buildResults() {
+    final cs = Theme.of(context).colorScheme;
     return Expanded(
       child: Center(
         child: Container(
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            color: const Color(0xFF0B1220),
+            color: cs.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF84CC16).withAlpha(60)),
+            border: Border.all(color: cs.secondary.withAlpha(60)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.check_circle,
-                color: Color(0xFF84CC16),
+                color: cs.secondary,
                 size: 48,
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Import Complete!',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: cs.onSurface,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -455,23 +458,23 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                     children: [
                       Text(
                         '${e.key}: ',
-                        style: const TextStyle(
-                          color: Colors.white54,
+                        style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.54),
                           fontSize: 14,
                         ),
                       ),
                       Text(
                         '${e.value}',
-                        style: const TextStyle(
-                          color: Color(0xFF84CC16),
+                        style: TextStyle(
+                          color: cs.secondary,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       Text(
                         ' records',
-                        style: const TextStyle(
-                          color: Colors.white54,
+                        style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.54),
                           fontSize: 14,
                         ),
                       ),
@@ -497,6 +500,7 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
   }
 
   Widget _buildPreview() {
+    final cs = Theme.of(context).colorScheme;
     final p = _preview!;
     final totalVolume = p.pumps.fold<double>(
       0.0,
@@ -512,25 +516,25 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
             margin: const EdgeInsets.only(bottom: 16),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFEAB308).withAlpha(20),
+              color: cs.tertiary.withAlpha(20),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFEAB308).withAlpha(60)),
+              border: Border.all(color: cs.tertiary.withAlpha(60)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
                     Icon(
                       Icons.warning_amber,
-                      color: Color(0xFFEAB308),
+                      color: cs.tertiary,
                       size: 18,
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(
                       'Warnings',
                       style: TextStyle(
-                        color: Color(0xFFEAB308),
+                        color: cs.tertiary,
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                       ),
@@ -543,8 +547,8 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(
                       '• $w',
-                      style: const TextStyle(
-                        color: Colors.white54,
+                      style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.54),
                         fontSize: 12,
                       ),
                     ),
@@ -558,19 +562,19 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
           width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF0B1220),
+            color: cs.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white12),
+            border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  const Text(
+                  Text(
                     'Shift Summary',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: cs.onSurface,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
@@ -580,7 +584,7 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                     'Total Volume',
                     '${totalVolume.toStringAsFixed(1)} L',
                     Icons.local_gas_station,
-                    const Color(0xFF84CC16),
+                    cs.secondary,
                   ),
                 ],
               ),
@@ -593,29 +597,29 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                     'Date',
                     p.date ?? '-',
                     Icons.calendar_today,
-                    const Color(0xFF0066CC),
+                    cs.primary,
                   ),
                   _summaryCard(
                     'Operator',
                     p.operatorName ?? '-',
                     p.operatorFound ? Icons.check_circle : Icons.error_outline,
                     p.operatorFound
-                        ? const Color(0xFF84CC16)
-                        : const Color(0xFFEAB308),
+                        ? cs.secondary
+                        : cs.tertiary,
                   ),
                   if (p.superPrice != null)
                     _summaryCard(
                       'Super Price',
                       '${p.superPrice!.toStringAsFixed(2)} MAD',
                       Icons.attach_money,
-                      const Color(0xFF84CC16),
+                      cs.secondary,
                     ),
                   if (p.dieselPrice != null)
                     _summaryCard(
                       'Diesel Price',
                       '${p.dieselPrice!.toStringAsFixed(2)} MAD',
                       Icons.attach_money,
-                      const Color(0xFF0066CC),
+                      cs.primary,
                     ),
                 ],
               ),
@@ -626,9 +630,9 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
         Expanded(
           child: Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF0B1220),
+              color: cs.surface,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white12),
+              border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
             ),
             child: Column(
               children: [
@@ -637,20 +641,20 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                     horizontal: 16,
                     vertical: 12,
                   ),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF111A2E),
+                  decoration: BoxDecoration(
+                    color: cs.surfaceContainerHighest,
                     borderRadius: BorderRadius.vertical(
                       top: Radius.circular(12),
                     ),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
                       Expanded(
                         flex: 2,
                         child: Text(
                           '#',
                           style: TextStyle(
-                            color: Colors.white38,
+                            color: cs.onSurface.withValues(alpha: 0.38),
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                           ),
@@ -661,7 +665,7 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                         child: Text(
                           'Pump',
                           style: TextStyle(
-                            color: Colors.white38,
+                            color: cs.onSurface.withValues(alpha: 0.38),
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                           ),
@@ -672,7 +676,7 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                         child: Text(
                           'Code',
                           style: TextStyle(
-                            color: Colors.white38,
+                            color: cs.onSurface.withValues(alpha: 0.38),
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                           ),
@@ -683,7 +687,7 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                         child: Text(
                           'Start',
                           style: TextStyle(
-                            color: Colors.white38,
+                            color: cs.onSurface.withValues(alpha: 0.38),
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                           ),
@@ -694,7 +698,7 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                         child: Text(
                           'End',
                           style: TextStyle(
-                            color: Colors.white38,
+                            color: cs.onSurface.withValues(alpha: 0.38),
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                           ),
@@ -705,7 +709,7 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                         child: Text(
                           'Volume',
                           style: TextStyle(
-                            color: Colors.white38,
+                            color: cs.onSurface.withValues(alpha: 0.38),
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                           ),
@@ -716,7 +720,7 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                         child: Text(
                           'Status',
                           style: TextStyle(
-                            color: Colors.white38,
+                            color: cs.onSurface.withValues(alpha: 0.38),
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                           ),
@@ -738,10 +742,10 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                           decoration: BoxDecoration(
                             color: i.isEven
                                 ? Colors.transparent
-                                : Colors.white.withAlpha(3),
-                            border: const Border(
+                                : cs.onSurface.withAlpha(3),
+                            border: Border(
                               bottom: BorderSide(
-                                color: Colors.white12,
+                                color: cs.onSurface.withValues(alpha: 0.12),
                                 width: 0.5,
                               ),
                             ),
@@ -752,8 +756,8 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                                 flex: 2,
                                 child: Text(
                                   '${i + 1}',
-                                  style: const TextStyle(
-                                    color: Colors.white38,
+                                  style: TextStyle(
+                                    color: cs.onSurface.withValues(alpha: 0.38),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -762,8 +766,8 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                                 flex: 4,
                                 child: Text(
                                   pump.pumpName ?? '-',
-                                  style: const TextStyle(
-                                    color: Colors.white70,
+                                  style: TextStyle(
+                                    color: cs.onSurface.withValues(alpha: 0.7),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -772,8 +776,8 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                                 flex: 3,
                                 child: Text(
                                   pump.code,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
+                                  style: TextStyle(
+                                    color: cs.onSurface.withValues(alpha: 0.7),
                                     fontSize: 12,
                                     fontFamily: 'monospace',
                                   ),
@@ -783,8 +787,8 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                                 flex: 3,
                                 child: Text(
                                   pump.startAnalog?.toStringAsFixed(0) ?? '-',
-                                  style: const TextStyle(
-                                    color: Colors.white54,
+                                  style: TextStyle(
+                                    color: cs.onSurface.withValues(alpha: 0.54),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -793,8 +797,8 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                                 flex: 3,
                                 child: Text(
                                   pump.endAnalog?.toStringAsFixed(0) ?? '-',
-                                  style: const TextStyle(
-                                    color: Colors.white70,
+                                  style: TextStyle(
+                                    color: cs.onSurface.withValues(alpha: 0.7),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -804,21 +808,21 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                                 child: pump.volume != null
                                     ? Text(
                                         pump.volume!.toStringAsFixed(1),
-                                        style: const TextStyle(
-                                          color: Color(0xFF84CC16),
+                                        style: TextStyle(
+                                          color: cs.secondary,
                                           fontSize: 12,
                                           fontFamily: 'monospace',
                                         ),
                                       )
-                                    : const Text(
+                                    : Text(
                                         '-',
                                         style: TextStyle(
-                                          color: Colors.white38,
+                                          color: cs.onSurface.withValues(alpha: 0.38),
                                           fontSize: 12,
                                         ),
                                       ),
                               ),
-                              Expanded(flex: 3, child: _pumpStatusBadge(pump)),
+                              Expanded(flex: 3, child: _pumpStatusBadge(cs, pump)),
                             ],
                           ),
                         );
@@ -840,12 +844,13 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
     IconData icon,
     Color iconColor,
   ) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withAlpha(4),
+        color: cs.onSurface.withAlpha(4),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -857,13 +862,13 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
             children: [
               Text(
                 label,
-                style: const TextStyle(color: Colors.white38, fontSize: 11),
+                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 11),
               ),
               const SizedBox(height: 2),
               Text(
                 value,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: cs.onSurface,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
@@ -875,58 +880,58 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
     );
   }
 
-  Widget _pumpStatusBadge(_PumpReading pump) {
+  Widget _pumpStatusBadge(ColorScheme cs, _PumpReading pump) {
     switch (pump.status) {
       case _PumpStatus.matched:
         return Row(
-          children: const [
-            Icon(Icons.check_circle, color: Color(0xFF84CC16), size: 14),
-            SizedBox(width: 4),
+          children: [
+            Icon(Icons.check_circle, color: cs.secondary, size: 14),
+            const SizedBox(width: 4),
             Text(
               'OK',
-              style: TextStyle(color: Color(0xFF84CC16), fontSize: 11),
+              style: TextStyle(color: cs.secondary, fontSize: 11),
             ),
           ],
         );
       case _PumpStatus.unmatched:
         return Row(
-          children: const [
-            Icon(Icons.error_outline, color: Color(0xFFEAB308), size: 14),
-            SizedBox(width: 4),
+          children: [
+            Icon(Icons.error_outline, color: cs.tertiary, size: 14),
+            const SizedBox(width: 4),
             Text(
               'Unmatched',
-              style: TextStyle(color: Color(0xFFEAB308), fontSize: 11),
+              style: TextStyle(color: cs.tertiary, fontSize: 11),
             ),
           ],
         );
       case _PumpStatus.noData:
         return Row(
-          children: const [
-            Icon(Icons.remove_circle_outline, color: Colors.white38, size: 14),
-            SizedBox(width: 4),
+          children: [
+            Icon(Icons.remove_circle_outline, color: cs.onSurface.withValues(alpha: 0.38), size: 14),
+            const SizedBox(width: 4),
             Text(
               'No data',
-              style: TextStyle(color: Colors.white38, fontSize: 11),
+              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 11),
             ),
           ],
         );
       case _PumpStatus.error:
         return Row(
           children: [
-            const Icon(Icons.cancel, color: Color(0xFFEF4444), size: 14),
+            Icon(Icons.cancel, color: cs.error, size: 14),
             const SizedBox(width: 4),
             Flexible(
               child: Text(
                 pump.error ?? 'Error',
-                style: const TextStyle(color: Color(0xFFEF4444), fontSize: 11),
+                style: TextStyle(color: cs.error, fontSize: 11),
               ),
             ),
           ],
         );
       case _PumpStatus.pending:
-        return const Text(
+        return Text(
           'Pending',
-          style: TextStyle(color: Colors.white38, fontSize: 11),
+          style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 11),
         );
     }
   }

@@ -77,6 +77,7 @@ class _MyShiftPageState extends ConsumerState<MyShiftPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final profileAsync = ref.watch(userProfileProvider);
     final currentUser = ref.watch(currentUserProvider);
 
@@ -87,16 +88,16 @@ class _MyShiftPageState extends ConsumerState<MyShiftPage> {
         // Check for existing active shift
         return _buildWithActiveShiftCheck();
       },
-      loading: () => const Center(
-        child: CircularProgressIndicator(color: Color(0xFF0066CC)),
-      ),
+      loading: () =>
+          Center(child: CircularProgressIndicator(color: cs.primary)),
       error: (e, _) => Center(
-        child: Text('Error: $e', style: const TextStyle(color: Colors.redAccent)),
+        child: Text('Error: $e', style: TextStyle(color: cs.error)),
       ),
     );
   }
 
   Widget _buildWithActiveShiftCheck() {
+    final cs = Theme.of(context).colorScheme;
     return StreamBuilder<QuerySnapshot>(
       stream: firestore
           .collection('work_shifts')
@@ -105,9 +106,7 @@ class _MyShiftPageState extends ConsumerState<MyShiftPage> {
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(color: Color(0xFF0066CC)),
-          );
+          return Center(child: CircularProgressIndicator(color: cs.primary));
         }
 
         if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
@@ -210,7 +209,10 @@ class _MyShiftPageState extends ConsumerState<MyShiftPage> {
           .where('isActive', isEqualTo: true)
           .get();
       final pumps = pumpsSnap.docs
-          .map((d) => Pump.fromMap({...d.data() as Map<String, dynamic>, 'id': d.id}))
+          .map(
+            (d) =>
+                Pump.fromMap({...d.data() as Map<String, dynamic>, 'id': d.id}),
+          )
           .toList();
 
       // Get gas types for pricing
@@ -219,7 +221,12 @@ class _MyShiftPageState extends ConsumerState<MyShiftPage> {
           .where('isDeleted', isEqualTo: false)
           .get();
       final gasTypes = gasTypesSnap.docs
-          .map((d) => GasType.fromMap({...d.data() as Map<String, dynamic>, 'id': d.id}))
+          .map(
+            (d) => GasType.fromMap({
+              ...d.data() as Map<String, dynamic>,
+              'id': d.id,
+            }),
+          )
           .toList();
 
       // Get pits to map pitId -> gasTypeId
@@ -292,7 +299,8 @@ class _MyShiftPageState extends ConsumerState<MyShiftPage> {
       final batch = firestore.batch();
       for (final pump in pumps) {
         final spId = firestore.collection('shift_pumps').doc().id;
-        final startCounter = lastEndCounters[pump.id] ?? pump.initialAnalogCounter;
+        final startCounter =
+            lastEndCounters[pump.id] ?? pump.initialAnalogCounter;
         final gasTypeId = pumpGasTypeMap[pump.id];
         final priceAtShift = gasTypes
             .where((g) => g.id == gasTypeId)
@@ -314,19 +322,21 @@ class _MyShiftPageState extends ConsumerState<MyShiftPage> {
       await batch.commit();
 
       if (mounted) {
+        final cs = Theme.of(context).colorScheme;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Shift started successfully!'),
-            backgroundColor: Color(0xFF84CC16),
+            backgroundColor: cs.secondary,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
+        final cs = Theme.of(context).colorScheme;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to start shift: $e'),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: cs.error,
           ),
         );
       }
@@ -348,7 +358,12 @@ class _MyShiftPageState extends ConsumerState<MyShiftPage> {
           .where('shiftId', isEqualTo: shift.id)
           .get();
       final shiftPumps = spSnap.docs
-          .map((d) => ShiftPump.fromMap({...d.data() as Map<String, dynamic>, 'id': d.id}))
+          .map(
+            (d) => ShiftPump.fromMap({
+              ...d.data() as Map<String, dynamic>,
+              'id': d.id,
+            }),
+          )
           .toList();
 
       // Update each ShiftPump with end analog counters
@@ -374,14 +389,11 @@ class _MyShiftPageState extends ConsumerState<MyShiftPage> {
         final volume = endCounter - sp.startAnalogCounter;
         final revenue = volume * (sp.priceAtShift ?? 0);
 
-        batch.update(
-          firestore.collection('shift_pumps').doc(sp.id),
-          {
-            'endAnalogCounter': endCounter,
-            'volume': volume,
-            'revenue': revenue,
-          },
-        );
+        batch.update(firestore.collection('shift_pumps').doc(sp.id), {
+          'endAnalogCounter': endCounter,
+          'volume': volume,
+          'revenue': revenue,
+        });
         totalPumpRevenue += revenue;
       }
 
@@ -410,21 +422,23 @@ class _MyShiftPageState extends ConsumerState<MyShiftPage> {
           _phase = _ShiftPhase.done;
         });
 
+        final cs = Theme.of(context).colorScheme;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               'Shift closed. Expected: ${expectedCash.toStringAsFixed(2)} DA, Actual: ${actualCash.toStringAsFixed(2)} DA',
             ),
-            backgroundColor: const Color(0xFF0066CC),
+            backgroundColor: cs.primary,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
+        final cs = Theme.of(context).colorScheme;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to close shift: $e'),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: cs.error,
           ),
         );
       }
@@ -440,32 +454,33 @@ class _LaunchBay extends StatelessWidget {
   final String workerName;
   final VoidCallback onStartShift;
 
-  const _LaunchBay({
-    required this.workerName,
-    required this.onStartShift,
-  });
+  const _LaunchBay({required this.workerName, required this.onStartShift});
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.play_circle_outline, size: 80, color: Color(0xFF84CC16)),
+          Icon(Icons.play_circle_outline, size: 80, color: cs.secondary),
           const SizedBox(height: 24),
           Text(
             'Welcome, $workerName',
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: cs.onSurface,
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Start your shift to begin recording transactions',
-            style: TextStyle(color: Colors.white54, fontSize: 14),
+            style: TextStyle(
+              color: cs.onSurface.withValues(alpha: 0.54),
+              fontSize: 14,
+            ),
           ),
           const SizedBox(height: 32),
           SizedBox(
@@ -476,8 +491,8 @@ class _LaunchBay extends StatelessWidget {
               icon: const Icon(Icons.play_arrow, size: 24),
               label: const Text('Start Shift', style: TextStyle(fontSize: 18)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF84CC16),
-                foregroundColor: const Color(0xFF0B1220),
+                backgroundColor: cs.secondary,
+                foregroundColor: cs.surface,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -507,6 +522,7 @@ class _TransactionPod extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final shiftStart = shift?.startTime ?? DateTime.now();
     final duration = DateTime.now().difference(shiftStart);
 
@@ -518,41 +534,47 @@ class _TransactionPod extends StatelessWidget {
           // Header
           Row(
             children: [
-              const Icon(Icons.play_circle, color: Color(0xFF84CC16), size: 28),
+              Icon(Icons.play_circle, color: cs.secondary, size: 28),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Active Shift',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: cs.onSurface,
                     ),
                   ),
                   Text(
                     '$workerName  •  ${duration.inHours}h ${duration.inMinutes.remainder(60)}m',
-                    style: const TextStyle(color: Colors.white54, fontSize: 13),
+                    style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.54),
+                      fontSize: 13,
+                    ),
                   ),
                 ],
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF84CC16).withValues(alpha: 0.15),
+                  color: cs.secondary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.circle, size: 8, color: Color(0xFF84CC16)),
+                    Icon(Icons.circle, size: 8, color: cs.secondary),
                     SizedBox(width: 6),
                     Text(
                       'OPEN',
                       style: TextStyle(
-                        color: Color(0xFF84CC16),
+                        color: cs.secondary,
                         fontWeight: FontWeight.w600,
                         fontSize: 12,
                       ),
@@ -570,16 +592,26 @@ class _TransactionPod extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.shopping_cart, size: 64, color: Colors.white24),
+                  Icon(
+                    Icons.shopping_cart,
+                    size: 64,
+                    color: cs.onSurface.withValues(alpha: 0.24),
+                  ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Recording transactions...',
-                    style: TextStyle(color: Colors.white54, fontSize: 16),
+                    style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.54),
+                      fontSize: 16,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Use the POS page or Clients page to record sales',
-                    style: TextStyle(color: Colors.white38, fontSize: 13),
+                    style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.38),
+                      fontSize: 13,
+                    ),
                   ),
                   const SizedBox(height: 32),
                   SizedBox(
@@ -589,8 +621,8 @@ class _TransactionPod extends StatelessWidget {
                       icon: const Icon(Icons.lock_clock, size: 20),
                       label: const Text('Close Shift'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0066CC),
-                        foregroundColor: Colors.white,
+                        backgroundColor: cs.primary,
+                        foregroundColor: cs.onSurface,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -627,6 +659,7 @@ class _PumpSelectionView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -634,18 +667,25 @@ class _PumpSelectionView extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.speed, color: Color(0xFF0066CC), size: 28),
+              Icon(Icons.speed, color: cs.primary, size: 28),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'Select Active Pumps',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: cs.onSurface,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Select which pumps were used during this shift',
-            style: TextStyle(color: Colors.white54, fontSize: 13),
+            style: TextStyle(
+              color: cs.onSurface.withValues(alpha: 0.54),
+              fontSize: 13,
+            ),
           ),
           const SizedBox(height: 20),
           Expanded(
@@ -656,15 +696,24 @@ class _PumpSelectionView extends StatelessWidget {
                   .where('isActive', isEqualTo: true)
                   .snapshots(),
               builder: (context, snapshot) {
+                final cs = Theme.of(context).colorScheme;
                 if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0xFF0066CC)));
+                  return Center(
+                    child: CircularProgressIndicator(color: cs.primary),
+                  );
                 }
                 final pumps = snapshot.data!.docs;
                 if (pumps.isEmpty) {
-                  return const Center(
-                    child: Text('No active pumps found', style: TextStyle(color: Colors.white54)),
+                  return Center(
+                    child: Text(
+                      'No active pumps found',
+                      style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.54),
+                      ),
+                    ),
                   );
                 }
+                // change this tiles with group folding and a select all togle
                 return GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
@@ -684,13 +733,13 @@ class _PumpSelectionView extends StatelessWidget {
                       child: Container(
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? const Color(0xFF0066CC).withValues(alpha: 0.2)
-                              : const Color(0xFF1A2332),
+                              ? cs.primary.withValues(alpha: 0.2)
+                              : cs.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: isSelected
-                                ? const Color(0xFF0066CC)
-                                : Colors.white12,
+                                ? cs.primary
+                                : cs.onSurface.withValues(alpha: 0.12),
                             width: isSelected ? 2 : 1,
                           ),
                         ),
@@ -698,16 +747,24 @@ class _PumpSelectionView extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              isSelected ? Icons.check_circle : Icons.local_gas_station,
-                              color: isSelected ? const Color(0xFF84CC16) : Colors.white38,
+                              isSelected
+                                  ? Icons.check_circle
+                                  : Icons.local_gas_station,
+                              color: isSelected
+                                  ? cs.secondary
+                                  : cs.onSurface.withValues(alpha: 0.38),
                               size: 32,
                             ),
                             const SizedBox(height: 8),
                             Text(
                               name,
                               style: TextStyle(
-                                color: isSelected ? Colors.white : Colors.white70,
-                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                color: isSelected
+                                    ? cs.onSurface
+                                    : cs.onSurface.withValues(alpha: 0.7),
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
                               ),
                             ),
                           ],
@@ -725,9 +782,12 @@ class _PumpSelectionView extends StatelessWidget {
               OutlinedButton(
                 onPressed: onCancel,
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white54,
-                  side: const BorderSide(color: Colors.white12),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  foregroundColor: cs.onSurface.withValues(alpha: 0.54),
+                  side: BorderSide(color: cs.onSurface.withValues(alpha: 0.12)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                 ),
                 child: const Text('Cancel'),
               ),
@@ -737,11 +797,14 @@ class _PumpSelectionView extends StatelessWidget {
                 icon: const Icon(Icons.arrow_forward, size: 18),
                 label: Text('Next (${selectedPumpIds.length} selected)'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0066CC),
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: Colors.white12,
-                  disabledForegroundColor: Colors.white24,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  backgroundColor: cs.primary,
+                  foregroundColor: cs.onSurface,
+                  disabledBackgroundColor: cs.onSurface.withValues(alpha: 0.12),
+                  disabledForegroundColor: cs.onSurface.withValues(alpha: 0.24),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                 ),
               ),
             ],
@@ -773,6 +836,7 @@ class _EndReadingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -780,18 +844,25 @@ class _EndReadingsView extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.tune, color: Color(0xFF0066CC), size: 28),
+              Icon(Icons.tune, color: cs.primary, size: 28),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'End Counter Readings',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: cs.onSurface,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Enter the end analog counter readings for each selected pump',
-            style: TextStyle(color: Colors.white54, fontSize: 13),
+            style: TextStyle(
+              color: cs.onSurface.withValues(alpha: 0.54),
+              fontSize: 13,
+            ),
           ),
           const SizedBox(height: 20),
           Expanded(
@@ -801,17 +872,30 @@ class _EndReadingsView extends StatelessWidget {
                   .where('shiftId', isEqualTo: shift?.id ?? '')
                   .snapshots(),
               builder: (context, snapshot) {
+                final cs = Theme.of(context).colorScheme;
                 if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0xFF0066CC)));
+                  return Center(
+                    child: CircularProgressIndicator(color: cs.primary),
+                  );
                 }
                 final shiftPumps = snapshot.data!.docs
-                    .map((d) => ShiftPump.fromMap({...d.data() as Map<String, dynamic>, 'id': d.id}))
+                    .map(
+                      (d) => ShiftPump.fromMap({
+                        ...d.data() as Map<String, dynamic>,
+                        'id': d.id,
+                      }),
+                    )
                     .where((sp) => selectedPumpIds.contains(sp.pumpId))
                     .toList();
 
                 if (shiftPumps.isEmpty) {
-                  return const Center(
-                    child: Text('No pump data found', style: TextStyle(color: Colors.white54)),
+                  return Center(
+                    child: Text(
+                      'No pump data found',
+                      style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.54),
+                      ),
+                    ),
                   );
                 }
 
@@ -827,13 +911,21 @@ class _EndReadingsView extends StatelessWidget {
                     });
 
                     return FutureBuilder<DocumentSnapshot>(
-                      future: firestore.collection('pumps').doc(sp.pumpId).get(),
+                      future: firestore
+                          .collection('pumps')
+                          .doc(sp.pumpId)
+                          .get(),
                       builder: (ctx, pumpSnap) {
-                        final data = pumpSnap.hasData ? pumpSnap.data!.data() : null;
-                        final pumpName = (data as Map<String, dynamic>?)?['name'] as String? ?? sp.pumpId;
+                        final data = pumpSnap.hasData
+                            ? pumpSnap.data!.data()
+                            : null;
+                        final pumpName =
+                            (data as Map<String, dynamic>?)?['name']
+                                as String? ??
+                            sp.pumpId;
 
                         return Card(
-                          color: const Color(0xFF1A2332),
+                          color: cs.surfaceContainerHighest,
                           margin: const EdgeInsets.only(bottom: 10),
                           child: Padding(
                             padding: const EdgeInsets.all(16),
@@ -842,19 +934,25 @@ class _EndReadingsView extends StatelessWidget {
                                 Expanded(
                                   flex: 2,
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         pumpName,
-                                        style: const TextStyle(
-                                          color: Colors.white,
+                                        style: TextStyle(
+                                          color: cs.onSurface,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
                                         'Start: ${sp.startAnalogCounter.toStringAsFixed(1)}',
-                                        style: const TextStyle(color: Colors.white54, fontSize: 12),
+                                        style: TextStyle(
+                                          color: cs.onSurface.withValues(
+                                            alpha: 0.54,
+                                          ),
+                                          fontSize: 12,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -865,23 +963,39 @@ class _EndReadingsView extends StatelessWidget {
                                     controller: controllers[sp.pumpId],
                                     keyboardType: TextInputType.number,
                                     inputFormatters: [
-                                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                                      FilteringTextInputFormatter.allow(
+                                        RegExp(r'^\d*\.?\d*'),
+                                      ),
                                     ],
-                                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                                    style: TextStyle(
+                                      color: cs.onSurface,
+                                      fontSize: 14,
+                                    ),
                                     decoration: InputDecoration(
                                       hintText: 'End counter',
-                                      hintStyle: const TextStyle(color: Colors.white24),
-                                      isDense: true,
-                                      contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 10,
+                                      hintStyle: TextStyle(
+                                        color: cs.onSurface.withValues(
+                                          alpha: 0.24,
+                                        ),
                                       ),
+                                      isDense: true,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 10,
+                                          ),
                                       enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                                        borderSide: BorderSide(
+                                          color: cs.onSurface.withValues(
+                                            alpha: 0.2,
+                                          ),
+                                        ),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
-                                      focusedBorder: const OutlineInputBorder(
-                                        borderSide: BorderSide(color: Color(0xFF0066CC)),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: cs.primary,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -903,9 +1017,12 @@ class _EndReadingsView extends StatelessWidget {
               OutlinedButton(
                 onPressed: onCancel,
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white54,
-                  side: const BorderSide(color: Colors.white54),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  foregroundColor: cs.onSurface.withValues(alpha: 0.54),
+                  side: BorderSide(color: cs.onSurface.withValues(alpha: 0.54)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                 ),
                 child: const Text('Back'),
               ),
@@ -915,9 +1032,12 @@ class _EndReadingsView extends StatelessWidget {
                 icon: const Icon(Icons.arrow_forward, size: 18),
                 label: const Text('Review & Submit'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0066CC),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  backgroundColor: cs.primary,
+                  foregroundColor: cs.onSurface,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                 ),
               ),
             ],
@@ -953,6 +1073,7 @@ class _AuditPrintView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -960,11 +1081,15 @@ class _AuditPrintView extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.verified, color: Color(0xFF0066CC), size: 28),
+              Icon(Icons.verified, color: cs.primary, size: 28),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'Audit & Submit',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: cs.onSurface,
+                ),
               ),
             ],
           ),
@@ -976,11 +1101,19 @@ class _AuditPrintView extends StatelessWidget {
                   .where('shiftId', isEqualTo: shift?.id ?? '')
                   .snapshots(),
               builder: (context, snapshot) {
+                final cs = Theme.of(context).colorScheme;
                 if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0xFF0066CC)));
+                  return Center(
+                    child: CircularProgressIndicator(color: cs.primary),
+                  );
                 }
                 final shiftPumps = snapshot.data!.docs
-                    .map((d) => ShiftPump.fromMap({...d.data() as Map<String, dynamic>, 'id': d.id}))
+                    .map(
+                      (d) => ShiftPump.fromMap({
+                        ...d.data() as Map<String, dynamic>,
+                        'id': d.id,
+                      }),
+                    )
                     .where((sp) => selectedPumpIds.contains(sp.pumpId))
                     .toList();
 
@@ -1007,7 +1140,8 @@ class _AuditPrintView extends StatelessWidget {
                   });
                 }
 
-                final otherRev = double.tryParse(otherRevenueController.text) ?? 0;
+                final otherRev =
+                    double.tryParse(otherRevenueController.text) ?? 0;
                 totalExpected += otherRev;
                 final actualCash = double.tryParse(cashController.text) ?? 0;
 
@@ -1015,73 +1149,119 @@ class _AuditPrintView extends StatelessWidget {
                   child: Column(
                     children: [
                       // Pump summary table
-                      ...pumpDetails.map((pd) => FutureBuilder<DocumentSnapshot>(
-                        future: firestore.collection('pumps').doc(pd['pumpId'] as String).get(),
-                        builder: (ctx, pumpSnap) {
-                          final pumpData = pumpSnap.hasData ? pumpSnap.data!.data() : null;
-                          final pumpName = (pumpData as Map<String, dynamic>?)?['name'] as String? ?? pd['pumpId'];
-                          return Card(
-                            color: const Color(0xFF1A2332),
-                            margin: const EdgeInsets.only(bottom: 8),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(pumpName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          '${(pd['start'] as double).toStringAsFixed(1)} → ${(pd['end'] as double).toStringAsFixed(1)}',
-                                          style: const TextStyle(color: Colors.white54, fontSize: 12),
-                                        ),
-                                      ],
+                      ...pumpDetails.map(
+                        (pd) => FutureBuilder<DocumentSnapshot>(
+                          future: firestore
+                              .collection('pumps')
+                              .doc(pd['pumpId'] as String)
+                              .get(),
+                          builder: (ctx, pumpSnap) {
+                            final pumpData = pumpSnap.hasData
+                                ? pumpSnap.data!.data()
+                                : null;
+                            final pumpName =
+                                (pumpData as Map<String, dynamic>?)?['name']
+                                    as String? ??
+                                pd['pumpId'];
+                            return Card(
+                              color: cs.surfaceContainerHighest,
+                              margin: const EdgeInsets.only(bottom: 8),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            pumpName,
+                                            style: TextStyle(
+                                              color: cs.onSurface,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            '${(pd['start'] as double).toStringAsFixed(1)} → ${(pd['end'] as double).toStringAsFixed(1)}',
+                                            style: TextStyle(
+                                              color: cs.onSurface.withValues(
+                                                alpha: 0.54,
+                                              ),
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    '${(pd['volume'] as double).toStringAsFixed(1)}L',
-                                    style: const TextStyle(color: Color(0xFF84CC16), fontWeight: FontWeight.w600),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Text(
-                                    '${(pd['revenue'] as double).toStringAsFixed(2)} DA',
-                                    style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
-                                  ),
-                                ],
+                                    Text(
+                                      '${(pd['volume'] as double).toStringAsFixed(1)}L',
+                                      style: TextStyle(
+                                        color: cs.secondary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Text(
+                                      '${(pd['revenue'] as double).toStringAsFixed(2)} DA',
+                                      style: TextStyle(
+                                        color: cs.onSurface.withValues(
+                                          alpha: 0.7,
+                                        ),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                      )),
+                            );
+                          },
+                        ),
+                      ),
 
                       const SizedBox(height: 16),
 
                       // Other revenue field
                       Card(
-                        color: const Color(0xFF1A2332),
+                        color: cs.surfaceContainerHighest,
                         child: Padding(
                           padding: const EdgeInsets.all(12),
                           child: Row(
                             children: [
-                              const Text('Other Revenue (DA):', style: TextStyle(color: Colors.white70)),
+                              Text(
+                                'Other Revenue (DA):',
+                                style: TextStyle(
+                                  color: cs.onSurface.withValues(alpha: 0.7),
+                                ),
+                              ),
                               const SizedBox(width: 12),
                               SizedBox(
                                 width: 120,
                                 child: TextField(
                                   controller: otherRevenueController,
                                   keyboardType: TextInputType.number,
-                                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
-                                  style: const TextStyle(color: Colors.white),
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(
+                                      RegExp(r'^\d*\.?\d*'),
+                                    ),
+                                  ],
+                                  style: TextStyle(color: cs.onSurface),
                                   decoration: InputDecoration(
                                     isDense: true,
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 8,
                                     ),
-                                    focusedBorder: const OutlineInputBorder(
-                                      borderSide: BorderSide(color: Color(0xFF0066CC)),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: cs.onSurface.withValues(
+                                          alpha: 0.2,
+                                        ),
+                                      ),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(color: cs.primary),
                                     ),
                                   ),
                                 ),
@@ -1097,15 +1277,30 @@ class _AuditPrintView extends StatelessWidget {
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0B1220),
+                          color: cs.surface,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
                           children: [
-                            _summaryRow('Pump Revenue', '${(totalExpected - otherRev).toStringAsFixed(2)} DA'),
-                            _summaryRow('Other Revenue', '${otherRev.toStringAsFixed(2)} DA'),
-                            const Divider(color: Colors.white12),
-                            _summaryRow('Total Expected', '${totalExpected.toStringAsFixed(2)} DA', bold: true),
+                            _summaryRow(
+                              cs,
+                              'Pump Revenue',
+                              '${(totalExpected - otherRev).toStringAsFixed(2)} DA',
+                            ),
+                            _summaryRow(
+                              cs,
+                              'Other Revenue',
+                              '${otherRev.toStringAsFixed(2)} DA',
+                            ),
+                            Divider(
+                              color: cs.onSurface.withValues(alpha: 0.12),
+                            ),
+                            _summaryRow(
+                              cs,
+                              'Total Expected',
+                              '${totalExpected.toStringAsFixed(2)} DA',
+                              bold: true,
+                            ),
                           ],
                         ),
                       ),
@@ -1113,46 +1308,78 @@ class _AuditPrintView extends StatelessWidget {
 
                       // Actual cash
                       Card(
-                        color: const Color(0xFF1A2332),
+                        color: cs.surfaceContainerHighest,
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Actual Cash in Register', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                              Text(
+                                'Actual Cash in Register',
+                                style: TextStyle(
+                                  color: cs.onSurface.withValues(alpha: 0.7),
+                                  fontSize: 13,
+                                ),
+                              ),
                               const SizedBox(height: 8),
                               TextField(
                                 controller: cashController,
                                 keyboardType: TextInputType.number,
-                                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
-                                style: const TextStyle(color: Colors.white, fontSize: 16),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                    RegExp(r'^\d*\.?\d*'),
+                                  ),
+                                ],
+                                style: TextStyle(
+                                  color: cs.onSurface,
+                                  fontSize: 16,
+                                ),
                                 decoration: InputDecoration(
                                   hintText: '0.00',
                                   prefixText: 'DA ',
-                                  prefixStyle: const TextStyle(color: Colors.white38),
-                                  hintStyle: const TextStyle(color: Colors.white24),
+                                  prefixStyle: TextStyle(
+                                    color: cs.onSurface.withValues(alpha: 0.38),
+                                  ),
+                                  hintStyle: TextStyle(
+                                    color: cs.onSurface.withValues(alpha: 0.24),
+                                  ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                                    borderSide: BorderSide(
+                                      color: cs.onSurface.withValues(
+                                        alpha: 0.2,
+                                      ),
+                                    ),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  focusedBorder: const OutlineInputBorder(
-                                    borderSide: BorderSide(color: Color(0xFF0066CC)),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: cs.primary),
                                   ),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 14,
+                                  ),
                                 ),
                               ),
                               if (actualCash > 0 && totalExpected > 0) ...[
                                 const SizedBox(height: 12),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Text('Difference:', style: TextStyle(color: Colors.white54)),
+                                    Text(
+                                      'Difference:',
+                                      style: TextStyle(
+                                        color: cs.onSurface.withValues(
+                                          alpha: 0.54,
+                                        ),
+                                      ),
+                                    ),
                                     Text(
                                       '${(actualCash - totalExpected) >= 0 ? '+' : ''}${(actualCash - totalExpected).toStringAsFixed(2)} DA',
                                       style: TextStyle(
                                         color: actualCash >= totalExpected
-                                            ? const Color(0xFF84CC16)
-                                            : const Color(0xFFEF4444),
+                                            ? cs.secondary
+                                            : cs.error,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
                                       ),
@@ -1176,9 +1403,12 @@ class _AuditPrintView extends StatelessWidget {
               OutlinedButton(
                 onPressed: onCancel,
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white54,
-                  side: const BorderSide(color: Colors.white12),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  foregroundColor: cs.onSurface.withValues(alpha: 0.54),
+                  side: BorderSide(color: cs.onSurface.withValues(alpha: 0.12)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                 ),
                 child: const Text('Back'),
               ),
@@ -1188,9 +1418,12 @@ class _AuditPrintView extends StatelessWidget {
                 icon: const Icon(Icons.lock_clock, size: 18),
                 label: const Text('Close Shift & Print Z-Report'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF84CC16),
-                  foregroundColor: const Color(0xFF0B1220),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  backgroundColor: cs.secondary,
+                  foregroundColor: cs.surface,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 14,
+                  ),
                 ),
               ),
             ],
@@ -1200,7 +1433,12 @@ class _AuditPrintView extends StatelessWidget {
     );
   }
 
-  Widget _summaryRow(String label, String value, {bool bold = false}) {
+  Widget _summaryRow(
+    ColorScheme cs,
+    String label,
+    String value, {
+    bool bold = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -1209,7 +1447,7 @@ class _AuditPrintView extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              color: Colors.white54,
+              color: cs.onSurface.withValues(alpha: 0.54),
               fontSize: 13,
               fontWeight: bold ? FontWeight.w600 : FontWeight.normal,
             ),
@@ -1217,7 +1455,7 @@ class _AuditPrintView extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              color: bold ? const Color(0xFF84CC16) : Colors.white,
+              color: bold ? cs.secondary : cs.onSurface,
               fontWeight: bold ? FontWeight.bold : FontWeight.w500,
               fontSize: 13,
             ),
@@ -1236,13 +1474,11 @@ class _ShiftSummary extends StatelessWidget {
   final WorkShift? shift;
   final VoidCallback onNewShift;
 
-  const _ShiftSummary({
-    required this.shift,
-    required this.onNewShift,
-  });
+  const _ShiftSummary({required this.shift, required this.onNewShift});
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final expected = shift?.expectedCash ?? 0;
     final actual = shift?.actualCash ?? 0;
     final diff = actual - expected;
@@ -1256,22 +1492,24 @@ class _ShiftSummary extends StatelessWidget {
           Icon(
             isBalanced ? Icons.check_circle : Icons.warning_amber,
             size: 80,
-            color: isBalanced ? const Color(0xFF84CC16) : const Color(0xFFF59E0B),
+            color: isBalanced ? cs.secondary : cs.tertiary,
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Shift Closed',
             style: TextStyle(
-              color: Colors.white,
+              color: cs.onSurface,
               fontSize: 28,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            isBalanced ? 'All cash reconciled successfully' : 'There is a cash discrepancy',
+            isBalanced
+                ? 'All cash reconciled successfully'
+                : 'There is a cash discrepancy',
             style: TextStyle(
-              color: isBalanced ? const Color(0xFF84CC16) : const Color(0xFFF59E0B),
+              color: isBalanced ? cs.secondary : cs.tertiary,
               fontSize: 14,
             ),
           ),
@@ -1280,19 +1518,24 @@ class _ShiftSummary extends StatelessWidget {
             width: 300,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF1A2332),
+              color: cs.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
               children: [
-                _summaryLine('Expected', '${expected.toStringAsFixed(2)} DA'),
-                const SizedBox(height: 8),
-                _summaryLine('Actual', '${actual.toStringAsFixed(2)} DA'),
-                const Divider(color: Colors.white12),
                 _summaryLine(
+                  cs,
+                  'Expected',
+                  '${expected.toStringAsFixed(2)} DA',
+                ),
+                const SizedBox(height: 8),
+                _summaryLine(cs, 'Actual', '${actual.toStringAsFixed(2)} DA'),
+                Divider(color: cs.onSurface.withValues(alpha: 0.12)),
+                _summaryLine(
+                  cs,
                   'Difference',
                   '${diff >= 0 ? '+' : ''}${diff.toStringAsFixed(2)} DA',
-                  color: isBalanced ? const Color(0xFF84CC16) : const Color(0xFFEF4444),
+                  color: isBalanced ? cs.secondary : cs.error,
                 ),
               ],
             ),
@@ -1305,8 +1548,8 @@ class _ShiftSummary extends StatelessWidget {
               icon: const Icon(Icons.refresh, size: 20),
               label: const Text('Start New Shift'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0066CC),
-                foregroundColor: Colors.white,
+                backgroundColor: cs.primary,
+                foregroundColor: cs.onSurface,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -1319,15 +1562,26 @@ class _ShiftSummary extends StatelessWidget {
     );
   }
 
-  Widget _summaryLine(String label, String value, {Color? color}) {
+  Widget _summaryLine(
+    ColorScheme cs,
+    String label,
+    String value, {
+    Color? color,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white54, fontSize: 14)),
+        Text(
+          label,
+          style: TextStyle(
+            color: cs.onSurface.withValues(alpha: 0.54),
+            fontSize: 14,
+          ),
+        ),
         Text(
           value,
           style: TextStyle(
-            color: color ?? Colors.white,
+            color: color ?? cs.onSurface,
             fontWeight: FontWeight.bold,
             fontSize: 14,
           ),

@@ -168,6 +168,7 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -176,11 +177,11 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
           // Header
           Row(
             children: [
-              const Icon(Icons.admin_panel_settings, color: Color(0xFF0066CC), size: 28),
+              Icon(Icons.admin_panel_settings, color: cs.primary, size: 28),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'Initial User Setup',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: cs.onSurface),
               ),
               const Spacer(),
               if (!_done && !_isRunning)
@@ -189,28 +190,28 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
                   icon: const Icon(Icons.person_add, size: 18),
                   label: const Text('Create All Users'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF84CC16),
-                    foregroundColor: const Color(0xFF0B1220),
+                    backgroundColor: cs.secondary,
+                    foregroundColor: cs.onSecondary,
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   ),
                 ),
               if (_done)
                 Chip(
-                  avatar: const Icon(Icons.check_circle, color: Colors.white, size: 18),
+                  avatar: Icon(Icons.check_circle, color: cs.onSurface, size: 18),
                   label: Text(
                     'Done — $_created created, $_failed failed',
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: cs.onSurface),
                   ),
-                  backgroundColor: const Color(0xFF84CC16).withAlpha(50),
-                  side: const BorderSide(color: Color(0xFF84CC16)),
+                  backgroundColor: cs.secondary.withAlpha(50),
+                  side: BorderSide(color: cs.secondary),
                 ),
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Creates Firebase Auth accounts + Firestore user profiles in one go.\n'
             'This is a one-time operation — only run when setting up the station for the first time.',
-            style: TextStyle(color: Colors.white54, fontSize: 13),
+            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 13),
           ),
           const SizedBox(height: 24),
 
@@ -218,29 +219,29 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF0B1220),
+                color: cs.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white12),
+                border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
               ),
               child: Column(
                 children: [
                   // Table header
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF111A2E),
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                    decoration: BoxDecoration(
+                      color: cs.surfaceContainerHighest,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Expanded(flex: 3, child: Text('NAME', style: _headerStyle)),
-                        Expanded(flex: 4, child: Text('EMAIL', style: _headerStyle)),
-                        Expanded(flex: 2, child: Text('ROLE', style: _headerStyle)),
-                        Expanded(flex: 3, child: Text('STATUS', style: _headerStyle)),
+                        Expanded(flex: 3, child: Text('NAME', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 1.2))),
+                        Expanded(flex: 4, child: Text('EMAIL', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 1.2))),
+                        Expanded(flex: 2, child: Text('ROLE', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 1.2))),
+                        Expanded(flex: 3, child: Text('STATUS', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 1.2))),
                       ],
                     ),
                   ),
-                  const Divider(color: Colors.white12, height: 1),
+                  Divider(color: cs.onSurface.withValues(alpha: 0.12), height: 1),
 
                   // Table rows
                   ...List.generate(_users.length, (i) {
@@ -248,8 +249,8 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
                     return Container(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                       decoration: BoxDecoration(
-                        color: i.isEven ? Colors.transparent : Colors.white.withAlpha(5),
-                        border: const Border(bottom: BorderSide(color: Colors.white12, width: 0.5)),
+                        color: i.isEven ? Colors.transparent : cs.onSurface.withAlpha(5),
+                        border: Border(bottom: BorderSide(color: cs.onSurface.withValues(alpha: 0.12), width: 0.5)),
                       ),
                       child: Row(
                         children: [
@@ -259,32 +260,32 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
                               children: [
                                 CircleAvatar(
                                   radius: 16,
-                                  backgroundColor: _roleColor(u.role).withAlpha(40),
+                                  backgroundColor: _roleColor(u.role, cs).withAlpha(40),
                                   child: Text(
                                     u.displayName[0].toUpperCase(),
-                                    style: TextStyle(color: _roleColor(u.role), fontWeight: FontWeight.bold, fontSize: 14),
+                                    style: TextStyle(color: _roleColor(u.role, cs), fontWeight: FontWeight.bold, fontSize: 14),
                                   ),
                                 ),
                                 const SizedBox(width: 10),
-                                Text(u.displayName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+                                Text(u.displayName, style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.w500)),
                               ],
                             ),
                           ),
                           Expanded(
                             flex: 4,
-                            child: Text(u.email, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                            child: Text(u.email, style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontSize: 13)),
                           ),
                           Expanded(
                             flex: 2,
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: _roleColor(u.role).withAlpha(30),
+                                color: _roleColor(u.role, cs).withAlpha(30),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
                                 u.role,
-                                style: TextStyle(color: _roleColor(u.role), fontSize: 12, fontWeight: FontWeight.w600),
+                                style: TextStyle(color: _roleColor(u.role, cs), fontSize: 12, fontWeight: FontWeight.w600),
                               ),
                             ),
                           ),
@@ -303,42 +304,43 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
   }
 
   Widget _buildStatusWidget(_UserSeed user) {
+    final cs = Theme.of(context).colorScheme;
     switch (user.status) {
       case 'pending':
-        return const Text('Waiting...', style: TextStyle(color: Colors.white38, fontSize: 13));
+        return Text('Waiting...', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 13));
       case 'creating_auth':
         return Row(
           children: [
-            const SizedBox(
+            SizedBox(
               width: 14,
               height: 14,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0066CC)),
+              child: CircularProgressIndicator(strokeWidth: 2, color: cs.primary),
             ),
             const SizedBox(width: 8),
-            const Text('Creating auth...', style: TextStyle(color: Color(0xFF0066CC), fontSize: 13)),
+            Text('Creating auth...', style: TextStyle(color: cs.primary, fontSize: 13)),
           ],
         );
       case 'creating_profile':
         return Row(
           children: [
-            const SizedBox(
+            SizedBox(
               width: 14,
               height: 14,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF84CC16)),
+              child: CircularProgressIndicator(strokeWidth: 2, color: cs.secondary),
             ),
             const SizedBox(width: 8),
-            const Text('Creating profile...', style: TextStyle(color: Color(0xFF84CC16), fontSize: 13)),
+            Text('Creating profile...', style: TextStyle(color: cs.secondary, fontSize: 13)),
           ],
         );
       case 'done':
         return Row(
           children: [
-            const Icon(Icons.check_circle, color: Color(0xFF84CC16), size: 16),
+            Icon(Icons.check_circle, color: cs.secondary, size: 16),
             const SizedBox(width: 6),
             Expanded(
               child: Text(
                 'Created${user.uid != null ? ' (${user.uid!.substring(0, 8)}...)' : ''}',
-                style: const TextStyle(color: Color(0xFF84CC16), fontSize: 13),
+                style: TextStyle(color: cs.secondary, fontSize: 13),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -347,12 +349,12 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
       case 'error':
         return Row(
           children: [
-            const Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 16),
+            Icon(Icons.error_outline, color: cs.error, size: 16),
             const SizedBox(width: 6),
             Expanded(
               child: Text(
                 user.error ?? 'Unknown error',
-                style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13),
+                style: TextStyle(color: cs.error, fontSize: 13),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -363,23 +365,16 @@ class _AdminSetupPageState extends State<AdminSetupPage> {
     }
   }
 
-  Color _roleColor(String role) {
+  Color _roleColor(String role, ColorScheme cs) {
     switch (role) {
       case 'Admin':
-        return const Color(0xFF0066CC);
+        return cs.primary;
       case 'Worker':
-        return const Color(0xFF84CC16);
+        return cs.secondary;
       case 'Audit':
-        return const Color(0xFFEAB308);
+        return cs.tertiary;
       default:
-        return Colors.white54;
+        return cs.onSurface.withValues(alpha: 0.54);
     }
   }
 }
-
-const _headerStyle = TextStyle(
-  color: Colors.white38,
-  fontSize: 11,
-  fontWeight: FontWeight.w600,
-  letterSpacing: 1.2,
-);

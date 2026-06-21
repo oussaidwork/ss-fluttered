@@ -21,6 +21,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -28,14 +29,14 @@ class _ShiftsPageState extends State<ShiftsPage> {
         children: [
           Row(
             children: [
-              const Icon(Icons.schedule, color: Color(0xFF0066CC), size: 28),
+              Icon(Icons.schedule, color: cs.primary, size: 28),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'Shift Management',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: cs.onSurface,
                 ),
               ),
               const Spacer(),
@@ -54,8 +55,8 @@ class _ShiftsPageState extends State<ShiftsPage> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF0066CC)),
+                  return Center(
+                    child: CircularProgressIndicator(color: cs.primary),
                   );
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
@@ -83,47 +84,49 @@ class _ShiftsPageState extends State<ShiftsPage> {
   }
 
   Widget _buildStartShiftButton() {
+    final cs = Theme.of(context).colorScheme;
     return ElevatedButton.icon(
       onPressed: _isStartingShift ? null : _startNewShift,
       icon: _isStartingShift
-          ? const SizedBox(
+          ? SizedBox(
               width: 18,
               height: 18,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: Colors.white,
+                color: cs.onSurface,
               ),
             )
           : const Icon(Icons.add, size: 18),
       label: Text(_isStartingShift ? 'Starting...' : 'Start New Shift'),
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF84CC16),
-        foregroundColor: const Color(0xFF0B1220),
+        backgroundColor: cs.secondary,
+        foregroundColor: cs.surface,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
     );
   }
 
   Widget _buildStatusFilter() {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A2332),
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<ShiftStatus?>(
           value: _statusFilter,
-          dropdownColor: const Color(0xFF1A2332),
-          style: const TextStyle(color: Colors.white),
-          icon: const Icon(Icons.filter_list, color: Colors.white54, size: 20),
-          hint: const Text(
+          dropdownColor: cs.surfaceContainerHighest,
+          style: TextStyle(color: cs.onSurface),
+          icon: Icon(Icons.filter_list, color: cs.onSurface.withValues(alpha: 0.54), size: 20),
+          hint: Text(
             'All Status',
-            style: TextStyle(color: Colors.white54),
+            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
           ),
           items: [
-            const DropdownMenuItem<ShiftStatus?>(
+            DropdownMenuItem<ShiftStatus?>(
               value: null,
               child: Text('All Status'),
             ),
@@ -138,6 +141,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
   }
 
   Widget _buildEmptyState() {
+    final cs = Theme.of(context).colorScheme;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -145,14 +149,14 @@ class _ShiftsPageState extends State<ShiftsPage> {
           Icon(
             _statusFilter != null ? Icons.filter_list_off : Icons.schedule,
             size: 64,
-            color: Colors.white24,
+            color: cs.onSurface.withValues(alpha: 0.24),
           ),
           const SizedBox(height: 16),
           Text(
             _statusFilter != null
                 ? 'No shifts with this status'
                 : 'No shifts yet',
-            style: const TextStyle(fontSize: 18, color: Colors.white54),
+            style: TextStyle(fontSize: 18, color: cs.onSurface.withValues(alpha: 0.54)),
           ),
           const SizedBox(height: 24),
           if (_statusFilter == null)
@@ -161,8 +165,8 @@ class _ShiftsPageState extends State<ShiftsPage> {
               icon: const Icon(Icons.add, size: 18),
               label: const Text('Start First Shift'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF84CC16),
-                foregroundColor: const Color(0xFF0B1220),
+                backgroundColor: cs.secondary,
+                foregroundColor: cs.surface,
               ),
             ),
         ],
@@ -171,22 +175,23 @@ class _ShiftsPageState extends State<ShiftsPage> {
   }
 
   Widget _buildShiftTable(List<WorkShift> shifts) {
+    final cs = Theme.of(context).colorScheme;
     return Card(
-      color: const Color(0xFF1A2332),
+      color: cs.surfaceContainerHighest,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: SingleChildScrollView(
           child: DataTable(
             headingRowColor: WidgetStateProperty.all(
-              Colors.white.withValues(alpha: 0.05),
+              cs.onSurface.withValues(alpha: 0.05),
             ),
-            columns: const [
+            columns: [
               DataColumn(
                 label: Text(
                   'Worker',
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: cs.onSurface.withValues(alpha: 0.7),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -195,7 +200,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
                 label: Text(
                   'Start Time',
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: cs.onSurface.withValues(alpha: 0.7),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -204,7 +209,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
                 label: Text(
                   'End Time',
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: cs.onSurface.withValues(alpha: 0.7),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -213,7 +218,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
                 label: Text(
                   'Status',
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: cs.onSurface.withValues(alpha: 0.7),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -222,7 +227,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
                 label: Text(
                   'Revenue',
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: cs.onSurface.withValues(alpha: 0.7),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -231,7 +236,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
                 label: Text(
                   'Expected',
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: cs.onSurface.withValues(alpha: 0.7),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -240,7 +245,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
                 label: Text(
                   'Actual Cash',
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: cs.onSurface.withValues(alpha: 0.7),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -249,7 +254,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
                 label: Text(
                   'Diff',
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: cs.onSurface.withValues(alpha: 0.7),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -258,7 +263,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
                 label: Text(
                   'Actions',
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: cs.onSurface.withValues(alpha: 0.7),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -271,7 +276,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
                 onSelectChanged: (_) => _showShiftDetails(shift),
                 color: shift.status == ShiftStatus.open
                     ? WidgetStateProperty.all(
-                        const Color(0xFF84CC16).withAlpha(8),
+                        cs.secondary.withAlpha(8),
                       )
                     : null,
                 cells: [
@@ -279,7 +284,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
                   DataCell(
                     Text(
                       _formatDate(shift.startTime),
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: cs.onSurface),
                     ),
                   ),
                   DataCell(
@@ -287,7 +292,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
                       shift.status == ShiftStatus.open
                           ? '--'
                           : _formatDate(shift.endTime),
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: cs.onSurface),
                     ),
                   ),
                   DataCell(_buildStatusBadge(shift.status)),
@@ -298,8 +303,8 @@ class _ShiftsPageState extends State<ShiftsPage> {
                           : '--',
                       style: TextStyle(
                         color: shift.expectedCash != null
-                            ? Colors.white
-                            : Colors.white38,
+                            ? cs.onSurface
+                            : cs.onSurface.withValues(alpha: 0.38),
                       ),
                     ),
                   ),
@@ -308,7 +313,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
                       shift.expectedCash != null
                           ? '${shift.expectedCash!.toStringAsFixed(2)} DA'
                           : '--',
-                      style: const TextStyle(color: Color(0xFF84CC16)),
+                      style: TextStyle(color: cs.secondary),
                     ),
                   ),
                   DataCell(
@@ -318,17 +323,17 @@ class _ShiftsPageState extends State<ShiftsPage> {
                           : '--',
                       style: TextStyle(
                         color: shift.actualCash != null
-                            ? Colors.white
-                            : Colors.white38,
+                            ? cs.onSurface
+                            : cs.onSurface.withValues(alpha: 0.38),
                       ),
                     ),
                   ),
                   DataCell(_buildDiffCell(shift)),
                   DataCell(
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.delete_outline,
-                        color: Color(0xFFEF4444),
+                        color: cs.error,
                         size: 20,
                       ),
                       tooltip: 'Delete shift',
@@ -345,32 +350,36 @@ class _ShiftsPageState extends State<ShiftsPage> {
   }
 
   Widget _buildDiffCell(WorkShift shift) {
+    final cs = Theme.of(context).colorScheme;
     if (shift.actualCash == null || shift.expectedCash == null) {
-      return const Text('--', style: TextStyle(color: Colors.white38));
+      return Text('--', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38)));
     }
     final diff = shift.actualCash! - shift.expectedCash!;
     final isOver = diff >= 0;
     return Text(
       '${isOver ? '+' : ''}${diff.toStringAsFixed(2)} DA',
       style: TextStyle(
-        color: isOver ? const Color(0xFF84CC16) : const Color(0xFFEF4444),
+        color: isOver ? cs.secondary : cs.error,
         fontWeight: FontWeight.w600,
       ),
     );
   }
 
   Future<void> _deleteShift(WorkShift shift) async {
+    final cs = Theme.of(context).colorScheme;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A2332),
-        title: const Text(
+      builder: (ctx) {
+        final cs = Theme.of(ctx).colorScheme;
+        return AlertDialog(
+        backgroundColor: cs.surfaceContainerHighest,
+        title: Text(
           'Delete Shift',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: cs.onSurface),
         ),
         content: Text(
           'Delete shift for ${_formatDate(shift.startTime)}?',
-          style: const TextStyle(color: Colors.white70),
+          style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
         ),
         actions: [
           TextButton(
@@ -379,13 +388,13 @@ class _ShiftsPageState extends State<ShiftsPage> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
+              backgroundColor: cs.error,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Delete'),
           ),
         ],
-      ),
+      );},
     );
 
     if (confirmed != true || !mounted) return;
@@ -407,9 +416,9 @@ class _ShiftsPageState extends State<ShiftsPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Shift deleted successfully.'),
-            backgroundColor: Color(0xFF84CC16),
+            backgroundColor: cs.secondary,
           ),
         );
       }
@@ -418,7 +427,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to delete shift: $e'),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: cs.error,
           ),
         );
       }
@@ -426,22 +435,22 @@ class _ShiftsPageState extends State<ShiftsPage> {
   }
 
   Widget _buildStatusBadge(ShiftStatus status) {
+    final cs = Theme.of(context).colorScheme;
     final isOpen = status == ShiftStatus.open;
+    final badgeColor = isOpen ? cs.secondary : cs.primary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: (isOpen ? const Color(0xFF84CC16) : const Color(0xFF0066CC))
-            .withValues(alpha: 0.15),
+        color: badgeColor.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: (isOpen ? const Color(0xFF84CC16) : const Color(0xFF0066CC))
-              .withValues(alpha: 0.3),
+          color: badgeColor.withValues(alpha: 0.3),
         ),
       ),
       child: Text(
         status.value,
         style: TextStyle(
-          color: isOpen ? const Color(0xFF84CC16) : const Color(0xFF0066CC),
+          color: badgeColor,
           fontWeight: FontWeight.w600,
           fontSize: 12,
         ),
@@ -461,10 +470,11 @@ class _ShiftsPageState extends State<ShiftsPage> {
         .limit(1)
         .get();
     if (openSnap.docs.isNotEmpty && mounted) {
+      final cs = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('An open shift already exists. Close it first.'),
-          backgroundColor: Color(0xFFEF4444),
+          backgroundColor: cs.error,
         ),
       );
       return;
@@ -591,19 +601,21 @@ class _ShiftsPageState extends State<ShiftsPage> {
       await batch.commit();
 
       if (mounted) {
+        final cs = Theme.of(context).colorScheme;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Shift started successfully with pump matrix.'),
-            backgroundColor: Color(0xFF84CC16),
+            backgroundColor: cs.secondary,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
+        final cs = Theme.of(context).colorScheme;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to start shift: $e'),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: cs.error,
           ),
         );
       }
@@ -622,36 +634,38 @@ class _ShiftsPageState extends State<ShiftsPage> {
     if (!mounted) return null;
     return showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A2332),
+      builder: (ctx) {
+        final cs = Theme.of(ctx).colorScheme;
+        return AlertDialog(
+        backgroundColor: cs.surfaceContainerHighest,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           'Select Worker',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: cs.onSurface),
         ),
         content: SizedBox(
           width: 320,
           child: workers.isEmpty
-              ? const Text(
+              ? Text(
                   'No workers found. Add workers first.',
-                  style: TextStyle(color: Colors.white54),
+                  style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
                 )
               : Column(
                   mainAxisSize: MainAxisSize.min,
                   children: workers.map((entry) {
                     return ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: const Color(0xFF0066CC).withAlpha(30),
+                        backgroundColor: cs.primary.withAlpha(30),
                         child: Text(
                           entry.value.isNotEmpty
                               ? entry.value[0].toUpperCase()
                               : '?',
-                          style: const TextStyle(color: Color(0xFF0066CC)),
+                          style: TextStyle(color: cs.primary),
                         ),
                       ),
                       title: Text(
                         entry.value,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: cs.onSurface),
                       ),
                       onTap: () => Navigator.of(ctx).pop(entry.key),
                     );
@@ -661,13 +675,13 @@ class _ShiftsPageState extends State<ShiftsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.white54),
+              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
             ),
           ),
         ],
-      ),
+      );},
     );
   }
 
@@ -758,21 +772,25 @@ class _ShiftsPageState extends State<ShiftsPage> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Shift closed. Expected: ${expectedCash.toStringAsFixed(2)} DA, Actual: ${result.actualCash.toStringAsFixed(2)} DA',
+        if (mounted) {
+          final cs = Theme.of(context).colorScheme;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Shift closed. Expected: ${expectedCash.toStringAsFixed(2)} DA, Actual: ${result.actualCash.toStringAsFixed(2)} DA',
+              ),
+              backgroundColor: cs.primary,
             ),
-            backgroundColor: const Color(0xFF0066CC),
-          ),
-        );
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
+        final cs = Theme.of(context).colorScheme;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to close shift: $e'),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: cs.error,
           ),
         );
       }
@@ -802,17 +820,18 @@ class _ShiftDetailsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return AlertDialog(
-      backgroundColor: const Color(0xFF1A2332),
+      backgroundColor: cs.surfaceContainerHighest,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(
         children: [
-          const Icon(Icons.schedule, color: Color(0xFF0066CC), size: 22),
+          Icon(Icons.schedule, color: cs.primary, size: 22),
           const SizedBox(width: 8),
-          const Text('Shift Details', style: TextStyle(color: Colors.white)),
+          Text('Shift Details', style: TextStyle(color: cs.onSurface)),
           const Spacer(),
           IconButton(
-            icon: const Icon(Icons.close, color: Colors.white54, size: 20),
+            icon: Icon(Icons.close, color: cs.onSurface.withValues(alpha: 0.54), size: 20),
             onPressed: onDismiss,
           ),
         ],
@@ -841,23 +860,23 @@ class _ShiftDetailsDialog extends StatelessWidget {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _detailRow('Worker ID', shift.workerId),
-                _detailRow('Status', shift.status.value),
-                _detailRow('Start', _formatDate(shift.startTime)),
+                _detailRow(cs, 'Worker ID', shift.workerId),
+                _detailRow(cs, 'Status', shift.status.value),
+                _detailRow(cs, 'Start', _formatDate(shift.startTime)),
                 if (shift.status == ShiftStatus.closed) ...[
-                  _detailRow('End', _formatDate(shift.endTime)),
-                  const Divider(color: Colors.white12),
-                  _detailRow(
+                  _detailRow(cs, 'End', _formatDate(shift.endTime)),
+                  Divider(color: cs.onSurface.withValues(alpha: 0.12)),
+                  _detailRow(cs,
                     'Pump Revenue',
                     '${totalRevenue.toStringAsFixed(2)} DA',
                   ),
-                  _detailRow(
+                  _detailRow(cs,
                     'Expected Cash',
                     shift.expectedCash != null
                         ? '${shift.expectedCash!.toStringAsFixed(2)} DA'
                         : '--',
                   ),
-                  _detailRow(
+                  _detailRow(cs,
                     'Actual Cash',
                     shift.actualCash != null
                         ? '${shift.actualCash!.toStringAsFixed(2)} DA'
@@ -866,10 +885,10 @@ class _ShiftDetailsDialog extends StatelessWidget {
                 ],
                 if (shiftPumps.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Pump Counters',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: cs.onSurface.withValues(alpha: 0.7),
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
                     ),
@@ -891,8 +910,8 @@ class _ShiftDetailsDialog extends StatelessWidget {
                       icon: const Icon(Icons.lock_clock, size: 18),
                       label: const Text('Close Shift'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0066CC),
-                        foregroundColor: Colors.white,
+                        backgroundColor: cs.primary,
+                        foregroundColor: cs.onSurface,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                     ),
@@ -911,7 +930,7 @@ class _ShiftDetailsDialog extends StatelessWidget {
     return (doc.data()?['name'] as String? ?? pumpId);
   }
 
-  Widget _detailRow(String label, String value) {
+  Widget _detailRow(ColorScheme cs, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -919,13 +938,13 @@ class _ShiftDetailsDialog extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(color: Colors.white54, fontSize: 13),
+            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 13),
           ),
           Flexible(
             child: Text(
               value,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: cs.onSurface,
                 fontWeight: FontWeight.w500,
                 fontSize: 13,
               ),
@@ -951,6 +970,7 @@ class _PumpCounterRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return FutureBuilder<String>(
       future: pumpNameFuture,
       builder: (ctx, snap) {
@@ -962,22 +982,22 @@ class _PumpCounterRow extends StatelessWidget {
               Expanded(
                 child: Text(
                   name,
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontSize: 12),
                 ),
               ),
               Text(
                 'Start: ${sp.startAnalogCounter.toStringAsFixed(1)}',
-                style: const TextStyle(color: Colors.white54, fontSize: 12),
+                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 12),
               ),
               const SizedBox(width: 8),
               Text(
                 'End: ${sp.endAnalogCounter?.toStringAsFixed(1) ?? '--'}',
-                style: const TextStyle(color: Colors.white54, fontSize: 12),
+                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 12),
               ),
               const SizedBox(width: 8),
               Text(
                 'Vol: ${sp.volume.toStringAsFixed(1)}L',
-                style: const TextStyle(color: Color(0xFF84CC16), fontSize: 12),
+                style: TextStyle(color: cs.secondary, fontSize: 12),
               ),
             ],
           ),
@@ -1070,23 +1090,24 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
     TextEditingController controller,
     void Function(double value) onChanged,
   ) {
+    final cs = Theme.of(context).colorScheme;
     return SizedBox(
       width: 90,
       child: TextFormField(
         controller: controller,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        style: const TextStyle(color: Colors.white, fontSize: 13),
-        decoration: const InputDecoration(
+        style: TextStyle(color: cs.onSurface, fontSize: 13),
+        decoration: InputDecoration(
           isDense: true,
           contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.white24),
+            borderSide: BorderSide(color: cs.onSurface.withValues(alpha: 0.24)),
           ),
           enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.white24),
+            borderSide: BorderSide(color: cs.onSurface.withValues(alpha: 0.24)),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFF0066CC)),
+            borderSide: BorderSide(color: cs.primary),
           ),
         ),
         onChanged: (v) {
@@ -1122,6 +1143,7 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     double totalVolume = 0;
     double totalExpected = 0;
     final pumpRevenueMap = <String, double>{};
@@ -1150,7 +1172,7 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
 
     return Dialog(
       insetPadding: const EdgeInsets.all(16),
-      backgroundColor: const Color(0xFF0B1220),
+      backgroundColor: cs.surface,
       child: SizedBox(
         width: 1100,
         child: Padding(
@@ -1162,12 +1184,12 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.input, color: Color(0xFF0066CC), size: 24),
+                    Icon(Icons.input, color: cs.primary, size: 24),
                     const SizedBox(width: 8),
-                    const Text(
+                    Text(
                       'SHIFT DATA IMPORT',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: cs.onSurface,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -1175,9 +1197,9 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
                     const Spacer(),
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text(
+                      child: Text(
                         'Cancel',
-                        style: TextStyle(color: Colors.white54),
+                        style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
                       ),
                     ),
                   ],
@@ -1186,7 +1208,7 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1A2332),
+                    color: cs.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -1196,10 +1218,10 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
                           Expanded(
                             child: TextFormField(
                               controller: _dateController,
-                              style: const TextStyle(color: Colors.white),
-                              decoration: const InputDecoration(
+                              style: TextStyle(color: cs.onSurface),
+                              decoration: InputDecoration(
                                 labelText: 'Date',
-                                labelStyle: TextStyle(color: Colors.white54),
+                                labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
                                 border: OutlineInputBorder(),
                               ),
                             ),
@@ -1208,11 +1230,11 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
                           Expanded(
                             child: DropdownButtonFormField<String>(
                               initialValue: _selectedOperator,
-                              style: const TextStyle(color: Colors.white),
-                              dropdownColor: const Color(0xFF1A2332),
-                              decoration: const InputDecoration(
+                              style: TextStyle(color: cs.onSurface),
+                              dropdownColor: cs.surfaceContainerHighest,
+                              decoration: InputDecoration(
                                 labelText: 'Operator',
-                                labelStyle: TextStyle(color: Colors.white54),
+                                labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
                                 border: OutlineInputBorder(),
                               ),
                               items: const [
@@ -1241,10 +1263,10 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
                                   const TextInputType.numberWithOptions(
                                     decimal: true,
                                   ),
-                              style: const TextStyle(color: Colors.white),
-                              decoration: const InputDecoration(
+                              style: TextStyle(color: cs.onSurface),
+                              decoration: InputDecoration(
                                 labelText: 'Start Cash',
-                                labelStyle: TextStyle(color: Colors.white54),
+                                labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
                                 border: OutlineInputBorder(),
                               ),
                             ),
@@ -1257,10 +1279,10 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
                                   const TextInputType.numberWithOptions(
                                     decimal: true,
                                   ),
-                              style: const TextStyle(color: Colors.white),
-                              decoration: const InputDecoration(
+                              style: TextStyle(color: cs.onSurface),
+                              decoration: InputDecoration(
                                 labelText: 'End Cash',
-                                labelStyle: TextStyle(color: Colors.white54),
+                                labelStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.54)),
                                 border: OutlineInputBorder(),
                               ),
                             ),
@@ -1270,11 +1292,11 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
                             value: _deductFromPits,
                             onChanged: (v) =>
                                 setState(() => _deductFromPits = v ?? true),
-                            activeColor: const Color(0xFF84CC16),
+                            activeColor: cs.secondary,
                           ),
-                          const Text(
+                          Text(
                             'Deduct From Pits',
-                            style: TextStyle(color: Colors.white70),
+                            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
                           ),
                         ],
                       ),
@@ -1285,7 +1307,7 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1A2332),
+                      color: cs.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: SingleChildScrollView(
@@ -1294,47 +1316,47 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
                         scrollDirection: Axis.horizontal,
                         child: DataTable(
                           headingRowHeight: 42,
-                          columns: const [
+                          columns: [
                             DataColumn(
                               label: Text(
                                 '#',
-                                style: TextStyle(color: Colors.white70),
+                                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
                               ),
                             ),
                             DataColumn(
                               label: Text(
                                 'Pump',
-                                style: TextStyle(color: Colors.white70),
+                                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
                               ),
                             ),
                             DataColumn(
                               label: Text(
                                 'Start Index',
-                                style: TextStyle(color: Colors.white70),
+                                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
                               ),
                             ),
                             DataColumn(
                               label: Text(
                                 'End Index',
-                                style: TextStyle(color: Colors.white70),
+                                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
                               ),
                             ),
                             DataColumn(
                               label: Text(
                                 'Volume',
-                                style: TextStyle(color: Colors.white70),
+                                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
                               ),
                             ),
                             DataColumn(
                               label: Text(
                                 'Price',
-                                style: TextStyle(color: Colors.white70),
+                                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
                               ),
                             ),
                             DataColumn(
                               label: Text(
                                 'Amount',
-                                style: TextStyle(color: Colors.white70),
+                                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
                               ),
                             ),
                           ],
@@ -1367,13 +1389,13 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
                                 DataCell(
                                   Text(
                                     (index + 1).toString(),
-                                    style: const TextStyle(color: Colors.white),
+                                    style: TextStyle(color: cs.onSurface),
                                   ),
                                 ),
                                 DataCell(
                                   Text(
                                     name,
-                                    style: const TextStyle(color: Colors.white),
+                                    style: TextStyle(color: cs.onSurface),
                                   ),
                                 ),
                                 DataCell(
@@ -1393,7 +1415,7 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
                                 DataCell(
                                   Text(
                                     volume.toStringAsFixed(2),
-                                    style: const TextStyle(color: Colors.white),
+                                    style: TextStyle(color: cs.onSurface),
                                   ),
                                 ),
                                 DataCell(
@@ -1406,7 +1428,7 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
                                 DataCell(
                                   Text(
                                     amount.toStringAsFixed(2),
-                                    style: const TextStyle(color: Colors.white),
+                                    style: TextStyle(color: cs.onSurface),
                                   ),
                                 ),
                               ],
@@ -1424,22 +1446,22 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1A2332),
+                          color: cs.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
                           children: [
-                            const Text(
+                            Text(
                               'TOTAL VOLUME',
                               style: TextStyle(
-                                color: Colors.white54,
+                                color: cs.onSurface.withValues(alpha: 0.54),
                                 fontSize: 12,
                               ),
                             ),
                             Text(
                               totalVolume.toStringAsFixed(2),
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: cs.onSurface,
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -1453,22 +1475,22 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1A2332),
+                          color: cs.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
                           children: [
-                            const Text(
+                            Text(
                               'TOTAL REVENUE',
                               style: TextStyle(
-                                color: Colors.white54,
+                                color: cs.onSurface.withValues(alpha: 0.54),
                                 fontSize: 12,
                               ),
                             ),
                             Text(
                               totalExpected.toStringAsFixed(2),
-                              style: const TextStyle(
-                                color: Color(0xFF84CC16),
+                              style: TextStyle(
+                                color: cs.secondary,
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -1483,8 +1505,8 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
                       icon: const Icon(Icons.save),
                       label: const Text('SAVE SHIFT'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0066CC),
-                        foregroundColor: Colors.white,
+                        backgroundColor: cs.primary,
+                        foregroundColor: cs.onSurface,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 12,
@@ -1508,11 +1530,12 @@ class _WorkerNameCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return FutureBuilder<DocumentSnapshot>(
       future: firestore.collection('users').doc(workerId).get(),
       builder: (ctx, snap) {
         if (!snap.hasData) {
-          return const SizedBox(
+          return SizedBox(
             width: 120,
             child: LinearProgressIndicator(value: 0.5),
           );
@@ -1521,7 +1544,7 @@ class _WorkerNameCell extends StatelessWidget {
         final name = data?['fullName'] ?? workerId;
         return Text(
           name,
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: cs.onSurface),
           overflow: TextOverflow.ellipsis,
         );
       },

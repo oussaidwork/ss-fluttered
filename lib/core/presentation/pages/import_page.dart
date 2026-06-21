@@ -9,6 +9,8 @@ import '../../services/json_import_service.dart';
 import '../../services/json_export_service.dart';
 import '../../../data/datasource/firestore_datasource.dart';
 
+enum _SnackBarType { success, error, warning, info }
+
 class ImportPage extends ConsumerStatefulWidget {
   final String? importType;
 
@@ -81,7 +83,8 @@ class _ImportPageState extends ConsumerState<ImportPage> {
       });
 
       if (mounted) {
-        _showSnackBar('Import completed successfully!', const Color(0xFF84CC16));
+        final cs = Theme.of(context).colorScheme;
+        _showSnackBar('Import completed successfully!', cs);
       }
     } catch (e) {
       setState(() {
@@ -89,7 +92,8 @@ class _ImportPageState extends ConsumerState<ImportPage> {
         _isImporting = false;
       });
       if (mounted) {
-        _showSnackBar('Import failed: $e', const Color(0xFFEF4444));
+        final cs = Theme.of(context).colorScheme;
+        _showSnackBar('Import failed: $e', cs, type: _SnackBarType.error);
       }
     }
   }
@@ -101,7 +105,8 @@ class _ImportPageState extends ConsumerState<ImportPage> {
   Future<void> _handlePasteImport() async {
     final jsonString = _pasteController.text.trim();
     if (jsonString.isEmpty) {
-      _showSnackBar('Please paste JSON content first', Colors.amber);
+      final cs = Theme.of(context).colorScheme;
+      _showSnackBar('Please paste JSON content first', cs, type: _SnackBarType.warning);
       return;
     }
 
@@ -118,7 +123,8 @@ class _ImportPageState extends ConsumerState<ImportPage> {
         _isPastingJson = false;
       });
       if (mounted) {
-        _showSnackBar('Import completed successfully!', const Color(0xFF84CC16));
+        final cs = Theme.of(context).colorScheme;
+        _showSnackBar('Import completed successfully!', cs);
       }
     } catch (e) {
       setState(() {
@@ -126,7 +132,8 @@ class _ImportPageState extends ConsumerState<ImportPage> {
         _isPastingJson = false;
       });
       if (mounted) {
-        _showSnackBar('Import failed: $e', const Color(0xFFEF4444));
+        final cs = Theme.of(context).colorScheme;
+        _showSnackBar('Import failed: $e', cs, type: _SnackBarType.error);
       }
     }
   }
@@ -134,20 +141,33 @@ class _ImportPageState extends ConsumerState<ImportPage> {
   void _copyTemplateToClipboard() {
     final template = JsonExportService.generateTemplate();
     Clipboard.setData(ClipboardData(text: template));
-    _showSnackBar('Template copied to clipboard!', const Color(0xFF0066CC));
+    final cs = Theme.of(context).colorScheme;
+    _showSnackBar('Template copied to clipboard!', cs, type: _SnackBarType.info);
   }
 
   void _downloadTemplate() {
     JsonExportService.downloadTemplate();
-    _showSnackBar('Template downloaded!', const Color(0xFF84CC16));
+    final cs = Theme.of(context).colorScheme;
+    _showSnackBar('Template downloaded!', cs);
   }
 
   // ──────────────────────────────────────────────
   // HELPERS
   // ──────────────────────────────────────────────
 
-  void _showSnackBar(String message, Color color) {
+  void _showSnackBar(String message, ColorScheme cs, {_SnackBarType type = _SnackBarType.success}) {
     if (!mounted) return;
+    final Color color;
+    switch (type) {
+      case _SnackBarType.success:
+        color = cs.secondary;
+      case _SnackBarType.error:
+        color = cs.error;
+      case _SnackBarType.warning:
+        color = cs.tertiary;
+      case _SnackBarType.info:
+        color = cs.primary;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -165,6 +185,7 @@ class _ImportPageState extends ConsumerState<ImportPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final cs = Theme.of(context).colorScheme;
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -174,14 +195,14 @@ class _ImportPageState extends ConsumerState<ImportPage> {
           // Title row
           Row(
             children: [
-              const Icon(Icons.upload_file, color: Color(0xFF0066CC), size: 28),
+              Icon(Icons.upload_file, color: cs.primary, size: 28),
               const SizedBox(width: 12),
               Text(
                 _isBulkImport ? '${l10n.import} Data' : l10n.importData,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: cs.onSurface,
                 ),
               ),
             ],
@@ -189,15 +210,15 @@ class _ImportPageState extends ConsumerState<ImportPage> {
           const SizedBox(height: 24),
 
           // Mode toggle + template buttons
-          _buildTopBar(l10n),
+          _buildTopBar(cs, l10n),
           const SizedBox(height: 20),
 
           // Main card
           Expanded(
             child: Card(
-              color: const Color(0xFF1A2332),
+              color: cs.surfaceContainerHighest,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: _usePasteMode ? _buildPastePanel() : _buildFileUploadPanel(),
+              child: _usePasteMode ? _buildPastePanel(cs) : _buildFileUploadPanel(cs),
             ),
           ),
 
@@ -207,18 +228,18 @@ class _ImportPageState extends ConsumerState<ImportPage> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withAlpha(20),
+                color: cs.error.withAlpha(20),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFEF4444).withAlpha(60)),
+                border: Border.all(color: cs.error.withAlpha(60)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 20),
+                  Icon(Icons.error_outline, color: cs.error, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       '$_error',
-                      style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13),
+                      style: TextStyle(color: cs.error, fontSize: 13),
                     ),
                   ),
                 ],
@@ -229,28 +250,28 @@ class _ImportPageState extends ConsumerState<ImportPage> {
           // Results
           if (_results != null) ...[
             const SizedBox(height: 16),
-            _buildResultsSummary(),
+            _buildResultsSummary(cs),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildTopBar(AppLocalizations l10n) {
+  Widget _buildTopBar(ColorScheme cs, AppLocalizations l10n) {
     return Row(
       children: [
         // Mode toggle
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF0B1220),
+            color: cs.surface,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.white12),
+            border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _toggleButton('File Upload', !_usePasteMode, () => setState(() => _usePasteMode = false)),
-              _toggleButton('Paste JSON', _usePasteMode, () => setState(() => _usePasteMode = true)),
+              _toggleButton(cs, 'File Upload', !_usePasteMode, () => setState(() => _usePasteMode = false)),
+              _toggleButton(cs, 'Paste JSON', _usePasteMode, () => setState(() => _usePasteMode = true)),
             ],
           ),
         ),
@@ -261,8 +282,8 @@ class _ImportPageState extends ConsumerState<ImportPage> {
           icon: const Icon(Icons.download, size: 16),
           label: const Text('Template'),
           style: OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xFF0066CC),
-            side: const BorderSide(color: Color(0xFF0066CC)),
+            foregroundColor: cs.primary,
+            side: BorderSide(color: cs.primary),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           ),
         ),
@@ -272,8 +293,8 @@ class _ImportPageState extends ConsumerState<ImportPage> {
           icon: const Icon(Icons.copy, size: 16),
           label: const Text('Copy'),
           style: OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xFF84CC16),
-            side: const BorderSide(color: Color(0xFF84CC16)),
+            foregroundColor: cs.secondary,
+            side: BorderSide(color: cs.secondary),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           ),
         ),
@@ -281,19 +302,19 @@ class _ImportPageState extends ConsumerState<ImportPage> {
     );
   }
 
-  Widget _toggleButton(String label, bool isActive, VoidCallback onTap) {
+  Widget _toggleButton(ColorScheme cs, String label, bool isActive, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? const Color(0xFF0066CC) : Colors.transparent,
+          color: isActive ? cs.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isActive ? Colors.white : Colors.white54,
+            color: isActive ? cs.onSurface : cs.onSurface.withValues(alpha: 0.54),
             fontSize: 13,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
           ),
@@ -306,24 +327,24 @@ class _ImportPageState extends ConsumerState<ImportPage> {
   // FILE UPLOAD PANEL
   // ──────────────────────────────────────────────
 
-  Widget _buildFileUploadPanel() {
+  Widget _buildFileUploadPanel(ColorScheme cs) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.cloud_upload, color: Colors.white24, size: 64),
+            Icon(Icons.cloud_upload, color: cs.onSurface.withValues(alpha: 0.24), size: 64),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Upload .xlsx or .json file',
-              style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 18, color: cs.onSurface, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Select an export file to populate the database.\nData will be merged into existing collections.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white54, fontSize: 14),
+              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 14),
             ),
             const SizedBox(height: 32),
             SizedBox(
@@ -332,16 +353,16 @@ class _ImportPageState extends ConsumerState<ImportPage> {
               child: ElevatedButton.icon(
                 onPressed: _isImporting ? null : _handleFileUpload,
                 icon: _isImporting
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 18,
                         height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: cs.onSurface),
                       )
                     : const Icon(Icons.file_upload),
                 label: Text(_isImporting ? 'Importing...' : 'Select File'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0066CC),
-                  foregroundColor: Colors.white,
+                  backgroundColor: cs.primary,
+                  foregroundColor: cs.onSurface,
                 ),
               ),
             ),
@@ -355,7 +376,7 @@ class _ImportPageState extends ConsumerState<ImportPage> {
   // PASTE JSON PANEL
   // ──────────────────────────────────────────────
 
-  Widget _buildPastePanel() {
+  Widget _buildPastePanel(ColorScheme cs) {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -363,12 +384,12 @@ class _ImportPageState extends ConsumerState<ImportPage> {
         children: [
           Row(
             children: [
-              const Icon(Icons.paste, color: Color(0xFF0066CC), size: 20),
+              Icon(Icons.paste, color: cs.primary, size: 20),
               const SizedBox(width: 8),
-              const Text(
+              Text(
                 'Paste JSON Data',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: cs.onSurface,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -376,42 +397,42 @@ class _ImportPageState extends ConsumerState<ImportPage> {
               const Spacer(),
               Text(
                 '${_pasteController.text.length} chars',
-                style: const TextStyle(color: Colors.white38, fontSize: 12),
+                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 12),
               ),
             ],
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'Copy the template above, fill in your data, then paste here and click Import.',
-            style: TextStyle(color: Colors.white54, fontSize: 12),
+            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 12),
           ),
           const SizedBox(height: 8),
           // ── Expected JSON structure guide ──
-          _JsonStructureGuide(),
+          const _JsonStructureGuide(),
           const SizedBox(height: 8),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF0B1220),
+                color: cs.surface,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.white12),
+                border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
               ),
               child: TextField(
                 controller: _pasteController,
                 maxLines: null,
                 expands: true,
                 textAlignVertical: TextAlignVertical.top,
-                style: const TextStyle(
-                  color: Color(0xFF84CC16),
+                style: TextStyle(
+                  color: cs.secondary,
                   fontSize: 12,
                   fontFamily: 'monospace',
                   height: 1.5,
                 ),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Paste your JSON here...\n\n{\n  "version": "1.0",\n  "collections": {\n    ...\n  }\n}',
-                  hintStyle: TextStyle(color: Colors.white24, fontSize: 12, fontFamily: 'monospace'),
+                  hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.24), fontSize: 12, fontFamily: 'monospace'),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.all(16),
+                  contentPadding: const EdgeInsets.all(16),
                 ),
                 onChanged: (_) => setState(() {}),
               ),
@@ -428,18 +449,18 @@ class _ImportPageState extends ConsumerState<ImportPage> {
                         ? null
                         : _handlePasteImport,
                     icon: _isPastingJson
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 18,
                             height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(strokeWidth: 2, color: cs.onSurface),
                           )
                         : const Icon(Icons.upload, size: 18),
                     label: Text(_isPastingJson ? 'Importing...' : 'Import JSON'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF84CC16),
-                      foregroundColor: const Color(0xFF0B1220),
-                      disabledBackgroundColor: Colors.white12,
-                      disabledForegroundColor: Colors.white24,
+                      backgroundColor: cs.secondary,
+                      foregroundColor: cs.surface,
+                      disabledBackgroundColor: cs.onSurface.withValues(alpha: 0.12),
+                      disabledForegroundColor: cs.onSurface.withValues(alpha: 0.24),
                     ),
                   ),
                 ),
@@ -453,10 +474,10 @@ class _ImportPageState extends ConsumerState<ImportPage> {
                     setState(() {});
                   },
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white54,
-                    side: const BorderSide(color: Colors.white12),
+                    foregroundColor: cs.onSurface.withValues(alpha: 0.54),
+                    side: BorderSide(color: cs.onSurface.withValues(alpha: 0.12)),
                   ),
-                  child: const Text('Clear'),
+                  child: Text('Clear'),
                 ),
               ),
             ],
@@ -470,35 +491,35 @@ class _ImportPageState extends ConsumerState<ImportPage> {
   // RESULTS
   // ──────────────────────────────────────────────
 
-  Widget _buildResultsSummary() {
+  Widget _buildResultsSummary(ColorScheme cs) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0B1220),
+        color: cs.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.check_circle, color: Color(0xFF84CC16), size: 20),
-              SizedBox(width: 8),
+              Icon(Icons.check_circle, color: cs.secondary, size: 20),
+              const SizedBox(width: 8),
               Text(
                 'Import Summary',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold, fontSize: 16),
               ),
             ],
           ),
-          const Divider(color: Colors.white12),
+          Divider(color: cs.onSurface.withValues(alpha: 0.12)),
           ..._results!.entries.map((e) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(e.key, style: const TextStyle(color: Colors.white70, fontSize: 13)),
-                    Text('${e.value} items', style: const TextStyle(color: Color(0xFF84CC16), fontSize: 13)),
+                    Text(e.key, style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontSize: 13)),
+                    Text('${e.value} items', style: TextStyle(color: cs.secondary, fontSize: 13)),
                   ],
                 ),
               )),
@@ -713,23 +734,24 @@ class _JsonStructureGuide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF0B1220),
+        color: cs.surface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
       ),
       child: ExpansionTile(
         tilePadding: const EdgeInsets.symmetric(horizontal: 12),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        leading: const Icon(Icons.schema_outlined, color: Color(0xFF0066CC), size: 18),
-        title: const Text(
+        leading: Icon(Icons.schema_outlined, color: cs.primary, size: 18),
+        title: Text(
           'Expected JSON Structure',
-          style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+          style: TextStyle(color: cs.onSurface, fontSize: 13, fontWeight: FontWeight.w600),
         ),
-        subtitle: const Text(
+        subtitle: Text(
           '21 collections — tap to view fields',
-          style: TextStyle(color: Colors.white38, fontSize: 11),
+          style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 11),
         ),
         children: _collections.map((schema) {
           return Padding(
@@ -739,12 +761,12 @@ class _JsonStructureGuide extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.table_rows, size: 14, color: Colors.white38),
+                    Icon(Icons.table_rows, size: 14, color: cs.onSurface.withValues(alpha: 0.38)),
                     const SizedBox(width: 6),
                     Text(
                       schema.name,
-                      style: const TextStyle(
-                        color: Color(0xFF84CC16),
+                      style: TextStyle(
+                        color: cs.secondary,
                         fontSize: 13,
                         fontFamily: 'monospace',
                         fontWeight: FontWeight.w600,
@@ -754,7 +776,7 @@ class _JsonStructureGuide extends StatelessWidget {
                     Flexible(
                       child: Text(
                         schema.description,
-                        style: const TextStyle(color: Colors.white38, fontSize: 11),
+                        style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 11),
                       ),
                     ),
                   ],
@@ -765,20 +787,20 @@ class _JsonStructureGuide extends StatelessWidget {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(f.name, style: const TextStyle(color: Colors.white, fontSize: 12, fontFamily: 'monospace')),
+                          Text(f.name, style: TextStyle(color: cs.onSurface, fontSize: 12, fontFamily: 'monospace')),
                           const SizedBox(width: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0066CC).withAlpha(50),
+                              color: cs.primary.withAlpha(50),
                               borderRadius: BorderRadius.circular(3),
                             ),
-                            child: Text(f.type, style: const TextStyle(color: Color(0xFF0066CC), fontSize: 10, fontFamily: 'monospace')),
+                            child: Text(f.type, style: TextStyle(color: cs.primary, fontSize: 10, fontFamily: 'monospace')),
                           ),
                           if (f.notes != null) ...[
                             const SizedBox(width: 6),
                             Expanded(
-                              child: Text(f.notes!, style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                              child: Text(f.notes!, style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 11)),
                             ),
                           ],
                         ],

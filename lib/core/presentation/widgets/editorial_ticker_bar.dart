@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../presentation/providers/auth_provider.dart';
 import '../../../data/auth/firebase_auth_provider.dart';
 import '../../router/app_router.dart';
+import '../../theme/theme.dart';
 
 class EditorialTickerBar extends ConsumerWidget implements PreferredSizeWidget {
   const EditorialTickerBar({super.key});
@@ -25,37 +26,39 @@ class EditorialTickerBar extends ConsumerWidget implements PreferredSizeWidget {
       loading: () => 'Worker',
       error: (_, __) => 'Worker',
     );
+    final cs = Theme.of(context).colorScheme;
+    final themeController = ThemeProvider.of(context);
 
     return AppBar(
-      backgroundColor: const Color(0xFF0B1220),
+      backgroundColor: cs.surface,
       elevation: 0,
-      title: const Text(
+      title: Text(
         'SS-RAGRAGA Station OS',
-        style: TextStyle(fontSize: 14, color: Colors.white70),
+        style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
       ),
       actions: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Chip(
-            label: Text(
-              'Fuel: 10.72 MAD/L',
-              style: TextStyle(fontSize: 11),
-            ),
-            backgroundColor: Color(0xFF1A2332),
-            labelStyle: TextStyle(color: Color(0xFF84CC16)),
-            side: BorderSide(color: Color(0xFF84CC16), width: 0.5),
-            padding: EdgeInsets.symmetric(horizontal: 8),
+            label: const Text('Fuel: 10.72 MAD/L', style: TextStyle(fontSize: 11)),
+            backgroundColor: cs.surfaceContainerHighest,
+            labelStyle: TextStyle(color: cs.secondary),
+            side: BorderSide(color: cs.secondary, width: 0.5),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.language, size: 20, color: Colors.white54),
+          icon: const Icon(Icons.language, size: 20),
           onPressed: () {},
           tooltip: 'Language',
         ),
         IconButton(
-          icon: const Icon(Icons.brightness_6, size: 20, color: Colors.white54),
-          onPressed: () {},
+          icon: Icon(
+            themeController.isDark ? Icons.dark_mode : Icons.light_mode,
+            size: 20,
+          ),
+          onPressed: () => themeController.toggleTheme(),
           tooltip: 'Theme',
         ),
         const SizedBox(width: 8),
@@ -69,8 +72,8 @@ class EditorialTickerBar extends ConsumerWidget implements PreferredSizeWidget {
                 children: [
                   Text(
                     displayName,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: cs.onSurface,
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
@@ -78,13 +81,13 @@ class EditorialTickerBar extends ConsumerWidget implements PreferredSizeWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF84CC16).withAlpha(30),
+                      color: cs.secondary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       role,
-                      style: const TextStyle(
-                        color: Color(0xFF84CC16),
+                      style: TextStyle(
+                        color: cs.secondary,
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
                       ),
@@ -95,11 +98,11 @@ class EditorialTickerBar extends ConsumerWidget implements PreferredSizeWidget {
               const SizedBox(width: 8),
               CircleAvatar(
                 radius: 16,
-                backgroundColor: const Color(0xFF1A2332),
+                backgroundColor: cs.surfaceContainerHighest,
                 child: Text(
                   displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
-                  style: const TextStyle(
-                    color: Color(0xFF84CC16),
+                  style: TextStyle(
+                    color: cs.secondary,
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
@@ -107,8 +110,8 @@ class EditorialTickerBar extends ConsumerWidget implements PreferredSizeWidget {
               ),
               const SizedBox(width: 4),
               PopupMenuButton<String>(
-                icon: const Icon(Icons.arrow_drop_down, color: Colors.white54, size: 20),
-                color: const Color(0xFF1A2332),
+                icon: Icon(Icons.arrow_drop_down, size: 20),
+                color: cs.surface,
                 onSelected: (value) {
                   if (value == 'logout') {
                     _showLogoutDialog(context, ref);
@@ -119,9 +122,9 @@ class EditorialTickerBar extends ConsumerWidget implements PreferredSizeWidget {
                     value: 'logout',
                     child: Row(
                       children: [
-                        Icon(Icons.logout, color: Colors.red.shade300, size: 18),
+                        Icon(Icons.logout, color: cs.error, size: 18),
                         const SizedBox(width: 8),
-                        Text('Sign Out', style: TextStyle(color: Colors.red.shade300)),
+                        Text('Sign Out', style: TextStyle(color: cs.error)),
                       ],
                     ),
                   ),
@@ -136,19 +139,21 @@ class EditorialTickerBar extends ConsumerWidget implements PreferredSizeWidget {
 }
 
 void _showLogoutDialog(BuildContext context, WidgetRef ref) {
+  final cs = Theme.of(context).colorScheme;
+
   showDialog(
     context: context,
     builder: (_) => AlertDialog(
-      backgroundColor: const Color(0xFF1A2332),
-      title: const Text('Sign Out', style: TextStyle(color: Colors.white)),
-      content: const Text(
+      backgroundColor: cs.surface,
+      title: Text('Sign Out', style: TextStyle(color: cs.onSurface)),
+      content: Text(
         'Are you sure you want to sign out?',
-        style: TextStyle(color: Colors.white70),
+        style: TextStyle(color: cs.onSurfaceVariant),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+          child: Text('Cancel', style: TextStyle(color: cs.onSurfaceVariant)),
         ),
         TextButton(
           onPressed: () async {
@@ -156,7 +161,7 @@ void _showLogoutDialog(BuildContext context, WidgetRef ref) {
             await firebaseAuthProvider.signOut();
             if (context.mounted) context.go(AppRoutes.login);
           },
-          child: Text('Sign Out', style: TextStyle(color: Colors.red.shade300)),
+          child: Text('Sign Out', style: TextStyle(color: cs.error)),
         ),
       ],
     ),

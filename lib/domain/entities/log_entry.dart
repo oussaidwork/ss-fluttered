@@ -1,3 +1,5 @@
+import '../../core/utils/date_utils.dart';
+
 class LogEntry {
   final String id;
   final String action;
@@ -44,7 +46,7 @@ class LogEntry {
       id: map['id'] as String? ?? '',
       action: map['action'] as String? ?? '',
       details: map['details'] as String?,
-      timestamp: DateTime.tryParse(map['timestamp'] as String? ?? '') ?? DateTime.now(),
+      timestamp: DateUtilsApp.parseFirestoreDateTime(map['timestamp']),
       userId: map['userId'] as String?,
     );
   }

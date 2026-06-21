@@ -15,8 +15,9 @@ class PitsPage extends StatefulWidget {
 class _PitsPageState extends State<PitsPage> {
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1220),
+      backgroundColor: cs.surface,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -25,14 +26,14 @@ class _PitsPageState extends State<PitsPage> {
             // Header
             Row(
               children: [
-                const Icon(Icons.local_gas_station,
-                    color: Color(0xFF0066CC), size: 28),
+                Icon(Icons.local_gas_station,
+                    color: cs.primary, size: 28),
                 const SizedBox(width: 12),
-                const Text('Pit Management',
+                Text('Pit Management',
                     style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white)),
+                        color: cs.onSurface)),
               ],
             ),
             const SizedBox(height: 24),

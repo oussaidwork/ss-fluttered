@@ -1,3 +1,4 @@
+import '../../core/utils/date_utils.dart';
 import '../enums/advance_status.dart';
 
 class SalaryAdvance {
@@ -56,8 +57,8 @@ class SalaryAdvance {
       id: map['id'] as String? ?? '',
       amount: (map['amount'] as num?)?.toDouble() ?? 0.0,
       status: AdvanceStatus.fromString(map['status'] as String? ?? 'PENDING'),
-      requestDate: DateTime.tryParse(map['requestDate'] as String? ?? '') ?? DateTime.now(),
-      resolutionDate: DateTime.tryParse(map['resolutionDate'] as String? ?? ''),
+      requestDate: DateUtilsApp.parseFirestoreDateTime(map['requestDate']),
+      resolutionDate: DateUtilsApp.parseFirestoreDateTime(map['resolutionDate'], fallback: null),
       workerId: map['workerId'] as String? ?? '',
       resolvedBy: map['resolvedBy'] as String?,
     );

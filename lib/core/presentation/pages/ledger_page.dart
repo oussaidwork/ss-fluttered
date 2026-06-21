@@ -43,6 +43,7 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final clientsAsync = ref.watch(clientsProvider);
     final fleetAsync = _selectedClient != null
         ? ref.watch(clientFleetByClientProvider(_selectedClient!.id))
@@ -56,11 +57,11 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
           // Header
           Row(
             children: [
-              const Icon(Icons.book, color: Color(0xFF0066CC), size: 28),
+              Icon(Icons.book, color: cs.primary, size: 28),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'Transaction Ledger',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: cs.onSurface),
               ),
             ],
           ),
@@ -92,17 +93,18 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
   }
 
   Widget _buildClientSelector(AsyncValue<List<Client>> clientsAsync) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A2332),
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          const Icon(Icons.person, color: Color(0xFF84CC16), size: 20),
+          Icon(Icons.person, color: cs.secondary, size: 20),
           const SizedBox(width: 12),
-          const Text('Client:', style: TextStyle(color: Colors.white54)),
+          Text('Client:', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54))),
           const SizedBox(width: 12),
           Expanded(
             child: clientsAsync.when(
@@ -110,17 +112,17 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
                 child: DropdownButton<String?>(
                   value: _selectedClient?.id,
                   isExpanded: true,
-                  dropdownColor: const Color(0xFF1A2332),
-                  style: const TextStyle(color: Colors.white),
-                  hint: const Text('All Clients', style: TextStyle(color: Colors.white38)),
+                  dropdownColor: cs.surfaceContainerHighest,
+                  style: TextStyle(color: cs.onSurface),
+                  hint: Text('All Clients', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38))),
                   items: [
-                    const DropdownMenuItem<String?>(
+                    DropdownMenuItem<String?>(
                       value: null,
-                      child: Text('All Clients', style: TextStyle(color: Colors.white54)),
+                      child: Text('All Clients', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54))),
                     ),
                     ...clients.map((c) => DropdownMenuItem<String?>(
                       value: c.id,
-                      child: Text(c.name, style: const TextStyle(color: Colors.white)),
+                      child: Text(c.name, style: TextStyle(color: cs.onSurface)),
                     )),
                   ],
                   onChanged: (val) {
@@ -135,12 +137,12 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
                   },
                 ),
               ),
-              loading: () => const SizedBox(
+              loading: () => SizedBox(
                 height: 24,
                 width: 24,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0066CC)),
+                child: CircularProgressIndicator(strokeWidth: 2, color: cs.primary),
               ),
-              error: (_, _) => const Text('Error loading clients', style: TextStyle(color: Colors.redAccent)),
+              error: (_, _) => Text('Error loading clients', style: TextStyle(color: cs.error)),
             ),
           ),
           if (_selectedClient != null)
@@ -149,12 +151,12 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0066CC).withValues(alpha: 0.15),
+                  color: cs.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   'Balance: ${_selectedClient!.currentBalance.toStringAsFixed(2)} DA',
-                  style: const TextStyle(color: Color(0xFF84CC16), fontSize: 12, fontWeight: FontWeight.w600),
+                  style: TextStyle(color: cs.secondary, fontSize: 12, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -164,6 +166,7 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
   }
 
   Widget _buildFleetChips(AsyncValue<List<ClientFleet>> fleetAsync) {
+    final cs = Theme.of(context).colorScheme;
     return fleetAsync.when(
       data: (fleet) {
         if (fleet.isEmpty) return const SizedBox.shrink();
@@ -171,7 +174,7 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           margin: const EdgeInsets.only(bottom: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFF1A2332),
+            color: cs.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -179,11 +182,11 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.directions_car, color: Color(0xFF06B6D4), size: 18),
+                  Icon(Icons.directions_car, color: cs.primaryContainer, size: 18),
                   const SizedBox(width: 8),
-                  const Text('Fleet Vehicles', style: TextStyle(color: Colors.white54, fontSize: 13)),
+                  Text('Fleet Vehicles', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 13)),
                   const SizedBox(width: 8),
-                  Text('(${fleet.length})', style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                  Text('(${fleet.length})', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 12)),
                 ],
               ),
               const SizedBox(height: 8),
@@ -202,13 +205,13 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: selected
-                            ? const Color(0xFF06B6D4).withValues(alpha: 0.2)
-                            : Colors.white.withValues(alpha: 0.05),
+                            ? cs.primaryContainer.withValues(alpha: 0.2)
+                            : cs.onSurface.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: selected
-                              ? const Color(0xFF06B6D4)
-                              : Colors.white.withValues(alpha: 0.1),
+                              ? cs.primaryContainer
+                              : cs.onSurface.withValues(alpha: 0.1),
                         ),
                       ),
                       child: Row(
@@ -217,13 +220,13 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
                           Icon(
                             Icons.local_shipping,
                             size: 14,
-                            color: selected ? const Color(0xFF06B6D4) : Colors.white54,
+                            color: selected ? cs.primaryContainer : cs.onSurface.withValues(alpha: 0.54),
                           ),
                           const SizedBox(width: 6),
                           Text(
                             v.plateNumber,
                             style: TextStyle(
-                              color: selected ? const Color(0xFF06B6D4) : Colors.white70,
+                              color: selected ? cs.primaryContainer : cs.onSurface.withValues(alpha: 0.7),
                               fontSize: 12,
                               fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                             ),
@@ -232,7 +235,7 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
                             const SizedBox(width: 4),
                             Text(
                               '(${v.driverName})',
-                              style: TextStyle(color: Colors.white38, fontSize: 11),
+                              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 11),
                             ),
                           ],
                         ],
@@ -251,15 +254,16 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
   }
 
   Widget _buildFilterBar() {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A2332),
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          const Text('Date:', style: TextStyle(color: Colors.white54)),
+          Text('Date:', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54))),
           const SizedBox(width: 8),
           ..._DatePreset.values.map((preset) {
             final labels = {_DatePreset.all: 'All', _DatePreset.today: 'Today', _DatePreset.week: 'Week', _DatePreset.month: 'Month'};
@@ -269,15 +273,15 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
               child: ChoiceChip(
                 label: Text(labels[preset]!),
                 selected: selected,
-                selectedColor: const Color(0xFF0066CC),
-                backgroundColor: Colors.white.withValues(alpha: 0.08),
-                labelStyle: TextStyle(color: selected ? Colors.white : Colors.white54),
+                selectedColor: cs.primary,
+                backgroundColor: cs.onSurface.withValues(alpha: 0.08),
+                labelStyle: TextStyle(color: selected ? cs.onSurface : cs.onSurface.withValues(alpha: 0.54)),
                 onSelected: (_) => setState(() => _datePreset = preset),
               ),
             );
           }),
           const SizedBox(width: 24),
-          const Text('Type:', style: TextStyle(color: Colors.white54)),
+          Text('Type:', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54))),
           const SizedBox(width: 8),
           ..._TxnType.values.map((type) {
             final labels = {_TxnType.all: 'All', _TxnType.sales: 'Sales', _TxnType.payments: 'Payments', _TxnType.debts: 'Debts'};
@@ -287,9 +291,9 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
               child: ChoiceChip(
                 label: Text(labels[type]!),
                 selected: selected,
-                selectedColor: const Color(0xFF0066CC),
-                backgroundColor: Colors.white.withValues(alpha: 0.08),
-                labelStyle: TextStyle(color: selected ? Colors.white : Colors.white54),
+                selectedColor: cs.primary,
+                backgroundColor: cs.onSurface.withValues(alpha: 0.08),
+                labelStyle: TextStyle(color: selected ? cs.onSurface : cs.onSurface.withValues(alpha: 0.54)),
                 onSelected: (_) => setState(() => _txnType = type),
               ),
             );
@@ -300,23 +304,23 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFF84CC16).withValues(alpha: 0.15),
+                color: cs.secondary.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.visibility, size: 14, color: Color(0xFF84CC16)),
+                  Icon(Icons.visibility, size: 14, color: cs.secondary),
                   const SizedBox(width: 6),
                   Text(
                     _selectedClient!.name,
-                    style: const TextStyle(color: Color(0xFF84CC16), fontSize: 12, fontWeight: FontWeight.w600),
+                    style: TextStyle(color: cs.secondary, fontSize: 12, fontWeight: FontWeight.w600),
                   ),
                   if (_selectedVehiclePlate != null) ...[
                     const SizedBox(width: 4),
                     Text(
                       '/ $_selectedVehiclePlate',
-                      style: const TextStyle(color: Color(0xFF06B6D4), fontSize: 11),
+                      style: TextStyle(color: cs.primaryContainer, fontSize: 11),
                     ),
                   ],
                   const SizedBox(width: 6),
@@ -325,7 +329,7 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
                       _selectedClient = null;
                       _selectedVehiclePlate = null;
                     }),
-                    child: const Icon(Icons.close, size: 14, color: Colors.white38),
+                    child: Icon(Icons.close, size: 14, color: cs.onSurface.withValues(alpha: 0.38)),
                   ),
                 ],
               ),
@@ -383,6 +387,7 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
             return StreamBuilder<QuerySnapshot>(
               stream: debtsStream(),
               builder: (ctx, debtsSnap) {
+                final cs = Theme.of(ctx).colorScheme;
                 double totalSales = 0;
                 double totalCollected = 0;
                 double totalOutstanding = 0;
@@ -412,13 +417,13 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
 
                 return Row(
                   children: [
-                    _kpiCard('Revenue', totalSales, const Color(0xFF0066CC), Icons.trending_up),
+                    _kpiCard('Revenue', totalSales, cs.primary, Icons.trending_up),
                     const SizedBox(width: 12),
-                    _kpiCard('Collected', totalCollected, const Color(0xFF84CC16), Icons.check_circle_outline),
+                    _kpiCard('Collected', totalCollected, cs.secondary, Icons.check_circle_outline),
                     const SizedBox(width: 12),
-                    _kpiCard('Outstanding', totalOutstanding, const Color(0xFFF59E0B), Icons.warning_amber_outlined),
+                    _kpiCard('Outstanding', totalOutstanding, cs.tertiary, Icons.warning_amber_outlined),
                     const SizedBox(width: 12),
-                    _kpiCard('Net', net, Colors.white, Icons.account_balance_wallet),
+                    _kpiCard('Net', net, cs.onSurface, Icons.account_balance_wallet),
                   ],
                 );
               },
@@ -430,11 +435,12 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
   }
 
   Widget _kpiCard(String label, double value, Color color, IconData icon) {
+    final cs = Theme.of(context).colorScheme;
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF1A2332),
+          color: cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
@@ -445,7 +451,7 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                Text(label, style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 12)),
                 const SizedBox(height: 2),
                 Text(
                   '${value.toStringAsFixed(2)} DA',
@@ -460,6 +466,7 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
   }
 
   Widget _buildTransactionList() {
+    final cs = Theme.of(context).colorScheme;
     final clientId = _selectedClient?.id;
 
     Stream<QuerySnapshot> salesStream() {
@@ -554,9 +561,9 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(_dateFrom != null ? Icons.event_busy : Icons.receipt_long, size: 64, color: Colors.white24),
+                        Icon(_dateFrom != null ? Icons.event_busy : Icons.receipt_long, size: 64, color: cs.onSurface.withValues(alpha: 0.24)),
                         const SizedBox(height: 16),
-                        const Text('No transactions found', style: TextStyle(color: Colors.white54, fontSize: 16)),
+                        Text('No transactions found', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 16)),
                       ],
                     ),
                   );
@@ -575,8 +582,9 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
   }
 
   Widget _buildTransactionCard(_TransactionItem item) {
+    final cs = Theme.of(context).colorScheme;
     return Card(
-      color: const Color(0xFF1A2332),
+      color: cs.surfaceContainerHighest,
       margin: const EdgeInsets.only(bottom: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: ExpansionTile(
@@ -590,7 +598,7 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
             Expanded(
               child: Text(
                 _txnTitle(item),
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.w500),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -598,7 +606,7 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
         ),
         subtitle: Text(
           _formatDateTime(item.timestamp),
-          style: const TextStyle(color: Colors.white38, fontSize: 12),
+          style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 12),
         ),
         trailing: Text(
           _txnAmount(item),
@@ -614,44 +622,46 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
   }
 
   Widget _txnIcon(String type) {
+    final cs = Theme.of(context).colorScheme;
     switch (type) {
       case 'SALE':
-        return const CircleAvatar(
-          backgroundColor: Color(0xFF0066CC),
+        return CircleAvatar(
+          backgroundColor: cs.primary,
           radius: 18,
-          child: Icon(Icons.local_gas_station, color: Colors.white, size: 18),
+          child: Icon(Icons.local_gas_station, color: cs.onSurface, size: 18),
         );
       case 'PAYMENT':
-        return const CircleAvatar(
-          backgroundColor: Color(0xFF84CC16),
+        return CircleAvatar(
+          backgroundColor: cs.secondary,
           radius: 18,
-          child: Icon(Icons.payments, color: Colors.white, size: 18),
+          child: Icon(Icons.payments, color: cs.onSurface, size: 18),
         );
       case 'DEBT':
-        return const CircleAvatar(
-          backgroundColor: Color(0xFFF59E0B),
+        return CircleAvatar(
+          backgroundColor: cs.tertiary,
           radius: 18,
-          child: Icon(Icons.money_off, color: Colors.white, size: 18),
+          child: Icon(Icons.money_off, color: cs.onSurface, size: 18),
         );
       default:
-        return const CircleAvatar(
-          backgroundColor: Colors.white24,
+        return CircleAvatar(
+          backgroundColor: cs.onSurface.withValues(alpha: 0.24),
           radius: 18,
-          child: Icon(Icons.help_outline, color: Colors.white, size: 18),
+          child: Icon(Icons.help_outline, color: cs.onSurface, size: 18),
         );
     }
   }
 
   Widget _txnBadge(String type) {
-    final colors = {
-      'SALE': const Color(0xFF0066CC),
-      'PAYMENT': const Color(0xFF84CC16),
-      'DEBT': const Color(0xFFF59E0B),
+    final cs = Theme.of(context).colorScheme;
+    final Map<String, Color> colors = {
+      'SALE': cs.primary,
+      'PAYMENT': cs.secondary,
+      'DEBT': cs.tertiary,
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: (colors[type] ?? Colors.white24).withValues(alpha: 0.15),
+        color: (colors[type] ?? cs.onSurface.withValues(alpha: 0.24)).withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(type, style: TextStyle(color: colors[type], fontSize: 11, fontWeight: FontWeight.w600)),
@@ -690,15 +700,16 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
   }
 
   Color _txnAmountColor(_TransactionItem item) {
+    final cs = Theme.of(context).colorScheme;
     switch (item.type) {
       case 'SALE':
-        return const Color(0xFF84CC16);
+        return cs.secondary;
       case 'PAYMENT':
-        return const Color(0xFF84CC16);
+        return cs.secondary;
       case 'DEBT':
-        return const Color(0xFFEF4444);
+        return cs.error;
       default:
-        return Colors.white;
+        return cs.onSurface;
     }
   }
 
@@ -793,16 +804,17 @@ class _LedgerPageState extends ConsumerState<LedgerPage> {
   }
 
   Widget _detailRow(String label, String value) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         children: [
           SizedBox(
             width: 110,
-            child: Text(label, style: const TextStyle(color: Colors.white54, fontSize: 13)),
+            child: Text(label, style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 13)),
           ),
           Expanded(
-            child: Text(value, style: const TextStyle(color: Colors.white, fontSize: 13)),
+            child: Text(value, style: TextStyle(color: cs.onSurface, fontSize: 13)),
           ),
         ],
       ),
@@ -826,6 +838,7 @@ class _SaleItemsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final cs = Theme.of(context).colorScheme;
     final itemsAsync = ref.watch(_saleItemsBySaleProvider(saleId));
     return itemsAsync.when(
       data: (items) {
@@ -834,20 +847,20 @@ class _SaleItemsSection extends ConsumerWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.03),
+            color: cs.onSurface.withValues(alpha: 0.03),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+            border: Border.all(color: cs.onSurface.withValues(alpha: 0.06)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Items', style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+              Text('Items', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 12, fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
               ...items.map((item) => Padding(
                 padding: const EdgeInsets.only(bottom: 4),
                 child: Row(
                   children: [
-                    _itemTypeIcon(item.saleType.value),
+                    _itemTypeIcon(cs, item.saleType.value),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
@@ -855,7 +868,7 @@ class _SaleItemsSection extends ConsumerWidget {
                         children: [
                           Text(
                             '${item.quantity.toStringAsFixed(0)}x ${item.saleType.value}',
-                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                            style: TextStyle(color: cs.onSurface, fontSize: 12),
                           ),
                           if (item.vehiclePlate != null || item.driverName != null)
                             Text(
@@ -863,14 +876,14 @@ class _SaleItemsSection extends ConsumerWidget {
                                 if (item.driverName != null) item.driverName,
                                 if (item.vehiclePlate != null) item.vehiclePlate,
                               ].join(' - '),
-                              style: const TextStyle(color: Colors.white38, fontSize: 11),
+                              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 11),
                             ),
                         ],
                       ),
                     ),
                     Text(
                       '${item.lineTotal.toStringAsFixed(2)} DA',
-                      style: const TextStyle(color: Color(0xFF84CC16), fontSize: 12, fontWeight: FontWeight.w600),
+                      style: TextStyle(color: cs.secondary, fontSize: 12, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -879,24 +892,24 @@ class _SaleItemsSection extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const SizedBox(
+      loading: () => SizedBox(
         height: 20,
         child: Center(child: SizedBox(
           width: 14, height: 14,
-          child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0066CC)),
+          child: CircularProgressIndicator(strokeWidth: 2, color: cs.primary),
         )),
       ),
       error: (_, _) => const SizedBox.shrink(),
     );
   }
 
-  Widget _itemTypeIcon(String type) {
+  Widget _itemTypeIcon(ColorScheme cs, String type) {
     final icons = {
       'FUEL': Icons.local_gas_station,
       'PRODUCT': Icons.shopping_bag,
       'SERVICE': Icons.build,
     };
-    return Icon(icons[type] ?? Icons.receipt, size: 14, color: Colors.white38);
+    return Icon(icons[type] ?? Icons.receipt, size: 14, color: cs.onSurface.withValues(alpha: 0.38));
   }
 }
 

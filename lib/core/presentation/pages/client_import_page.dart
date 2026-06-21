@@ -368,10 +368,11 @@ class _ClientImportPageState extends State<ClientImportPage> {
       });
 
       if (mounted) {
+        final cs = Theme.of(context).colorScheme;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Import complete: $salesCount sales, $paymentsCount payments, $clientsCreated new clients'),
-            backgroundColor: const Color(0xFF84CC16),
+            backgroundColor: cs.secondary,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -390,19 +391,19 @@ class _ClientImportPageState extends State<ClientImportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Row(
             children: [
-              const Icon(Icons.people, color: Color(0xFF0066CC), size: 28),
+              Icon(Icons.people, color: cs.primary, size: 28),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'Client Data Import',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: cs.onSurface),
               ),
               const Spacer(),
               if (!_parsed && !_isLoading)
@@ -411,8 +412,8 @@ class _ClientImportPageState extends State<ClientImportPage> {
                   icon: const Icon(Icons.file_upload, size: 18),
                   label: const Text('Select JSON'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0066CC),
-                    foregroundColor: Colors.white,
+                    backgroundColor: cs.primary,
+                    foregroundColor: cs.onSurface,
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   ),
                 ),
@@ -422,43 +423,43 @@ class _ClientImportPageState extends State<ClientImportPage> {
                   icon: const Icon(Icons.cloud_upload, size: 18),
                   label: const Text('Import to Firestore'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF84CC16),
-                    foregroundColor: const Color(0xFF0B1220),
-                    disabledBackgroundColor: Colors.white12,
-                    disabledForegroundColor: Colors.white24,
+                    backgroundColor: cs.secondary,
+                    foregroundColor: cs.surface,
+                    disabledBackgroundColor: cs.onSurface.withValues(alpha: 0.12),
+                    disabledForegroundColor: cs.onSurface.withValues(alpha: 0.24),
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   ),
                 ),
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Upload a JSON file with client sales and payments to preview and import.',
-            style: TextStyle(color: Colors.white54, fontSize: 13),
+            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 13),
           ),
           const SizedBox(height: 20),
 
           if (_isLoading)
-            const Expanded(
-              child: Center(child: CircularProgressIndicator(color: Color(0xFF0066CC))),
+            Expanded(
+              child: Center(child: CircularProgressIndicator(color: cs.primary)),
             ),
 
-          if (_error != null) _buildError(),
+          if (_error != null) _buildError(cs),
 
-          if (_result != null) _buildResults(),
+          if (_result != null) _buildResults(cs),
 
-          if (_parsed && _result == null) Expanded(child: _buildPreview()),
+          if (_parsed && _result == null) Expanded(child: _buildPreview(cs)),
 
           if (!_parsed && !_isLoading && _error == null)
-            const Expanded(
+            Expanded(
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.upload_file, color: Colors.white24, size: 64),
-                    SizedBox(height: 16),
+                    Icon(Icons.upload_file, color: cs.onSurface.withValues(alpha: 0.24), size: 64),
+                    const SizedBox(height: 16),
                     Text('Select a client data JSON file to begin',
-                        style: TextStyle(color: Colors.white38, fontSize: 16)),
+                        style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 16)),
                   ],
                 ),
               ),
@@ -468,42 +469,42 @@ class _ClientImportPageState extends State<ClientImportPage> {
     );
   }
 
-  Widget _buildError() {
+  Widget _buildError(ColorScheme cs) {
     return Container(
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFFEF4444).withAlpha(20),
+        color: cs.error.withAlpha(20),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFEF4444).withAlpha(60)),
+        border: Border.all(color: cs.error.withAlpha(60)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline, color: Color(0xFFEF4444)),
+          Icon(Icons.error_outline, color: cs.error),
           const SizedBox(width: 12),
-          Expanded(child: Text(_error!, style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13))),
+          Expanded(child: Text(_error!, style: TextStyle(color: cs.error, fontSize: 13))),
         ],
       ),
     );
   }
 
-  Widget _buildResults() {
+  Widget _buildResults(ColorScheme cs) {
     return Expanded(
       child: Center(
         child: Container(
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            color: const Color(0xFF0B1220),
+            color: cs.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF84CC16).withAlpha(60)),
+            border: Border.all(color: cs.secondary.withAlpha(60)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.check_circle, color: Color(0xFF84CC16), size: 48),
+              Icon(Icons.check_circle, color: cs.secondary, size: 48),
               const SizedBox(height: 16),
-              const Text('Import Complete!',
-                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+              Text('Import Complete!',
+                  style: TextStyle(color: cs.onSurface, fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               ...(_result?.entries ?? []).map((e) => Padding(
                     padding: const EdgeInsets.symmetric(vertical: 2),
@@ -511,11 +512,11 @@ class _ClientImportPageState extends State<ClientImportPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text('${e.key}: ',
-                            style: const TextStyle(color: Colors.white54, fontSize: 14)),
+                            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 14)),
                         Text('${e.value}',
-                            style: const TextStyle(
-                                color: Color(0xFF84CC16), fontSize: 14, fontWeight: FontWeight.w600)),
-                        Text(' records', style: const TextStyle(color: Colors.white54, fontSize: 14)),
+                            style: TextStyle(
+                                color: cs.secondary, fontSize: 14, fontWeight: FontWeight.w600)),
+                        Text(' records', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 14)),
                       ],
                     ),
                   )),
@@ -536,81 +537,78 @@ class _ClientImportPageState extends State<ClientImportPage> {
     );
   }
 
-  Widget _buildPreview() {
+  Widget _buildPreview(ColorScheme cs) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Summary bar
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(12),
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: const Color(0xFF0B1220),
+            color: cs.surface,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.white12),
+            border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
           ),
           child: Row(
             children: [
-              _summaryBadge('Clients', '${_clients.length}',
+              _summaryBadge('Clients', '${_clients.length}', cs,
                   _clients.where((c) => c.isExisting).length,
                   _clients.where((c) => !c.isExisting).length),
               const SizedBox(width: 24),
               _summaryBadge('Sales',
-                  '${_clients.fold(0, (sum, c) => sum! + c.sales.length)}'),
+                  '${_clients.fold(0, (sum, c) => sum! + c.sales.length)}', cs),
               const SizedBox(width: 24),
               _summaryBadge('Payments',
-                  '${_clients.fold(0, (sum, c) => sum! + c.payments.length)}'),
+                  '${_clients.fold(0, (sum, c) => sum! + c.payments.length)}', cs),
               const SizedBox(width: 24),
               _summaryBadge('Total Sales',
-                  '${_clients.fold(0.0, (sum, c) => sum! + c.totalSales).toStringAsFixed(2)} MAD'),
+                  '${_clients.fold(0.0, (sum, c) => sum! + c.totalSales).toStringAsFixed(2)} MAD', cs),
               const SizedBox(width: 24),
               _summaryBadge('Total Payments',
-                  '${_clients.fold(0.0, (sum, c) => sum! + c.totalPayments).toStringAsFixed(2)} MAD'),
+                  '${_clients.fold(0.0, (sum, c) => sum! + c.totalPayments).toStringAsFixed(2)} MAD', cs),
             ],
           ),
         ),
 
-        // Client cards
         Expanded(
           child: ListView.builder(
             itemCount: _clients.length,
-            itemBuilder: (context, i) => _buildClientCard(_clients[i]),
+            itemBuilder: (context, i) => _buildClientCard(_clients[i], cs),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildClientCard(_ClientPreview client) {
+  Widget _buildClientCard(_ClientPreview client, ColorScheme cs) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF0B1220),
+        color: cs.surface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.12)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Client header
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
-              color: Color(0xFF111A2E),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
+            decoration: BoxDecoration(
+              color: cs.surfaceContainerHighest,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
             ),
             child: Row(
               children: [
                 CircleAvatar(
                   radius: 18,
                   backgroundColor: client.isExisting
-                      ? const Color(0xFF0066CC).withAlpha(40)
-                      : const Color(0xFF84CC16).withAlpha(40),
+                      ? cs.primary.withAlpha(40)
+                      : cs.secondary.withAlpha(40),
                   child: Text(
                     client.name[0].toUpperCase(),
                     style: TextStyle(
-                      color: client.isExisting ? const Color(0xFF0066CC) : const Color(0xFF84CC16),
+                      color: client.isExisting ? cs.primary : cs.secondary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -621,20 +619,20 @@ class _ClientImportPageState extends State<ClientImportPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(client.name,
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15)),
+                          style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.w600, fontSize: 15)),
                       Row(
                         children: [
                           Icon(
                             client.isExisting ? Icons.check_circle : Icons.add_circle,
                             size: 12,
-                            color: client.isExisting ? const Color(0xFF0066CC) : const Color(0xFF84CC16),
+                            color: client.isExisting ? cs.primary : cs.secondary,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             client.isExisting ? 'Existing client (ID: ${client.clientId?.substring(0, 8)}...)' : 'New client',
                             style: TextStyle(
                               fontSize: 11,
-                              color: client.isExisting ? const Color(0xFF0066CC) : const Color(0xFF84CC16),
+                              color: client.isExisting ? cs.primary : cs.secondary,
                             ),
                           ),
                         ],
@@ -642,44 +640,42 @@ class _ClientImportPageState extends State<ClientImportPage> {
                     ],
                   ),
                 ),
-                _miniStat('Sales', '${client.sales.length}', const Color(0xFF0066CC)),
+                _miniStat('Sales', '${client.sales.length}', cs.primary),
                 const SizedBox(width: 16),
-                _miniStat('Payments', '${client.payments.length}', const Color(0xFFEAB308)),
+                _miniStat('Payments', '${client.payments.length}', cs.tertiary),
                 const SizedBox(width: 16),
-                _miniStat('Balance', '${client.totalSales.toStringAsFixed(0)} MAD', const Color(0xFF84CC16)),
+                _miniStat('Balance', '${client.totalSales.toStringAsFixed(0)} MAD', cs.secondary),
               ],
             ),
           ),
 
-          // Sales table
           if (client.sales.isNotEmpty) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
               child: Row(
                 children: [
-                  const Icon(Icons.shopping_cart, size: 14, color: Colors.white38),
+                  Icon(Icons.shopping_cart, size: 14, color: cs.onSurface.withValues(alpha: 0.38)),
                   const SizedBox(width: 6),
-                  const Text('Sales', style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+                  Text('Sales', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 12, fontWeight: FontWeight.w600)),
                   const Spacer(),
                   Text('Total: ${client.totalSales.toStringAsFixed(2)} MAD',
-                      style: const TextStyle(color: Color(0xFF84CC16), fontSize: 12)),
+                      style: TextStyle(color: cs.secondary, fontSize: 12)),
                 ],
               ),
             ),
-            // Table header
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              child: const Row(
+              child: Row(
                 children: [
-                  Expanded(flex: 2, child: Text('DATE', style: TextStyle(color: Colors.white24, fontSize: 10))),
-                  Expanded(flex: 2, child: Text('FLEET', style: TextStyle(color: Colors.white24, fontSize: 10))),
-                  Expanded(flex: 2, child: Text('PLATE', style: TextStyle(color: Colors.white24, fontSize: 10))),
-                  Expanded(flex: 2, child: Text('PRODUCT', style: TextStyle(color: Colors.white24, fontSize: 10))),
-                  Expanded(flex: 2, child: Text('QTY', style: TextStyle(color: Colors.white24, fontSize: 10))),
-                  Expanded(flex: 2, child: Text('PRICE', style: TextStyle(color: Colors.white24, fontSize: 10))),
-                  Expanded(flex: 3, child: Text('SUBTOTAL', style: TextStyle(color: Colors.white24, fontSize: 10))),
-                  Expanded(flex: 2, child: Text('PAYMENT', style: TextStyle(color: Colors.white24, fontSize: 10))),
-                  Expanded(flex: 2, child: Text('REF', style: TextStyle(color: Colors.white24, fontSize: 10))),
+                  Expanded(flex: 2, child: Text('DATE', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.24), fontSize: 10))),
+                  Expanded(flex: 2, child: Text('FLEET', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.24), fontSize: 10))),
+                  Expanded(flex: 2, child: Text('PLATE', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.24), fontSize: 10))),
+                  Expanded(flex: 2, child: Text('PRODUCT', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.24), fontSize: 10))),
+                  Expanded(flex: 2, child: Text('QTY', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.24), fontSize: 10))),
+                  Expanded(flex: 2, child: Text('PRICE', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.24), fontSize: 10))),
+                  Expanded(flex: 3, child: Text('SUBTOTAL', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.24), fontSize: 10))),
+                  Expanded(flex: 2, child: Text('PAYMENT', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.24), fontSize: 10))),
+                  Expanded(flex: 2, child: Text('REF', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.24), fontSize: 10))),
                 ],
               ),
             ),
@@ -688,51 +684,49 @@ class _ClientImportPageState extends State<ClientImportPage> {
                   child: Row(
                     children: [
                       Expanded(flex: 2, child: Text(s.date != null ? '${s.date!.year}-${s.date!.month.toString().padLeft(2, '0')}-${s.date!.day.toString().padLeft(2, '0')}' : '-',
-                          style: const TextStyle(color: Colors.white70, fontSize: 11))),
-                      Expanded(flex: 2, child: Text(s.fleet, style: const TextStyle(color: Colors.white70, fontSize: 11))),
-                      Expanded(flex: 2, child: Text(s.plate, style: const TextStyle(color: Colors.white70, fontSize: 11, fontFamily: 'monospace'))),
-                      Expanded(flex: 2, child: Text(s.product, style: const TextStyle(color: Colors.white70, fontSize: 11))),
-                      Expanded(flex: 2, child: Text(s.qty?.toStringAsFixed(0) ?? '-', style: const TextStyle(color: Colors.white54, fontSize: 11))),
-                      Expanded(flex: 2, child: Text(s.price?.toStringAsFixed(2) ?? '-', style: const TextStyle(color: Colors.white54, fontSize: 11))),
+                          style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontSize: 11))),
+                      Expanded(flex: 2, child: Text(s.fleet, style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontSize: 11))),
+                      Expanded(flex: 2, child: Text(s.plate, style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontSize: 11, fontFamily: 'monospace'))),
+                      Expanded(flex: 2, child: Text(s.product, style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontSize: 11))),
+                      Expanded(flex: 2, child: Text(s.qty?.toStringAsFixed(0) ?? '-', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 11))),
+                      Expanded(flex: 2, child: Text(s.price?.toStringAsFixed(2) ?? '-', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 11))),
                       Expanded(flex: 3, child: Text(
                         s.subtotal?.toStringAsFixed(2) ?? '-',
                         style: TextStyle(
-                          color: s.subtotal != null ? const Color(0xFF84CC16) : Colors.white38,
+                          color: s.subtotal != null ? cs.secondary : cs.onSurface.withValues(alpha: 0.38),
                           fontSize: 11,
                           fontFamily: 'monospace',
                           fontWeight: s.subtotal != null ? FontWeight.w600 : FontWeight.normal,
                         ),
                       )),
-                      Expanded(flex: 2, child: _paymentBadge(s.paymentType)),
-                      Expanded(flex: 2, child: Text(s.ref, style: const TextStyle(color: Colors.white54, fontSize: 11, fontFamily: 'monospace'))),
+                      Expanded(flex: 2, child: _paymentBadge(s.paymentType, cs)),
+                      Expanded(flex: 2, child: Text(s.ref, style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 11, fontFamily: 'monospace'))),
                     ],
                   ),
                 )),
           ],
 
-          // Payments table
           if (client.payments.isNotEmpty) ...[
-            const Divider(color: Colors.white12, height: 1),
+            Divider(color: cs.onSurface.withValues(alpha: 0.12), height: 1),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
               child: Row(
                 children: [
-                  const Icon(Icons.payments, size: 14, color: Colors.white38),
+                  Icon(Icons.payments, size: 14, color: cs.onSurface.withValues(alpha: 0.38)),
                   const SizedBox(width: 6),
-                  const Text('Payments', style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+                  Text('Payments', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.54), fontSize: 12, fontWeight: FontWeight.w600)),
                   const Spacer(),
                   Text('Total: ${client.totalPayments.toStringAsFixed(2)} MAD',
-                      style: const TextStyle(color: Color(0xFFEAB308), fontSize: 12)),
+                      style: TextStyle(color: cs.tertiary, fontSize: 12)),
                 ],
               ),
             ),
-            // Header
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: const Row(
+              child: Row(
                 children: [
-                  Expanded(flex: 3, child: Text('AMOUNT', style: TextStyle(color: Colors.white24, fontSize: 10))),
-                  Expanded(flex: 3, child: Text('METHOD', style: TextStyle(color: Colors.white24, fontSize: 10))),
+                  Expanded(flex: 3, child: Text('AMOUNT', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.24), fontSize: 10))),
+                  Expanded(flex: 3, child: Text('METHOD', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.24), fontSize: 10))),
                 ],
               ),
             ),
@@ -743,43 +737,42 @@ class _ClientImportPageState extends State<ClientImportPage> {
                       Expanded(
                         flex: 3,
                         child: Text('${p.amount.toStringAsFixed(2)} MAD',
-                            style: const TextStyle(color: Color(0xFFEAB308), fontSize: 11, fontFamily: 'monospace', fontWeight: FontWeight.w600)),
+                            style: TextStyle(color: cs.tertiary, fontSize: 11, fontFamily: 'monospace', fontWeight: FontWeight.w600)),
                       ),
-                      Expanded(flex: 3, child: _paymentBadge(p.method)),
+                      Expanded(flex: 3, child: _paymentBadge(p.method, cs)),
                     ],
                   ),
                 )),
           ],
 
-          // Balance footer
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(12),
-            decoration: const BoxDecoration(
-              color: Color(0xFF111A2E),
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(8)),
+            decoration: BoxDecoration(
+              color: cs.surfaceContainerHighest,
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
             ),
             child: Row(
               children: [
-                const Text('Balance Impact: ', style: TextStyle(color: Colors.white38, fontSize: 12)),
+                Text('Balance Impact: ', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 12)),
                 Text(
                   '${client.balanceChange >= 0 ? '+' : ''}${client.balanceChange.toStringAsFixed(2)} MAD',
                   style: TextStyle(
-                    color: client.balanceChange >= 0 ? const Color(0xFF84CC16) : const Color(0xFFEF4444),
+                    color: client.balanceChange >= 0 ? cs.secondary : cs.error,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(width: 16),
-                const Text('New Balance: ', style: TextStyle(color: Colors.white38, fontSize: 12)),
+                Text('New Balance: ', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 12)),
                 Text(
                   '${client.newBalance.toStringAsFixed(2)} MAD',
-                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                  style: TextStyle(color: cs.onSurface, fontSize: 13, fontWeight: FontWeight.w600),
                 ),
                 if (client.isExisting) ...[
                   const SizedBox(width: 16),
                   Text('(was ${client.existingBalance.toStringAsFixed(2)} MAD)',
-                      style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                      style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 11)),
                 ],
               ],
             ),
@@ -789,16 +782,16 @@ class _ClientImportPageState extends State<ClientImportPage> {
     );
   }
 
-  Widget _summaryBadge(String label, String value, [int? existing, int? newCount]) {
+  Widget _summaryBadge(String label, String value, ColorScheme cs, [int? existing, int? newCount]) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white38, fontSize: 11)),
+        Text(label, style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 11)),
         const SizedBox(height: 2),
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+        Text(value, style: TextStyle(color: cs.onSurface, fontSize: 14, fontWeight: FontWeight.w600)),
         if (existing != null && newCount != null)
           Text('$existing existing, $newCount new',
-              style: const TextStyle(color: Colors.white38, fontSize: 10)),
+              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 10)),
       ],
     );
   }
@@ -813,18 +806,18 @@ class _ClientImportPageState extends State<ClientImportPage> {
     );
   }
 
-  Widget _paymentBadge(String type) {
+  Widget _paymentBadge(String type, ColorScheme cs) {
     final isDebt = type.toUpperCase() == 'DEBT';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: isDebt ? const Color(0xFFEAB308).withAlpha(30) : const Color(0xFF84CC16).withAlpha(30),
+        color: isDebt ? cs.tertiary.withAlpha(30) : cs.secondary.withAlpha(30),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
         type,
         style: TextStyle(
-          color: isDebt ? const Color(0xFFEAB308) : const Color(0xFF84CC16),
+          color: isDebt ? cs.tertiary : cs.secondary,
           fontSize: 10,
           fontWeight: FontWeight.w600,
         ),

@@ -1,35 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../router/app_router.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../presentation/providers/theme_provider.dart';
+import '../../theme/theme.dart';
 
-class Sidebar extends ConsumerWidget {
+class Sidebar extends StatelessWidget {
   const Sidebar({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final currentPath = GoRouterState.of(context).matchedLocation;
     final l10n = AppLocalizations.of(context)!;
+    final cs = Theme.of(context).colorScheme;
+    final controller = ThemeProvider.of(context);
+    final isDark = controller.isDark;
 
     return Container(
       width: 220,
-      color: const Color(0xFF0B1220),
+      color: cs.surface,
       child: Column(
         children: [
           Container(
             height: 64,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             alignment: Alignment.centerLeft,
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.local_gas_station, color: Color(0xFF84CC16), size: 28),
-                SizedBox(width: 8),
+                Icon(Icons.local_gas_station,
+                    color: cs.secondary, size: 28),
+                const SizedBox(width: 8),
                 Text(
                   'SS-RAGRAGA',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: cs.onSurface,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -37,7 +40,7 @@ class Sidebar extends ConsumerWidget {
               ],
             ),
           ),
-          const Divider(color: Colors.white12, height: 1),
+          Divider(color: cs.outlineVariant, height: 1),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -227,34 +230,32 @@ class Sidebar extends ConsumerWidget {
               ],
             ),
           ),
-          const Divider(color: Colors.white12, height: 1),
+          Divider(color: cs.outlineVariant, height: 1),
           ListTile(
             leading: Icon(
-              ref.watch(themeModeProvider) == ThemeMode.dark
-                  ? Icons.dark_mode
-                  : Icons.light_mode,
+              isDark ? Icons.dark_mode : Icons.light_mode,
               size: 20,
-              color: Colors.white54,
+              color: cs.onSurfaceVariant,
             ),
             title: Text(
-              ref.watch(themeModeProvider) == ThemeMode.dark ? 'Dark Mode' : 'Light Mode',
-              style: const TextStyle(color: Colors.white70, fontSize: 14),
+              isDark ? 'Dark Mode' : 'Light Mode',
+              style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14),
             ),
             trailing: Switch(
-              value: ref.watch(themeModeProvider) == ThemeMode.dark,
-              onChanged: (_) => ref.read(themeModeProvider.notifier).toggleTheme(),
-              activeTrackColor: const Color(0xFF84CC16),
+              value: isDark,
+              onChanged: (_) => controller.toggleTheme(),
+              activeTrackColor: cs.secondary,
             ),
             dense: true,
-            onTap: () => ref.read(themeModeProvider.notifier).toggleTheme(),
+            onTap: () => controller.toggleTheme(),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
           ),
-          const Divider(color: Colors.white12, height: 1),
+          Divider(color: cs.outlineVariant, height: 1),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
               l10n.version,
-              style: const TextStyle(color: Colors.white38, fontSize: 12),
+              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 12),
             ),
           ),
         ],
@@ -270,6 +271,8 @@ class _NavSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -277,8 +280,8 @@ class _NavSection extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
           child: Text(
             title,
-            style: const TextStyle(
-              color: Colors.white38,
+            style: TextStyle(
+              color: cs.onSurface.withValues(alpha: 0.38),
               fontSize: 11,
               fontWeight: FontWeight.w600,
               letterSpacing: 1.2,
@@ -311,7 +314,8 @@ class _NavExpandoItem extends StatefulWidget {
 class _NavExpandoItemState extends State<_NavExpandoItem> {
   late bool _expanded;
 
-  bool get _anyChildActive => widget.children.any((c) => c.currentPath == c.route);
+  bool get _anyChildActive =>
+      widget.children.any((c) => c.currentPath == c.route);
   bool get _isActive => _anyChildActive;
 
   @override
@@ -322,6 +326,7 @@ class _NavExpandoItemState extends State<_NavExpandoItem> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final isActive = _isActive;
 
     return Column(
@@ -331,7 +336,7 @@ class _NavExpandoItemState extends State<_NavExpandoItem> {
           leading: Icon(
             widget.icon,
             size: 20,
-            color: isActive ? const Color(0xFF84CC16) : Colors.white54,
+            color: isActive ? cs.secondary : cs.onSurfaceVariant,
           ),
           title: Row(
             children: [
@@ -339,7 +344,7 @@ class _NavExpandoItemState extends State<_NavExpandoItem> {
                 child: Text(
                   widget.label,
                   style: TextStyle(
-                    color: isActive ? Colors.white : Colors.white70,
+                    color: isActive ? cs.onSurface : cs.onSurfaceVariant,
                     fontSize: 14,
                   ),
                 ),
@@ -347,16 +352,14 @@ class _NavExpandoItemState extends State<_NavExpandoItem> {
               Icon(
                 _expanded ? Icons.expand_less : Icons.expand_more,
                 size: 18,
-                color: Colors.white38,
+                color: cs.onSurface.withValues(alpha: 0.38),
               ),
             ],
           ),
           dense: true,
           selected: isActive,
-          selectedTileColor: const Color(0xFF84CC16).withAlpha(25),
-          onTap: () {
-            setState(() => _expanded = !_expanded);
-          },
+          selectedTileColor: cs.secondary.withValues(alpha: 0.15),
+          onTap: () => setState(() => _expanded = !_expanded),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
         ),
         AnimatedCrossFade(
@@ -365,7 +368,8 @@ class _NavExpandoItemState extends State<_NavExpandoItem> {
             mainAxisSize: MainAxisSize.min,
             children: widget.children,
           ),
-          crossFadeState: _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          crossFadeState:
+              _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 200),
         ),
       ],
@@ -388,23 +392,25 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final isActive = currentPath == route;
+
     return ListTile(
       leading: Icon(
         icon,
         size: 20,
-        color: isActive ? const Color(0xFF84CC16) : Colors.white54,
+        color: isActive ? cs.secondary : cs.onSurfaceVariant,
       ),
       title: Text(
         label,
         style: TextStyle(
-          color: isActive ? Colors.white : Colors.white70,
+          color: isActive ? cs.onSurface : cs.onSurfaceVariant,
           fontSize: 14,
         ),
       ),
       dense: true,
       selected: isActive,
-      selectedTileColor: const Color(0xFF84CC16).withAlpha(25),
+      selectedTileColor: cs.secondary.withValues(alpha: 0.15),
       onTap: () => context.go(route),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
     );

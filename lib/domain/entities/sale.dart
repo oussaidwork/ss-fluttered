@@ -1,3 +1,4 @@
+import '../../core/utils/date_utils.dart';
 import '../enums/sale_type.dart';
 
 class Sale {
@@ -122,7 +123,7 @@ class Sale {
       vehiclePlate: map['vehiclePlate'] as String?,
       driverPhone: map['driverPhone'] as String?,
       notes: map['notes'] as String?,
-      timestamp: DateTime.tryParse(map['timestamp'] as String? ?? '') ?? DateTime.now(),
+      timestamp: DateUtilsApp.parseFirestoreDateTime(map['timestamp']),
       shiftId: map['shiftId'] as String?,
       clientId: map['clientId'] as String?,
       gasTypeId: map['gasTypeId'] as String?,
@@ -131,7 +132,7 @@ class Sale {
       paymentTypeId: map['paymentTypeId'] as String?,
       workerId: map['workerId'] as String?,
       isDeleted: map['isDeleted'] as bool? ?? false,
-      createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt: DateUtilsApp.parseFirestoreDateTime(map['createdAt']),
     );
   }
 }
