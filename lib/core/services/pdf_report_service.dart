@@ -2,36 +2,49 @@ import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../data/firestore/firestore_provider.dart';
+import '../../data/datasource/database_datasource.dart';
+import '../../core/constants/firestore_paths.dart';
 
 /// Generates professional A4 PDF reports from Firestore data.
 class PdfReportService {
   PdfReportService._();
 
-  static const _primaryColor = PdfColor(0.0, 0.4, 0.8); // #0066CC
-  static const _accentColor = PdfColor(0.52, 0.8, 0.09); // #84CC16
-  static const _dangerColor = PdfColor(0.94, 0.27, 0.27); // #EF4444
+  static const _primaryColor = PdfColor(0.0, 0.4, 0.8);
+  static const _accentColor = PdfColor(0.52, 0.8, 0.09);
+  static const _dangerColor = PdfColor(0.94, 0.27, 0.27);
   static const _pageFormat = PdfPageFormat.a4;
 
   static Future<Uint8List> generateSalesReport({
     required DateTime from,
     required DateTime to,
+    required DatabaseDataSource ds,
   }) async {
     final doc = pw.Document();
-    final sales = await firestore
-        .collection('sales')
-        .where('isDeleted', isEqualTo: false)
-        .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(from))
-        .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(to))
-        .orderBy('timestamp', descending: true)
-        .get();
+    final sales = await ds.queryMulti(
+      FirestorePaths.sales,
+      filters: [
+        QueryFilter(field: 'isDeleted', value: false),
+        QueryFilter(
+          field: 'timestamp',
+          value: Timestamp.fromDate(from),
+          operator: FilterOperator.isGreaterThanOrEqualTo,
+        ),
+        QueryFilter(
+          field: 'timestamp',
+          value: Timestamp.fromDate(to),
+          operator: FilterOperator.isLessThanOrEqualTo,
+        ),
+      ],
+      orderByField: 'timestamp',
+      orderByDescending: true,
+    );
 
     double totalPrice = 0;
     int totalCount = 0;
     final List<Map<String, dynamic>> rows = [];
 
     for (final snap in sales.docs) {
-      final data = snap.data();
+      final data = snap.data() as Map<String, dynamic>;
       final amount = (data['totalPrice'] as num?)?.toDouble() ?? 0;
       totalPrice += amount;
       totalCount++;
@@ -87,21 +100,33 @@ class PdfReportService {
   static Future<Uint8List> generateShiftReport({
     required DateTime from,
     required DateTime to,
+    required DatabaseDataSource ds,
   }) async {
     final doc = pw.Document();
-    final shifts = await firestore
-        .collection('work_shifts')
-        .where('startTime', isGreaterThanOrEqualTo: Timestamp.fromDate(from))
-        .where('startTime', isLessThanOrEqualTo: Timestamp.fromDate(to))
-        .orderBy('startTime', descending: true)
-        .get();
+    final shifts = await ds.queryMulti(
+      FirestorePaths.workShifts,
+      filters: [
+        QueryFilter(
+          field: 'startTime',
+          value: Timestamp.fromDate(from),
+          operator: FilterOperator.isGreaterThanOrEqualTo,
+        ),
+        QueryFilter(
+          field: 'startTime',
+          value: Timestamp.fromDate(to),
+          operator: FilterOperator.isLessThanOrEqualTo,
+        ),
+      ],
+      orderByField: 'startTime',
+      orderByDescending: true,
+    );
 
     double totalCash = 0;
     int shiftCount = 0;
     final rows = <List<String>>[];
 
     for (final snap in shifts.docs) {
-      final data = snap.data();
+      final data = snap.data() as Map<String, dynamic>;
       final expected = (data['expectedCash'] as num?)?.toDouble() ?? 0;
       final declared = (data['actualCash'] as num?)?.toDouble() ?? 0;
       totalCash += declared;
@@ -154,21 +179,22 @@ class PdfReportService {
     return doc.save();
   }
 
-  static Future<Uint8List> generateDebtsReport() async {
+  static Future<Uint8List> generateDebtsReport({required DatabaseDataSource ds}) async {
     final doc = pw.Document();
-    final debts = await firestore
-        .collection('debts')
-        .where('isDeleted', isEqualTo: false)
-        .orderBy('created', descending: true)
-        .get();
+    final debts = await ds.queryMulti(
+      FirestorePaths.debts,
+      filters: [QueryFilter(field: 'isDeleted', value: false)],
+      orderByField: 'created',
+      orderByDescending: true,
+    );
 
-    final clientsSnap = await firestore.collection('clients').get();
-    final clientNames = {for (final d in clientsSnap.docs) d.id: d.data()['name'] as String? ?? d.id};
+    final clientsSnap = await ds.query(FirestorePaths.clients);
+    final clientNames = {for (final d in clientsSnap.docs) d.id: (d.data() as Map<String, dynamic>)['name'] as String? ?? d.id};
 
     double totalDebts = 0;
     final rows = <List<String>>[];
     for (final snap in debts.docs) {
-      final data = snap.data();
+      final data = snap.data() as Map<String, dynamic>;
       final amount = (data['amount'] as num?)?.toDouble() ?? 0;
       totalDebts += amount;
       rows.add([
@@ -226,24 +252,36 @@ class PdfReportService {
   static Future<Uint8List> generatePaymentsReport({
     required DateTime from,
     required DateTime to,
+    required DatabaseDataSource ds,
   }) async {
     final doc = pw.Document();
-    final payments = await firestore
-        .collection('payments')
-        .where('isDeleted', isEqualTo: false)
-        .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(from))
-        .where('createdAt', isLessThanOrEqualTo: Timestamp.fromDate(to))
-        .orderBy('createdAt', descending: true)
-        .get();
+    final payments = await ds.queryMulti(
+      FirestorePaths.payments,
+      filters: [
+        QueryFilter(field: 'isDeleted', value: false),
+        QueryFilter(
+          field: 'createdAt',
+          value: Timestamp.fromDate(from),
+          operator: FilterOperator.isGreaterThanOrEqualTo,
+        ),
+        QueryFilter(
+          field: 'createdAt',
+          value: Timestamp.fromDate(to),
+          operator: FilterOperator.isLessThanOrEqualTo,
+        ),
+      ],
+      orderByField: 'createdAt',
+      orderByDescending: true,
+    );
 
-    final clientsSnap = await firestore.collection('clients').get();
-    final clientNames = {for (final d in clientsSnap.docs) d.id: d.data()['name'] as String? ?? d.id};
+    final clientsSnap = await ds.query(FirestorePaths.clients);
+    final clientNames = {for (final d in clientsSnap.docs) d.id: (d.data() as Map<String, dynamic>)['name'] as String? ?? d.id};
 
     double totalCompleted = 0;
     double totalPending = 0;
     final rows = <List<String>>[];
     for (final snap in payments.docs) {
-      final data = snap.data();
+      final data = snap.data() as Map<String, dynamic>;
       final amount = (data['amount'] as num?)?.toDouble() ?? 0;
       final status = data['status'] as String? ?? 'PENDING';
       if (status == 'COMPLETED') {
@@ -298,25 +336,29 @@ class PdfReportService {
     return doc.save();
   }
 
-  static Future<Uint8List> generatePumpIndexReport() async {
+  static Future<Uint8List> generatePumpIndexReport({required DatabaseDataSource ds}) async {
     final doc = pw.Document();
-    final pumpsSnap = await firestore.collection('pumps').where('isDeleted', isEqualTo: false).get();
+    final pumpsSnap = await ds.queryMulti(
+      FirestorePaths.pumps,
+      filters: [QueryFilter(field: 'isDeleted', value: false)],
+    );
 
     final rows = <List<String>>[];
     for (final pumpDoc in pumpsSnap.docs) {
-      final pumpData = pumpDoc.data();
+      final pumpData = pumpDoc.data() as Map<String, dynamic>;
       final pumpName = pumpData['name'] as String? ?? pumpDoc.id;
 
-      final spSnap = await firestore
-          .collection('shiftPumps')
-          .where('pumpId', isEqualTo: pumpDoc.id)
-          .orderBy('shiftId', descending: true)
-          .limit(1)
-          .get();
+      final spSnap = await ds.queryMulti(
+        FirestorePaths.shiftPumps,
+        filters: [QueryFilter(field: 'pumpId', value: pumpDoc.id)],
+        orderByField: 'shiftId',
+        orderByDescending: true,
+        limit: 1,
+      );
 
       double lastCounter = 0;
       if (spSnap.docs.isNotEmpty) {
-        lastCounter = (spSnap.docs.first.data()['endAnalogCounter'] as num?)?.toDouble() ?? 0;
+        lastCounter = ((spSnap.docs.first.data() as Map<String, dynamic>?)?['endAnalogCounter'] as num?)?.toDouble() ?? 0;
       }
 
       rows.add([
@@ -360,21 +402,33 @@ class PdfReportService {
   static Future<Uint8List> generatePitRefillReport({
     required DateTime from,
     required DateTime to,
+    required DatabaseDataSource ds,
   }) async {
     final doc = pw.Document();
-    final refills = await firestore
-        .collection('pitRefills')
-        .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(from))
-        .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(to))
-        .orderBy('timestamp', descending: true)
-        .get();
+    final refills = await ds.queryMulti(
+      FirestorePaths.pitRefills,
+      filters: [
+        QueryFilter(
+          field: 'timestamp',
+          value: Timestamp.fromDate(from),
+          operator: FilterOperator.isGreaterThanOrEqualTo,
+        ),
+        QueryFilter(
+          field: 'timestamp',
+          value: Timestamp.fromDate(to),
+          operator: FilterOperator.isLessThanOrEqualTo,
+        ),
+      ],
+      orderByField: 'timestamp',
+      orderByDescending: true,
+    );
 
     double totalVolume = 0;
     double totalCost = 0;
     final rows = <List<String>>[];
 
     for (final snap in refills.docs) {
-      final data = snap.data();
+      final data = snap.data() as Map<String, dynamic>;
       final volume = (data['volume'] as num?)?.toDouble() ?? 0;
       final cost = (data['totalCost'] as num?)?.toDouble() ?? 0;
       totalVolume += volume;
@@ -426,20 +480,21 @@ class PdfReportService {
     return doc.save();
   }
 
-  static Future<Uint8List> generateFuelPriceReport() async {
+  static Future<Uint8List> generateFuelPriceReport({required DatabaseDataSource ds}) async {
     final doc = pw.Document();
-    final priceHistory = await firestore
-        .collection('fuelPriceHistory')
-        .orderBy('changedAt', descending: true)
-        .limit(100)
-        .get();
+    final priceHistory = await ds.queryMulti(
+      FirestorePaths.fuelPriceHistory,
+      orderByField: 'changedAt',
+      orderByDescending: true,
+      limit: 100,
+    );
 
-    final fuelSnap = await firestore.collection('gasTypes').get();
-    final fuelNames = {for (final d in fuelSnap.docs) d.id: d.data()['name'] as String? ?? d.id};
+    final fuelSnap = await ds.query(FirestorePaths.gasTypes);
+    final fuelNames = {for (final d in fuelSnap.docs) d.id: (d.data() as Map<String, dynamic>)['name'] as String? ?? d.id};
 
     final rows = <List<String>>[];
     for (final snap in priceHistory.docs) {
-      final data = snap.data();
+      final data = snap.data() as Map<String, dynamic>;
       rows.add([
         _formatDate((data['changedAt'] as Timestamp?)?.toDate()),
         fuelNames[data['gasTypeId'] as String?] ?? '--',
@@ -481,19 +536,31 @@ class PdfReportService {
   static Future<Uint8List> generateAuditLogReport({
     required DateTime from,
     required DateTime to,
+    required DatabaseDataSource ds,
   }) async {
     final doc = pw.Document();
-    final logs = await firestore
-        .collection('logs')
-        .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(from))
-        .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(to))
-        .orderBy('timestamp', descending: true)
-        .limit(200)
-        .get();
+    final logs = await ds.queryMulti(
+      FirestorePaths.logs,
+      filters: [
+        QueryFilter(
+          field: 'timestamp',
+          value: Timestamp.fromDate(from),
+          operator: FilterOperator.isGreaterThanOrEqualTo,
+        ),
+        QueryFilter(
+          field: 'timestamp',
+          value: Timestamp.fromDate(to),
+          operator: FilterOperator.isLessThanOrEqualTo,
+        ),
+      ],
+      orderByField: 'timestamp',
+      orderByDescending: true,
+      limit: 200,
+    );
 
     final rows = <List<String>>[];
     for (final snap in logs.docs) {
-      final data = snap.data();
+      final data = snap.data() as Map<String, dynamic>;
       rows.add([
         _formatDateTime((data['timestamp'] as Timestamp?)?.toDate()),
         data['userId'] as String? ?? '--',
@@ -536,19 +603,31 @@ class PdfReportService {
     return doc.save();
   }
 
-  static Future<Uint8List> generateStatisticsReport() async {
+  static Future<Uint8List> generateStatisticsReport({required DatabaseDataSource ds}) async {
     final doc = pw.Document();
-    final salesSnap = await firestore.collection('sales').where('isDeleted', isEqualTo: false).get();
-    final clientsCount = (await firestore.collection('clients').where('isDeleted', isEqualTo: false).get()).docs.length;
-    final shiftsSnap = await firestore.collection('work_shifts').get();
-    final pumpsCount = (await firestore.collection('pumps').where('isDeleted', isEqualTo: false).get()).docs.length;
-    final productsCount = (await firestore.collection('products').where('isDeleted', isEqualTo: false).get()).docs.length;
+    final salesSnap = await ds.queryMulti(
+      FirestorePaths.sales,
+      filters: [QueryFilter(field: 'isDeleted', value: false)],
+    );
+    final clientsCount = (await ds.queryMulti(
+      FirestorePaths.clients,
+      filters: [QueryFilter(field: 'isDeleted', value: false)],
+    )).docs.length;
+    final shiftsSnap = await ds.query(FirestorePaths.workShifts);
+    final pumpsCount = (await ds.queryMulti(
+      FirestorePaths.pumps,
+      filters: [QueryFilter(field: 'isDeleted', value: false)],
+    )).docs.length;
+    final productsCount = (await ds.queryMulti(
+      FirestorePaths.products,
+      filters: [QueryFilter(field: 'isDeleted', value: false)],
+    )).docs.length;
 
     double totalRevenue = 0;
     int totalSales = salesSnap.docs.length;
     double avgSale = 0;
     for (final d in salesSnap.docs) {
-      final data = d.data();
+      final data = d.data() as Map<String, dynamic>;
       totalRevenue += (data['totalPrice'] as num?)?.toDouble() ?? 0;
     }
     if (totalSales > 0) avgSale = totalRevenue / totalSales;

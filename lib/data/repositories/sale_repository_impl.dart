@@ -1,49 +1,50 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/constants/firestore_paths.dart';
-import '../../data/firestore/firestore_provider.dart';
+import '../../data/datasource/database_datasource.dart';
 import '../../domain/entities/sale.dart';
 import '../../domain/entities/sale_item.dart';
 import '../../domain/enums/sale_type.dart';
 import '../../domain/repositories/sale_repository.dart';
 
 class SaleRepositoryImpl implements SaleRepository {
-  SaleRepositoryImpl._();
-  static final _instance = SaleRepositoryImpl._();
-  factory SaleRepositoryImpl() => _instance;
+  final DatabaseDataSource _ds;
+
+  SaleRepositoryImpl(this._ds);
 
   @override
   Future<void> recordSale({
     required Sale sale,
     required List<SaleItem> items,
   }) async {
-    final batch = firestore.batch();
+    final batch = _ds.batch();
 
-    final saleRef =
-        firestore.collection(FirestorePaths.sales).doc(sale.id);
+    final saleRef = _ds.docRef(FirestorePaths.sales, sale.id);
     batch.set(saleRef, sale.toMap());
 
     for (final item in items) {
-      final itemRef = firestore
-          .collection(FirestorePaths.sales)
-          .doc(sale.id)
-          .collection('items')
-          .doc(item.id);
+      final itemRef = _ds.docRef(
+        '${FirestorePaths.sales}/${sale.id}/items',
+        item.id,
+      );
       batch.set(itemRef, item.toMap());
     }
 
     if (sale.saleType == SaleType.fuel && sale.gasTypeId != null) {
-      final pitSnap = await firestore
-          .collection(FirestorePaths.pits)
-          .where('gasTypeId', isEqualTo: sale.gasTypeId)
-          .where('isDeleted', isEqualTo: false)
-          .limit(1)
-          .get();
+      final pitSnap = await _ds.queryMulti(
+        FirestorePaths.pits,
+        filters: [
+          QueryFilter(field: 'gasTypeId', value: sale.gasTypeId),
+          QueryFilter(field: 'isDeleted', value: false),
+        ],
+        limit: 1,
+      );
 
       if (pitSnap.docs.isNotEmpty) {
         final pitDoc = pitSnap.docs.first;
+        final pitData = pitDoc.data() as Map<String, dynamic>;
         final currentVolume =
-            (pitDoc.data()['currentVolume'] as num?)?.toDouble() ?? 0;
+            (pitData['currentVolume'] as num?)?.toDouble() ?? 0;
         final volumeSold = sale.volume ?? 0;
         final newVolume = currentVolume - volumeSold;
 
@@ -62,32 +63,43 @@ class SaleRepositoryImpl implements SaleRepository {
     final startOfDay = DateTime(now.year, now.month, now.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
 
-    return firestore
-        .collection(FirestorePaths.sales)
-        .where('timestamp',
-            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
-        .where('timestamp', isLessThan: Timestamp.fromDate(endOfDay))
-        .where('isDeleted', isEqualTo: false)
-        .orderBy('timestamp', descending: true)
-        .snapshots()
-        .map(
-          (snap) =>
-              snap.docs.map((d) => Sale.fromMap(d.data())).toList(),
-        );
+    return _ds.streamQueryMulti(
+      FirestorePaths.sales,
+      filters: [
+        QueryFilter(
+          field: 'timestamp',
+          value: Timestamp.fromDate(startOfDay),
+          operator: FilterOperator.isGreaterThanOrEqualTo,
+        ),
+        QueryFilter(
+          field: 'timestamp',
+          value: Timestamp.fromDate(endOfDay),
+          operator: FilterOperator.isLessThan,
+        ),
+        QueryFilter(field: 'isDeleted', value: false),
+      ],
+      orderByField: 'timestamp',
+      orderByDescending: true,
+    ).map(
+      (snap) => snap.docs
+          .map((d) => Sale.fromMap(
+              d.data() as Map<String, dynamic>..putIfAbsent('id', () => d.id)))
+          .toList(),
+    );
   }
 
   @override
   Stream<List<Sale>> watchAllSales() {
-    return firestore
-        .collection(FirestorePaths.sales)
-        .where('isDeleted', isEqualTo: false)
-        .orderBy('timestamp', descending: true)
-        .snapshots()
-        .map(
-          (snap) =>
-              snap.docs.map((d) => Sale.fromMap(d.data())).toList(),
-        );
+    return _ds.streamQueryMulti(
+      FirestorePaths.sales,
+      filters: [QueryFilter(field: 'isDeleted', value: false)],
+      orderByField: 'timestamp',
+      orderByDescending: true,
+    ).map(
+      (snap) => snap.docs
+          .map((d) => Sale.fromMap(
+              d.data() as Map<String, dynamic>..putIfAbsent('id', () => d.id)))
+          .toList(),
+    );
   }
 }
-
-final saleRepository = SaleRepositoryImpl();

@@ -21,7 +21,6 @@ class _FabSpeedDialState extends State<FabSpeedDial>
   bool _isOpen = false;
   bool _isAnimating = false;
   OverlayEntry? _overlayEntry;
-  final GlobalKey _fabKey = GlobalKey();
 
   // ────────────────────────────────────────────────────────────────
   // Lifecycle
@@ -91,13 +90,12 @@ class _FabSpeedDialState extends State<FabSpeedDial>
   void _showOverlay() {
     _overlayEntry = OverlayEntry(
       builder: (_) => _FabOverlay(
-        fabKey: _fabKey,
         expandAnimation: _expandAnimation,
         onClose: _closeDial,
         onAction: _closeDial,
       ),
     );
-    Overlay.of(context).insert(_overlayEntry!);
+    Overlay.of(context, rootOverlay: true).insert(_overlayEntry!);
   }
 
   void _removeOverlay() {
@@ -112,11 +110,8 @@ class _FabSpeedDialState extends State<FabSpeedDial>
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton(
-      key: _fabKey,
       onPressed: _toggle,
-      backgroundColor: _isOpen
-          ? Colors.red.shade400
-          : const Color(0xFF0066CC),
+      backgroundColor: _isOpen ? Colors.red.shade400 : const Color(0xFF0066CC),
       child: AnimatedIcon(
         icon: AnimatedIcons.menu_close,
         progress: _controller,
@@ -131,13 +126,11 @@ class _FabSpeedDialState extends State<FabSpeedDial>
 // ======================================================================
 
 class _FabOverlay extends StatelessWidget {
-  final GlobalKey fabKey;
   final Animation<double> expandAnimation;
   final VoidCallback onClose;
   final VoidCallback onAction;
 
   const _FabOverlay({
-    required this.fabKey,
     required this.expandAnimation,
     required this.onClose,
     required this.onAction,
@@ -145,43 +138,30 @@ class _FabOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fabRenderBox =
-        fabKey.currentContext?.findRenderObject() as RenderBox?;
-    if (fabRenderBox == null || !fabRenderBox.hasSize) {
-      return const SizedBox.shrink();
-    }
-
-    final fabPosition = fabRenderBox.localToGlobal(Offset.zero);
-    final fabSize = fabRenderBox.size;
     final mediaQuery = MediaQuery.of(context);
     final screenHeight = mediaQuery.size.height;
-    final screenWidth = mediaQuery.size.width;
     final bottomInset =
         mediaQuery.viewInsets.bottom + mediaQuery.padding.bottom;
     final isRtl = Directionality.of(context) == TextDirection.rtl;
 
-    // The FAB centre X on screen
-    final fabCenterX = fabPosition.dx + fabSize.width / 2;
-
-    // Available vertical space above the FAB (subtract bottom insets
-    // for keyboard / navigation bar so we don't over-estimate)
-    final spaceAbove = fabPosition.dy - bottomInset;
-    // Estimated height of all actions (5 actions × ~56dp + padding)
+    const fabSize = 56.0;
+    const safeGap = 16.0;
+    const actionSpacing = 8.0;
     const estimatedActionsHeight = 5.0 * 56.0 + 24.0;
 
-    // If there's not enough room above, flip the direction so actions
-    // appear below the FAB instead (pointing upward is the default).
-    final bool expandUpward = spaceAbove >= estimatedActionsHeight;
+    final fabBottomFromScreenBottom = safeGap + fabSize;
+    final fabRightFromScreenRight = safeGap;
 
-    // Distance from the FAB's top/bottom edge to the screen edge
-    final fabBottomFromScreenBottom = screenHeight - fabPosition.dy;
+    // The overlay is positioned relative to the standard scaffold FAB's
+    // bottom-right corner, but we still flip direction when there is not
+    // enough vertical room above it.
+    final bool expandUpward =
+        (screenHeight - fabBottomFromScreenBottom - bottomInset) >=
+        estimatedActionsHeight + actionSpacing;
 
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // ---- Tap barrier (dismisses the speed dial) ----
-        // We exclude the FAB area from the barrier so tapping the
-        // FAB button itself still toggles the dial.
         Positioned.fill(
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
@@ -189,24 +169,14 @@ class _FabOverlay extends StatelessWidget {
             child: Container(color: Colors.transparent),
           ),
         ),
-        // ---- Actions positioned relative to the FAB ----
-        // The actions column is aligned so that the small FAB buttons
-        // sit directly above (or below) the main FAB.
-        // In LTR the column is right-aligned (FAB.small on the right,
-        // labels extending left). In RTL the opposite.
         Positioned(
-          right: isRtl ? null : screenWidth - fabCenterX,
-          left: isRtl ? fabCenterX : null,
+          right: isRtl ? null : fabRightFromScreenRight,
+          left: isRtl ? fabRightFromScreenRight : null,
           bottom: expandUpward
-              ? fabBottomFromScreenBottom + 8.0
+              ? fabBottomFromScreenBottom + actionSpacing
               : null,
-          top: expandUpward
-              ? null
-              : fabPosition.dy + fabSize.height + 8.0,
-          child: _ActionsPanel(
-            animation: expandAnimation,
-            onAction: onAction,
-          ),
+          top: expandUpward ? null : fabBottomFromScreenBottom + actionSpacing,
+          child: _ActionsPanel(animation: expandAnimation, onAction: onAction),
         ),
       ],
     );
@@ -221,10 +191,7 @@ class _ActionsPanel extends StatelessWidget {
   final Animation<double> animation;
   final VoidCallback onAction;
 
-  const _ActionsPanel({
-    required this.animation,
-    required this.onAction,
-  });
+  const _ActionsPanel({required this.animation, required this.onAction});
 
   @override
   Widget build(BuildContext context) {
@@ -326,8 +293,10 @@ class _SpeedDialAction extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1A2332),
                   borderRadius: BorderRadius.circular(6),
@@ -335,8 +304,7 @@ class _SpeedDialAction extends StatelessWidget {
                 ),
                 child: Text(
                   label,
-                  style:
-                      const TextStyle(color: Colors.white, fontSize: 12),
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ),
               const SizedBox(width: 8),

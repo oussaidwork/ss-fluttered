@@ -1,24 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
-import '../../data/firestore/firestore_provider.dart';
+
 import '../../domain/entities/sale.dart';
-import '../../core/constants/firestore_paths.dart';
+import 'repository_providers.dart';
 
 final todaySalesProvider = StreamProvider<List<Sale>>((ref) {
-  final now = DateTime.now();
-  final startOfDay = DateTime(now.year, now.month, now.day);
-  return firestore.collection(FirestorePaths.sales)
-    .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
-    .where('isDeleted', isEqualTo: false)
-    .orderBy('timestamp', descending: true)
-    .snapshots()
-    .map((snap) => snap.docs.map((d) => Sale.fromMap(d.data()..putIfAbsent('id', () => d.id))).toList());
+  return ref.watch(saleRepositoryProvider).watchTodaySales();
 });
 
 final allSalesProvider = StreamProvider<List<Sale>>((ref) {
-  return firestore.collection(FirestorePaths.sales)
-    .where('isDeleted', isEqualTo: false)
-    .orderBy('timestamp', descending: true)
-    .snapshots()
-    .map((snap) => snap.docs.map((d) => Sale.fromMap(d.data()..putIfAbsent('id', () => d.id))).toList());
+  return ref.watch(saleRepositoryProvider).watchAllSales();
 });

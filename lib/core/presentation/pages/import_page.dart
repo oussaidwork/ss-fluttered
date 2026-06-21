@@ -7,6 +7,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../services/import_service.dart';
 import '../../services/json_import_service.dart';
 import '../../services/json_export_service.dart';
+import '../../../data/datasource/firestore_datasource.dart';
 
 class ImportPage extends ConsumerStatefulWidget {
   final String? importType;
@@ -63,9 +64,9 @@ class _ImportPageState extends ConsumerState<ImportPage> {
 
       if (fileName.endsWith('.json')) {
         final jsonString = utf8.decode(result.files.single.bytes!);
-        results = await JsonImportService().importJson(jsonString);
+        results = await JsonImportService(FirestoreDataSourceImpl()).importJson(jsonString);
       } else {
-        final importService = ImportService();
+        final importService = ImportService(FirestoreDataSourceImpl());
         if (_isBulkImport) {
           results = await importService.importExcel(result.files.single.bytes!);
         } else {
@@ -111,7 +112,7 @@ class _ImportPageState extends ConsumerState<ImportPage> {
     });
 
     try {
-      final results = await JsonImportService().importJson(jsonString);
+        final results = await JsonImportService(FirestoreDataSourceImpl()).importJson(jsonString);
       setState(() {
         _results = results;
         _isPastingJson = false;

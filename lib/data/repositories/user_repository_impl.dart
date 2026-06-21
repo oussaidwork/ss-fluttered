@@ -1,68 +1,69 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/constants/firestore_paths.dart';
-import '../../data/firestore/firestore_provider.dart';
+import '../../data/datasource/database_datasource.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/entities/salary_advance.dart';
 import '../../domain/repositories/user_repository.dart';
 
 class UserRepositoryImpl implements UserRepository {
-  UserRepositoryImpl._();
-  static final _instance = UserRepositoryImpl._();
-  factory UserRepositoryImpl() => _instance;
+  final DatabaseDataSource _ds;
+
+  UserRepositoryImpl(this._ds);
 
   @override
   Stream<List<UserProfile>> watchUsers() {
-    return firestore
-        .collection(FirestorePaths.users)
-        .snapshots()
-        .map(
-          (snap) =>
-              snap.docs.map((d) => UserProfile.fromMap(d.data())).toList(),
-        );
+    return _ds.streamQuery(
+      FirestorePaths.users,
+    ).map(
+      (snap) => snap.docs
+          .map((d) => UserProfile.fromMap(d.data() as Map<String, dynamic>))
+          .toList(),
+    );
   }
 
   @override
   Future<UserProfile?> getUser(String userId) async {
-    final doc = await firestore
-        .collection(FirestorePaths.users)
-        .doc(userId)
-        .get();
+    final doc = await _ds.getDoc(FirestorePaths.users, userId);
     if (!doc.exists) return null;
-    return UserProfile.fromMap(doc.data()!);
+    return UserProfile.fromMap(doc.data() as Map<String, dynamic>);
   }
 
   @override
   Future<void> updateUser(UserProfile user) async {
-    await firestore
-        .collection(FirestorePaths.users)
-        .doc(user.id)
-        .update(user.toMap());
+    await _ds.updateDoc(FirestorePaths.users, user.id, user.toMap());
   }
 
   @override
   Stream<List<SalaryAdvance>> watchAdvances({String? workerId}) {
-    Query query = firestore
-        .collection(FirestorePaths.salaryAdvances)
-        .orderBy('requestDate', descending: true);
-
     if (workerId != null) {
-      query = query.where('workerId', isEqualTo: workerId);
+      return _ds.streamQueryMulti(
+        FirestorePaths.salaryAdvances,
+        filters: [QueryFilter(field: 'workerId', value: workerId)],
+        orderByField: 'requestDate',
+        orderByDescending: true,
+      ).map(
+        (snap) => snap.docs
+            .map((d) => SalaryAdvance.fromMap(d.data() as Map<String, dynamic>))
+            .toList(),
+      );
     }
 
-    return query.snapshots().map(
-          (snap) => snap.docs
-              .map((d) => SalaryAdvance.fromMap(d.data() as Map<String, dynamic>))
-              .toList(),
-        );
+    return _ds.streamQuery(
+      FirestorePaths.salaryAdvances,
+      orderByField: 'requestDate',
+      orderByDescending: true,
+    ).map(
+      (snap) => snap.docs
+          .map((d) => SalaryAdvance.fromMap(d.data() as Map<String, dynamic>))
+          .toList(),
+    );
   }
 
   @override
   Future<void> createAdvance(SalaryAdvance advance) async {
-    await firestore
-        .collection(FirestorePaths.salaryAdvances)
-        .doc(advance.id)
-        .set(advance.toMap());
+    await _ds.setDoc(
+        FirestorePaths.salaryAdvances, advance.id, advance.toMap());
   }
 
   @override
@@ -71,15 +72,10 @@ class UserRepositoryImpl implements UserRepository {
     required bool approved,
     String? resolvedBy,
   }) async {
-    await firestore
-        .collection(FirestorePaths.salaryAdvances)
-        .doc(advanceId)
-        .update({
+    await _ds.updateDoc(FirestorePaths.salaryAdvances, advanceId, {
       'status': approved ? 'APPROVED' : 'REJECTED',
       'resolvedBy': resolvedBy,
       'resolutionDate': Timestamp.fromDate(DateTime.now()),
     });
   }
 }
-
-final userRepository = UserRepositoryImpl();

@@ -1,0 +1,71 @@
+[
+  {
+    "client_name": "ADIL",
+    "items": [
+      {
+        "type": "SALE",
+        "date": "2026-01-12",
+        "fleet": "CAMION",
+        "plate": "RESTE",
+        "product": "DIESEL",
+        "qty": null,
+        "price": null,
+        "payment": "DEBT",
+        "ref": "INV-001"
+      },
+      {
+        "type": "SALE",
+        "date": "2026-02-13",
+        "fleet": "CAMION",
+        "plate": "000a00",
+        "product": "DIESEL",
+        "qty": 635,
+        "price": 7.94,
+        "payment": "DEBT",
+        "ref": "INV-002"
+      },
+      {
+        "type": "SALE",
+        "date": "2026-02-16",
+        "fleet": "CAMION",
+        "plate": "000a01",
+        "product": "DIESEL",
+        "qty": 1542,
+        "price": 8.29,
+        "payment": "DEBT",
+        "ref": "INV-003"
+      },
+      {
+        "type": "SALE",
+        "date": "2026-02-17",
+        "fleet": "CAMION",
+        "plate": "000a02",
+        "product": "DIESEL",
+        "qty": 1705,
+        "price": 12.49,
+        "payment": "DEBT",
+        "ref": "INV-004"
+      },
+      {
+        "type": "PAYMENT",
+        "amount": 10000,
+        "payment": "CASH"
+      },
+      {
+        "type": "PAYMENT",
+        "amount": 10000,
+        "payment": "CASH"
+      },
+      {
+        "type": "PAYMENT",
+        "amount": 15000,
+        "payment": "CASH"
+      },
+      {
+        "type": "PAYMENT",
+        "amount": 5000,
+        "payment": "CASH"
+      }
+    ]
+  }
+]

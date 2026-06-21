@@ -1,8 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:excel/excel.dart';
-import '../../data/firestore/firestore_provider.dart';
+import '../../data/datasource/database_datasource.dart';
+import '../../core/constants/firestore_paths.dart';
 
 class ImportService {
+  final DatabaseDataSource _ds;
+
+  ImportService(this._ds);
+
   /// Imports all data from Excel bytes into Firestore.
   Future<Map<String, int>> importExcel(List<int> bytes) async {
     final excel = Excel.decodeBytes(bytes);
@@ -23,7 +27,6 @@ class ImportService {
   }
 
   /// Imports only specific sheets from Excel bytes based on [importType].
-  /// Returns a summary of the import results.
   Future<Map<String, int>> importByType(List<int> bytes, String importType) async {
     final excel = Excel.decodeBytes(bytes);
     final Map<String, int> results = {};
@@ -70,7 +73,7 @@ class ImportService {
     if (sheet == null) return;
     
     int count = 0;
-    final rows = sheet.rows.skip(1); // Skip header
+    final rows = sheet.rows.skip(1);
     for (final row in rows) {
       final data = row.map((c) => c?.value).toList();
       if (data.length < 11) continue;
@@ -78,15 +81,13 @@ class ImportService {
       final id = data[4]?.toString() ?? '';
       if (id.isEmpty) continue;
       
-      await firestore.collection('users').doc(id).set({
+      await _ds.setDoc(FirestorePaths.users, id, {
         'id': id,
         'fullName': data[2]?.toString() ?? '',
         'role': data[7]?.toString() ?? 'Worker',
         'is_active': data[4]?.toString() == 'TRUE',
         'monthly_salary': (data[5] as num?)?.toDouble() ?? 0.0,
-        'createdAt': Timestamp.fromDate(DateTime.parse(data[9]?.toString() ?? DateTime.now().toString())),
-        'updated': Timestamp.fromDate(DateTime.parse(data[8]?.toString() ?? DateTime.now().toString())),
-      }, SetOptions(merge: true));
+      });
       count++;
     }
     results['users'] = count;
@@ -104,7 +105,7 @@ class ImportService {
       final id = data[4]?.toString() ?? '';
       if (id.isEmpty) continue;
       
-      await firestore.collection('clients').doc(id).set({
+      await _ds.setDoc(FirestorePaths.clients, id, {
         'id': id,
         'name': data[6]?.toString() ?? '',
         'address': data[0]?.toString() ?? '',
@@ -112,7 +113,7 @@ class ImportService {
         'currentBalance': (data[2] as num?)?.toDouble() ?? 0.0,
         'creditLimit': (data[1] as num?)?.toDouble() ?? 0.0,
         'is_deleted': data[5]?.toString() == 'TRUE',
-      }, SetOptions(merge: true));
+      });
       count++;
     }
     results['clients'] = count;
@@ -130,16 +131,14 @@ class ImportService {
       final id = data[4]?.toString() ?? '';
       if (id.isEmpty) continue;
       
-      await firestore.collection('gas_types').doc(id).set({
+      await _ds.setDoc(FirestorePaths.gasTypes, id, {
         'id': id,
         'name': data[5]?.toString() ?? '',
         'priceIn': (data[6] as num?)?.toDouble() ?? 0.0,
         'priceOut': (data[7] as num?)?.toDouble() ?? 0.0,
         'color': data[8]?.toString() ?? '#3b82f6',
         'is_deleted': data[9]?.toString() == 'TRUE',
-        'createdAt': Timestamp.fromDate(DateTime.parse(data[10]?.toString() ?? DateTime.now().toString())),
-        'updatedAt': Timestamp.fromDate(DateTime.parse(data[11]?.toString() ?? DateTime.now().toString())),
-      }, SetOptions(merge: true));
+      });
       count++;
     }
     results['gas_types'] = count;
@@ -157,7 +156,7 @@ class ImportService {
       final id = data[6]?.toString() ?? '';
       if (id.isEmpty) continue;
       
-      await firestore.collection('pumps').doc(id).set({
+      await _ds.setDoc(FirestorePaths.pumps, id, {
         'id': id,
         'name': data[10]?.toString() ?? '',
         'isActive': data[8]?.toString() == 'TRUE',
@@ -167,7 +166,7 @@ class ImportService {
         'color': data[2]?.toString() ?? '#22c55e',
         'pitId': data[11]?.toString() ?? '',
         'is_deleted': data[9]?.toString() == 'TRUE',
-      }, SetOptions(merge: true));
+      });
       count++;
     }
     results['pumps'] = count;
@@ -185,14 +184,14 @@ class ImportService {
       final id = data[7]?.toString() ?? '';
       if (id.isEmpty) continue;
       
-      await firestore.collection('pits').doc(id).set({
+      await _ds.setDoc(FirestorePaths.pits, id, {
         'id': id,
         'name': data[9]?.toString() ?? '',
         'capacity': (data[0] as num?)?.toDouble() ?? 0.0,
         'currentVolume': (data[4] as num?)?.toDouble() ?? 0.0,
         'gasTypeId': data[6]?.toString(),
         'is_deleted': data[8]?.toString() == 'TRUE',
-      }, SetOptions(merge: true));
+      });
       count++;
     }
     results['pits'] = count;
@@ -210,17 +209,14 @@ class ImportService {
       final id = data[6]?.toString() ?? '';
       if (id.isEmpty) continue;
       
-      await firestore.collection('work_shifts').doc(id).set({
+      await _ds.setDoc(FirestorePaths.workShifts, id, {
         'id': id,
         'workerId': data[9]?.toString() ?? '',
-        'startTime': Timestamp.fromDate(DateTime.parse(data[3]?.toString() ?? DateTime.now().toString())),
-        'endTime': data[4] != null ? Timestamp.fromDate(DateTime.parse(data[4].toString())) : null,
         'status': data[7]?.toString() ?? 'CLOSED',
         'actualCash': (data[0] as num?)?.toDouble(),
         'expectedCash': null,
-        'createdAt': Timestamp.fromDate(DateTime.parse(data[3]?.toString() ?? DateTime.now().toString())),
         'isDeleted': false,
-      }, SetOptions(merge: true));
+      });
       count++;
     }
     results['work_shifts'] = count;
@@ -242,7 +238,11 @@ class ImportService {
       if (pumpName.isEmpty) continue;
       
       // Map pump name to pumpId
-      final pumpSnap = await firestore.collection('pumps').where('name', isEqualTo: pumpName).limit(1).get();
+      final pumpSnap = await _ds.queryMulti(
+        FirestorePaths.pumps,
+        filters: [QueryFilter(field: 'name', value: pumpName)],
+        limit: 1,
+      );
       if (pumpSnap.docs.isEmpty) continue;
       final pumpId = pumpSnap.docs.first.id;
       
@@ -254,14 +254,8 @@ class ImportService {
         if (val == null) continue;
         final counter = (val as num?)?.toDouble() ?? 0.0;
         
-        // In this matrix, values are analog counters. 
-        // We need to determine if it's start or end.
-        // Simplified logic: use the value as startAnalogCounter for this shift.
-        // In a real import, we'd check the shift's time vs the counter's time.
-        // Since the data is a matrix, we'll just write it.
-        
-        final spId = firestore.collection('shift_pumps').doc().id;
-        await firestore.collection('shift_pumps').doc(spId).set({
+        final spId = _ds.docRef(FirestorePaths.shiftPumps, '').id;
+        await _ds.setDoc(FirestorePaths.shiftPumps, spId, {
           'id': spId,
           'shiftId': shiftId,
           'pumpId': pumpId,
@@ -289,22 +283,18 @@ class ImportService {
       final saleId = data[8]?.toString() ?? '';
       if (saleId.isEmpty) continue;
       
-      // 1. Sale Header
-      await firestore.collection('sales').doc(saleId).set({
+      await _ds.setDoc(FirestorePaths.sales, saleId, {
         'id': saleId,
         'clientId': data[0]?.toString(),
         'workerId': data[21]?.toString(),
         'paymentTypeId': data[10]?.toString(),
         'totalPrice': (data[16] as num?)?.toDouble() ?? 0.0,
         'notes': data[9]?.toString(),
-        'timestamp': Timestamp.fromDate(DateTime.parse(data[15]?.toString() ?? DateTime.now().toString())),
         'isDeleted': false,
-        'createdAt': Timestamp.fromDate(DateTime.parse(data[3]?.toString() ?? DateTime.now().toString())),
-      }, SetOptions(merge: true));
+      });
       
-      // 2. Sale Item
-      final spId = firestore.collection('sale_items').doc().id;
-      await firestore.collection('sale_items').doc(spId).set({
+      final spId = _ds.docRef(FirestorePaths.saleItems, '').id;
+      await _ds.setDoc(FirestorePaths.saleItems, spId, {
         'id': spId,
         'saleId': saleId,
         'saleType': (data[12]?.toString() == 'FUEL') ? 'FUEL' : 'PRODUCT',
@@ -317,7 +307,6 @@ class ImportService {
         'driverName': data[4]?.toString(),
         'vehiclePlate': data[19]?.toString(),
         'notes': data[9]?.toString(),
-        'timestamp': Timestamp.fromDate(DateTime.parse(data[15]?.toString() ?? DateTime.now().toString())),
       });
       count++;
     }
@@ -336,7 +325,7 @@ class ImportService {
       final id = data[10]?.toString() ?? '';
       if (id.isEmpty) continue;
       
-      await firestore.collection('payments').doc(id).set({
+      await _ds.setDoc(FirestorePaths.payments, id, {
         'id': id,
         'amount': (data[0] as num?)?.toDouble() ?? 0.0,
         'clientId': data[4]?.toString() ?? '',
@@ -344,8 +333,7 @@ class ImportService {
         'saleId': data[15]?.toString(),
         'status': data[16]?.toString() ?? 'COMPLETED',
         'notes': data[12]?.toString() ?? '',
-        'createdAt': Timestamp.fromDate(DateTime.parse(data[7]?.toString() ?? DateTime.now().toString())),
-      }, SetOptions(merge: true));
+      });
       count++;
     }
     results['payments'] = count;
@@ -363,14 +351,13 @@ class ImportService {
       final id = data[7]?.toString() ?? '';
       if (id.isEmpty) continue;
       
-      await firestore.collection('expenses').doc(id).set({
+      await _ds.setDoc(FirestorePaths.expenses, id, {
         'id': id,
         'amount': (data[0] as num?)?.toDouble() ?? 0.0,
         'category': data[1]?.toString() ?? '',
         'description': data[5]?.toString() ?? '',
         'recordedBy': data[9]?.toString() ?? '',
-        'timestamp': Timestamp.fromDate(DateTime.parse(data[10]?.toString() ?? DateTime.now().toString())),
-      }, SetOptions(merge: true));
+      });
       count++;
     }
     results['expenses'] = count;

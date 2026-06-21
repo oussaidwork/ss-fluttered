@@ -1,38 +1,28 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/firestore/firestore_provider.dart';
+
 import '../../domain/entities/gas_type.dart';
 import '../../domain/entities/pit.dart';
 import '../../domain/entities/pump.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/entities/payment_type.dart';
-import '../../core/constants/firestore_paths.dart';
+import 'repository_providers.dart';
 
 final gasTypesProvider = StreamProvider<List<GasType>>((ref) {
-  return firestore.collection(FirestorePaths.gasTypes).where('isDeleted', isEqualTo: false).snapshots().map(
-    (snap) => snap.docs.map((d) => GasType.fromMap(d.data()..putIfAbsent('id', () => d.id))).toList(),
-  );
+  return ref.watch(gasTypeRepositoryProvider).watchGasTypes();
 });
 
 final pitsProvider = StreamProvider<List<Pit>>((ref) {
-  return firestore.collection(FirestorePaths.pits).where('isDeleted', isEqualTo: false).snapshots().map(
-    (snap) => snap.docs.map((d) => Pit.fromMap(d.data()..putIfAbsent('id', () => d.id))).toList(),
-  );
+  return ref.watch(pitRepositoryProvider).watchPits();
 });
 
 final pumpsProvider = StreamProvider<List<Pump>>((ref) {
-  return firestore.collection(FirestorePaths.pumps).where('isDeleted', isEqualTo: false).snapshots().map(
-    (snap) => snap.docs.map((d) => Pump.fromMap(d.data()..putIfAbsent('id', () => d.id))).toList(),
-  );
+  return ref.watch(pumpRepositoryProvider).watchPumps();
 });
 
 final productsProvider = StreamProvider<List<Product>>((ref) {
-  return firestore.collection(FirestorePaths.products).where('isDeleted', isEqualTo: false).snapshots().map(
-    (snap) => snap.docs.map((d) => Product.fromMap(d.data()..putIfAbsent('id', () => d.id))).toList(),
-  );
+  return ref.watch(productRepositoryProvider).watchProducts();
 });
 
 final paymentTypesProvider = StreamProvider<List<PaymentType>>((ref) {
-  return firestore.collection(FirestorePaths.paymentTypes).snapshots().map(
-    (snap) => snap.docs.map((d) => PaymentType.fromMap(d.data()..putIfAbsent('id', () => d.id))).toList(),
-  );
+  return ref.watch(paymentTypeRepositoryProvider).watchPaymentTypes();
 });

@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
 import '../../services/pdf_report_service.dart';
+import '../../../data/datasource/firestore_datasource.dart';
 
 /// Report type definition with metadata.
 class _ReportType {
@@ -352,43 +353,56 @@ class _ReportsPageState extends State<ReportsPage> {
           pdfBytes = await PdfReportService.generateSalesReport(
             from: _from,
             to: _to,
+            ds: FirestoreDataSourceImpl(),
           );
           break;
         case 'Shift Summary':
           pdfBytes = await PdfReportService.generateShiftReport(
             from: _from,
             to: _to,
+            ds: FirestoreDataSourceImpl(),
           );
           break;
         case 'Debts Report':
-          pdfBytes = await PdfReportService.generateDebtsReport();
+          pdfBytes = await PdfReportService.generateDebtsReport(
+            ds: FirestoreDataSourceImpl(),
+          );
           break;
         case 'Payments Settlement':
           pdfBytes = await PdfReportService.generatePaymentsReport(
             from: _from,
             to: _to,
+            ds: FirestoreDataSourceImpl(),
           );
           break;
         case 'Pump Indexes':
-          pdfBytes = await PdfReportService.generatePumpIndexReport();
+          pdfBytes = await PdfReportService.generatePumpIndexReport(
+            ds: FirestoreDataSourceImpl(),
+          );
           break;
         case 'Pit Refill':
           pdfBytes = await PdfReportService.generatePitRefillReport(
             from: _from,
             to: _to,
+            ds: FirestoreDataSourceImpl(),
           );
           break;
         case 'Fuel Price History':
-          pdfBytes = await PdfReportService.generateFuelPriceReport();
+          pdfBytes = await PdfReportService.generateFuelPriceReport(
+            ds: FirestoreDataSourceImpl(),
+          );
           break;
         case 'Audit Log':
           pdfBytes = await PdfReportService.generateAuditLogReport(
             from: _from,
             to: _to,
+            ds: FirestoreDataSourceImpl(),
           );
           break;
         case 'Statistics':
-          pdfBytes = await PdfReportService.generateStatisticsReport();
+          pdfBytes = await PdfReportService.generateStatisticsReport(
+            ds: FirestoreDataSourceImpl(),
+          );
           break;
         default:
           throw Exception('Unknown report type: ${type.title}');

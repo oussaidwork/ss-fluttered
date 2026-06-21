@@ -19,6 +19,8 @@ import '../presentation/pages/system_logs_page.dart';
 import '../presentation/pages/settings_page.dart';
 import '../presentation/pages/pos_page.dart';
 import '../presentation/pages/admin_setup_page.dart';
+import '../presentation/pages/shift_import_page.dart';
+import '../presentation/pages/client_import_page.dart';
 import '../presentation/pages/my_shift_page.dart';
 import '../presentation/pages/role_management_page.dart';
 
@@ -49,6 +51,8 @@ abstract class AppRoutes {
   static const systemLogs = '/system-logs';
   static const settings = '/settings';
   static const adminSetup = '/admin/setup';
+  static const shiftImport = '/import/shift-readings';
+  static const clientImport = '/import/client-data';
 }
 
 GoRouter createRouter({required bool isAuthenticated}) {
@@ -111,6 +115,8 @@ GoRouter createRouter({required bool isAuthenticated}) {
           GoRoute(path: AppRoutes.systemLogs, builder: (_, _) => const SystemLogsPage()),
           GoRoute(path: AppRoutes.settings, builder: (_, _) => const SettingsPage()),
           GoRoute(path: AppRoutes.adminSetup, builder: (_, _) => const AdminSetupPage()),
+          GoRoute(path: AppRoutes.shiftImport, builder: (_, _) => const ShiftImportPage()),
+          GoRoute(path: AppRoutes.clientImport, builder: (_, _) => const ClientImportPage()),
         ],
       ),
     ],

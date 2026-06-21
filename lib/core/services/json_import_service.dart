@@ -1,22 +1,14 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../data/firestore/firestore_provider.dart';
+import '../../data/datasource/database_datasource.dart';
 
 /// Imports data from a JSON file into Firestore.
 /// The JSON format matches the output of [JsonExportService].
-///
-/// Expected JSON structure:
-/// ```json
-/// {
-///   "version": "1.0",
-///   "collections": {
-///     "gas_types": [...],
-///     "pits": [...],
-///     ...
-///   }
-/// }
-/// ```
 class JsonImportService {
+  final DatabaseDataSource _ds;
+
+  JsonImportService(this._ds);
+
   /// Parses a JSON string and imports all collections into Firestore.
   /// Returns a map of collection name → number of documents imported.
   Future<Map<String, int>> importJson(String jsonString) async {
@@ -61,18 +53,18 @@ class JsonImportService {
         continue;
       }
 
-      final batch = firestore.batch();
+      final batch = _ds.batch();
       int count = 0;
 
       for (final docData in docs) {
         if (docData is! Map) continue;
-        final map = Map<String, dynamic>.from(docData as Map);
-        final docId = (map.remove('_docId') as String?) ?? firestore.collection(name).doc().id;
+        final map = Map<String, dynamic>.from(docData);
+        final docId = (map.remove('_docId') as String?) ?? _ds.docRef(name, '').id;
 
         // Remove undefined or null internal fields
         map.remove('_docId');
 
-        final docRef = firestore.collection(name).doc(docId);
+        final docRef = _ds.docRef(name, docId);
         batch.set(docRef, map, SetOptions(merge: true));
         count++;
       }

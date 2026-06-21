@@ -12,6 +12,22 @@
       "collectionGroup": "work_shifts",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "endTime", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "work_shifts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "workerId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "work_shifts",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "workerId", "order": "ASCENDING" },
         { "fieldPath": "startTime", "order": "DESCENDING" }
       ]
@@ -73,13 +89,6 @@
         { "fieldPath": "paymentTypeId", "order": "ASCENDING" },
         { "fieldPath": "isDeleted", "order": "ASCENDING" },
         { "fieldPath": "timestamp", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "sale_items",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "saleId", "order": "ASCENDING" }
       ]
     },
     {

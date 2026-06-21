@@ -167,6 +167,18 @@ class Sidebar extends ConsumerWidget {
                           route: AppRoutes.importFinancial,
                           currentPath: currentPath,
                         ),
+                        _NavItem(
+                          icon: Icons.schedule,
+                          label: 'Shift Readings',
+                          route: AppRoutes.shiftImport,
+                          currentPath: currentPath,
+                        ),
+                        _NavItem(
+                          icon: Icons.people,
+                          label: 'Client Data',
+                          route: AppRoutes.clientImport,
+                          currentPath: currentPath,
+                        ),
                       ],
                     ),
                   ],

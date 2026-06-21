@@ -1,49 +1,53 @@
 import '../../core/constants/firestore_paths.dart';
-import '../../data/firestore/firestore_provider.dart';
+import '../../data/datasource/database_datasource.dart';
 import '../../domain/entities/client.dart';
 import '../../domain/repositories/client_repository.dart';
 
 class ClientRepositoryImpl implements ClientRepository {
-  ClientRepositoryImpl._();
-  static final _instance = ClientRepositoryImpl._();
-  factory ClientRepositoryImpl() => _instance;
+  final DatabaseDataSource _ds;
+
+  ClientRepositoryImpl(this._ds);
 
   @override
   Stream<List<Client>> watchClients() {
-    return firestore
-        .collection(FirestorePaths.clients)
-        .where('isDeleted', isEqualTo: false)
-        .orderBy('name')
-        .snapshots()
-        .map(
-          (snap) =>
-              snap.docs.map((d) => Client.fromMap(d.data())).toList(),
-        );
+    return _ds.streamQueryMulti(
+      FirestorePaths.clients,
+      filters: [QueryFilter(field: 'isDeleted', value: false)],
+      orderByField: 'name',
+    ).map(
+      (snap) => snap.docs
+          .map((d) => Client.fromMap(d.data() as Map<String, dynamic>..putIfAbsent('id', () => d.id)))
+          .toList(),
+    );
   }
 
   @override
   Future<double> getClientBalance(String clientId) async {
-    final debtsSnap = await firestore
-        .collection(FirestorePaths.debts)
-        .where('clientId', isEqualTo: clientId)
-        .where('isDeleted', isEqualTo: false)
-        .get();
+    final debtsSnap = await _ds.queryMulti(
+      FirestorePaths.debts,
+      filters: [
+        QueryFilter(field: 'clientId', value: clientId),
+        QueryFilter(field: 'isDeleted', value: false),
+      ],
+    );
 
     double totalDebts = 0;
     for (final doc in debtsSnap.docs) {
-      totalDebts += (doc.data()['amount'] as num?)?.toDouble() ?? 0;
+      totalDebts += ((doc.data() as Map<String, dynamic>?)?['amount'] as num?)?.toDouble() ?? 0;
     }
 
-    final paymentsSnap = await firestore
-        .collection(FirestorePaths.payments)
-        .where('clientId', isEqualTo: clientId)
-        .where('status', isEqualTo: 'COMPLETED')
-        .where('isDeleted', isEqualTo: false)
-        .get();
+    final paymentsSnap = await _ds.queryMulti(
+      FirestorePaths.payments,
+      filters: [
+        QueryFilter(field: 'clientId', value: clientId),
+        QueryFilter(field: 'status', value: 'COMPLETED'),
+        QueryFilter(field: 'isDeleted', value: false),
+      ],
+    );
 
     double totalPayments = 0;
     for (final doc in paymentsSnap.docs) {
-      totalPayments += (doc.data()['amount'] as num?)?.toDouble() ?? 0;
+      totalPayments += ((doc.data() as Map<String, dynamic>?)?['amount'] as num?)?.toDouble() ?? 0;
     }
 
     return totalDebts - totalPayments;
@@ -51,35 +55,21 @@ class ClientRepositoryImpl implements ClientRepository {
 
   @override
   Future<void> createClient(Client client) async {
-    await firestore
-        .collection(FirestorePaths.clients)
-        .doc(client.id)
-        .set(client.toMap());
+    await _ds.setDoc(FirestorePaths.clients, client.id, client.toMap());
   }
 
   @override
   Future<void> updateClient(Client client) async {
-    await firestore
-        .collection(FirestorePaths.clients)
-        .doc(client.id)
-        .update(client.toMap());
+    await _ds.updateDoc(FirestorePaths.clients, client.id, client.toMap());
   }
 
   @override
   Future<void> archiveClient(String clientId) async {
-    await firestore
-        .collection(FirestorePaths.clients)
-        .doc(clientId)
-        .update({'isDeleted': true});
+    await _ds.updateDoc(FirestorePaths.clients, clientId, {'isDeleted': true});
   }
 
   @override
   Future<void> restoreClient(String clientId) async {
-    await firestore
-        .collection(FirestorePaths.clients)
-        .doc(clientId)
-        .update({'isDeleted': false});
+    await _ds.updateDoc(FirestorePaths.clients, clientId, {'isDeleted': false});
   }
 }
-
-final clientRepository = ClientRepositoryImpl();

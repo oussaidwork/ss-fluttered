@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/auth/firebase_auth_provider.dart';
 import '../../domain/entities/user.dart';
-import '../../data/firestore/firestore_provider.dart';
+import 'repository_providers.dart';
 
 final authStateProvider = StreamProvider<User?>((ref) {
   return firebaseAuthProvider.authStateChanges;
@@ -15,10 +15,9 @@ final currentUserProvider = Provider<User?>((ref) {
 final userProfileProvider = FutureProvider<UserProfile?>((ref) async {
   final user = ref.watch(currentUserProvider);
   if (user == null) return null;
-  
-  final doc = await firestore.collection('users').doc(user.uid).get();
-  if (!doc.exists) return null;
-  return UserProfile.fromMap(doc.data()!..putIfAbsent('id', () => user.uid));
+
+  final repo = ref.watch(userRepositoryProvider);
+  return repo.getUser(user.uid);
 });
 
 final userRoleProvider = Provider<String>((ref) {

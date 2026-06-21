@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../presentation/providers/locale_provider.dart';
 import '../../router/app_router.dart';
 import '../../services/json_export_service.dart';
+import '../../../data/datasource/firestore_datasource.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -363,7 +364,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   void _exportData() async {
     try {
-      final exportService = JsonExportService();
+      final exportService = JsonExportService(FirestoreDataSourceImpl());
       await exportService.downloadJson();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

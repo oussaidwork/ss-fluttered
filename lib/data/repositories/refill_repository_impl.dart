@@ -1,40 +1,38 @@
 import '../../core/constants/firestore_paths.dart';
-import '../../data/firestore/firestore_provider.dart';
+import '../../data/datasource/database_datasource.dart';
 import '../../domain/entities/pit_refill.dart';
 import '../../domain/entities/refill_payment.dart';
 import '../../domain/repositories/refill_repository.dart';
 
 class RefillRepositoryImpl implements RefillRepository {
-  RefillRepositoryImpl._();
-  static final _instance = RefillRepositoryImpl._();
-  factory RefillRepositoryImpl() => _instance;
+  final DatabaseDataSource _ds;
+
+  RefillRepositoryImpl(this._ds);
 
   @override
   Future<void> recordRefill({
     required PitRefill refill,
     RefillPayment? payment,
   }) async {
-    final batch = firestore.batch();
+    final batch = _ds.batch();
 
-    final pitRef = firestore.collection(FirestorePaths.pits).doc(refill.pitId);
+    final pitRef = _ds.docRef(FirestorePaths.pits, refill.pitId);
     final pitSnap = await pitRef.get();
     if (!pitSnap.exists) {
       throw Exception('Pit not found');
     }
+    final pitData = pitSnap.data() as Map<String, dynamic>?;
     final currentVolume =
-        (pitSnap.data()?['currentVolume'] as num?)?.toDouble() ?? 0;
+        (pitData?['currentVolume'] as num?)?.toDouble() ?? 0;
     batch.update(pitRef, {
       'currentVolume': currentVolume + refill.volume,
     });
 
-    final refillRef =
-        firestore.collection(FirestorePaths.pitRefills).doc(refill.id);
+    final refillRef = _ds.docRef(FirestorePaths.pitRefills, refill.id);
     batch.set(refillRef, refill.toMap());
 
     if (payment != null) {
-      final payRef = firestore
-          .collection(FirestorePaths.refillPayments)
-          .doc(payment.id);
+      final payRef = _ds.docRef(FirestorePaths.refillPayments, payment.id);
       batch.set(payRef, payment.toMap());
     }
 
@@ -43,15 +41,14 @@ class RefillRepositoryImpl implements RefillRepository {
 
   @override
   Stream<List<PitRefill>> watchRefills() {
-    return firestore
-        .collection(FirestorePaths.pitRefills)
-        .orderBy('timestamp', descending: true)
-        .snapshots()
-        .map(
-          (snap) =>
-              snap.docs.map((d) => PitRefill.fromMap(d.data())).toList(),
-        );
+    return _ds.streamQuery(
+      FirestorePaths.pitRefills,
+      orderByField: 'timestamp',
+      orderByDescending: true,
+    ).map(
+      (snap) => snap.docs
+          .map((d) => PitRefill.fromMap(d.data() as Map<String, dynamic>))
+          .toList(),
+    );
   }
 }
-
-final refillRepository = RefillRepositoryImpl();

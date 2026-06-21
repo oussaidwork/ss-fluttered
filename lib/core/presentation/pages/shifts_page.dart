@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../data/firestore/firestore_provider.dart';
 import '../../../domain/entities/work_shift.dart';
@@ -33,7 +32,11 @@ class _ShiftsPageState extends State<ShiftsPage> {
               const SizedBox(width: 12),
               const Text(
                 'Shift Management',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
               const Spacer(),
               _buildStartShiftButton(),
@@ -58,8 +61,13 @@ class _ShiftsPageState extends State<ShiftsPage> {
                   return _buildEmptyState();
                 }
                 final shifts = snapshot.data!.docs
-                    .map((doc) => WorkShift.fromMap(doc.data() as Map<String, dynamic>))
-                    .where((s) => _statusFilter == null || s.status == _statusFilter)
+                    .map(
+                      (doc) =>
+                          WorkShift.fromMap(doc.data() as Map<String, dynamic>),
+                    )
+                    .where(
+                      (s) => _statusFilter == null || s.status == _statusFilter,
+                    )
                     .toList();
                 if (shifts.isEmpty) {
                   return _buildEmptyState();
@@ -77,7 +85,14 @@ class _ShiftsPageState extends State<ShiftsPage> {
     return ElevatedButton.icon(
       onPressed: _isStartingShift ? null : _startNewShift,
       icon: _isStartingShift
-          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+          ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            )
           : const Icon(Icons.add, size: 18),
       label: Text(_isStartingShift ? 'Starting...' : 'Start New Shift'),
       style: ElevatedButton.styleFrom(
@@ -102,16 +117,18 @@ class _ShiftsPageState extends State<ShiftsPage> {
           dropdownColor: const Color(0xFF1A2332),
           style: const TextStyle(color: Colors.white),
           icon: const Icon(Icons.filter_list, color: Colors.white54, size: 20),
-          hint: const Text('All Status', style: TextStyle(color: Colors.white54)),
+          hint: const Text(
+            'All Status',
+            style: TextStyle(color: Colors.white54),
+          ),
           items: [
             const DropdownMenuItem<ShiftStatus?>(
               value: null,
               child: Text('All Status'),
             ),
-            ...ShiftStatus.values.map((s) => DropdownMenuItem(
-                  value: s,
-                  child: Text(s.value),
-                )),
+            ...ShiftStatus.values.map(
+              (s) => DropdownMenuItem(value: s, child: Text(s.value)),
+            ),
           ],
           onChanged: (val) => setState(() => _statusFilter = val),
         ),
@@ -131,7 +148,9 @@ class _ShiftsPageState extends State<ShiftsPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            _statusFilter != null ? 'No shifts with this status' : 'No shifts yet',
+            _statusFilter != null
+                ? 'No shifts with this status'
+                : 'No shifts yet',
             style: const TextStyle(fontSize: 18, color: Colors.white54),
           ),
           const SizedBox(height: 24),
@@ -158,16 +177,82 @@ class _ShiftsPageState extends State<ShiftsPage> {
         scrollDirection: Axis.horizontal,
         child: SingleChildScrollView(
           child: DataTable(
-            headingRowColor: WidgetStateProperty.all(Colors.white.withValues(alpha: 0.05)),
+            headingRowColor: WidgetStateProperty.all(
+              Colors.white.withValues(alpha: 0.05),
+            ),
             columns: const [
-              DataColumn(label: Text('Worker', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('Start Time', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('End Time', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('Status', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('Revenue', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('Expected', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('Actual Cash', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
-              DataColumn(label: Text('Diff', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600))),
+              DataColumn(
+                label: Text(
+                  'Worker',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Text(
+                  'Start Time',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Text(
+                  'End Time',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Text(
+                  'Status',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Text(
+                  'Revenue',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Text(
+                  'Expected',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Text(
+                  'Actual Cash',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Text(
+                  'Diff',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ],
             rows: shifts.map((shift) {
               final isSelected = _selectedShiftId == shift.id;
@@ -175,28 +260,59 @@ class _ShiftsPageState extends State<ShiftsPage> {
                 selected: isSelected,
                 onSelectChanged: (_) => _showShiftDetails(shift),
                 color: shift.status == ShiftStatus.open
-                    ? WidgetStateProperty.all(const Color(0xFF84CC16).withAlpha(8))
+                    ? WidgetStateProperty.all(
+                        const Color(0xFF84CC16).withAlpha(8),
+                      )
                     : null,
                 cells: [
                   DataCell(_WorkerNameCell(workerId: shift.workerId)),
-                  DataCell(Text(_formatDate(shift.startTime), style: const TextStyle(color: Colors.white))),
-                  DataCell(Text(
-                    shift.status == ShiftStatus.open ? '--' : _formatDate(shift.endTime),
-                    style: const TextStyle(color: Colors.white),
-                  )),
+                  DataCell(
+                    Text(
+                      _formatDate(shift.startTime),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  DataCell(
+                    Text(
+                      shift.status == ShiftStatus.open
+                          ? '--'
+                          : _formatDate(shift.endTime),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
                   DataCell(_buildStatusBadge(shift.status)),
-                  DataCell(Text(
-                    shift.expectedCash != null ? '${shift.expectedCash!.toStringAsFixed(2)} DA' : '--',
-                    style: TextStyle(color: shift.expectedCash != null ? Colors.white : Colors.white38),
-                  )),
-                  DataCell(Text(
-                    shift.expectedCash != null ? '${shift.expectedCash!.toStringAsFixed(2)} DA' : '--',
-                    style: const TextStyle(color: Color(0xFF84CC16)),
-                  )),
-                  DataCell(Text(
-                    shift.actualCash != null ? '${shift.actualCash!.toStringAsFixed(2)} DA' : '--',
-                    style: TextStyle(color: shift.actualCash != null ? Colors.white : Colors.white38),
-                  )),
+                  DataCell(
+                    Text(
+                      shift.expectedCash != null
+                          ? '${shift.expectedCash!.toStringAsFixed(2)} DA'
+                          : '--',
+                      style: TextStyle(
+                        color: shift.expectedCash != null
+                            ? Colors.white
+                            : Colors.white38,
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    Text(
+                      shift.expectedCash != null
+                          ? '${shift.expectedCash!.toStringAsFixed(2)} DA'
+                          : '--',
+                      style: const TextStyle(color: Color(0xFF84CC16)),
+                    ),
+                  ),
+                  DataCell(
+                    Text(
+                      shift.actualCash != null
+                          ? '${shift.actualCash!.toStringAsFixed(2)} DA'
+                          : '--',
+                      style: TextStyle(
+                        color: shift.actualCash != null
+                            ? Colors.white
+                            : Colors.white38,
+                      ),
+                    ),
+                  ),
                   DataCell(_buildDiffCell(shift)),
                 ],
               );
@@ -227,10 +343,12 @@ class _ShiftsPageState extends State<ShiftsPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: (isOpen ? const Color(0xFF84CC16) : const Color(0xFF0066CC)).withValues(alpha: 0.15),
+        color: (isOpen ? const Color(0xFF84CC16) : const Color(0xFF0066CC))
+            .withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: (isOpen ? const Color(0xFF84CC16) : const Color(0xFF0066CC)).withValues(alpha: 0.3),
+          color: (isOpen ? const Color(0xFF84CC16) : const Color(0xFF0066CC))
+              .withValues(alpha: 0.3),
         ),
       ),
       child: Text(
@@ -298,7 +416,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
           .get();
       final Map<String, String> pitGasTypeMap = {};
       for (final d in pitsSnap.docs) {
-        final data = d.data() ;
+        final data = d.data();
         if (data['gasTypeId'] != null) {
           pitGasTypeMap[d.id] = data['gasTypeId'] as String;
         }
@@ -322,8 +440,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
           .get();
       String? lastShiftId;
       if (lastShiftSnap.docs.isNotEmpty) {
-        final lastShift = WorkShift.fromMap(
-            lastShiftSnap.docs.first.data());
+        final lastShift = WorkShift.fromMap(lastShiftSnap.docs.first.data());
         lastShiftId = lastShift.id;
       }
 
@@ -335,7 +452,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
             .where('shiftId', isEqualTo: lastShiftId)
             .get();
         for (final d in lastSpSnap.docs) {
-          final data = d.data() ;
+          final data = d.data();
           final pumpId = data['pumpId'] as String? ?? '';
           final endCounter = (data['endAnalogCounter'] as num?)?.toDouble();
           if (pumpId.isNotEmpty && endCounter != null) {
@@ -364,7 +481,8 @@ class _ShiftsPageState extends State<ShiftsPage> {
       final batch = firestore.batch();
       for (final pump in pumps) {
         final spId = firestore.collection('shift_pumps').doc().id;
-        final startCounter = lastEndCounters[pump.id] ?? pump.initialAnalogCounter;
+        final startCounter =
+            lastEndCounters[pump.id] ?? pump.initialAnalogCounter;
         final gasTypeId = pumpGasTypeMap[pump.id];
         final priceAtShift = gasTypes
             .where((g) => g.id == gasTypeId)
@@ -420,12 +538,17 @@ class _ShiftsPageState extends State<ShiftsPage> {
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1A2332),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Select Worker', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Select Worker',
+          style: TextStyle(color: Colors.white),
+        ),
         content: SizedBox(
           width: 320,
           child: workers.isEmpty
-              ? const Text('No workers found. Add workers first.',
-                  style: TextStyle(color: Colors.white54))
+              ? const Text(
+                  'No workers found. Add workers first.',
+                  style: TextStyle(color: Colors.white54),
+                )
               : Column(
                   mainAxisSize: MainAxisSize.min,
                   children: workers.map((entry) {
@@ -433,12 +556,16 @@ class _ShiftsPageState extends State<ShiftsPage> {
                       leading: CircleAvatar(
                         backgroundColor: const Color(0xFF0066CC).withAlpha(30),
                         child: Text(
-                          entry.value.isNotEmpty ? entry.value[0].toUpperCase() : '?',
+                          entry.value.isNotEmpty
+                              ? entry.value[0].toUpperCase()
+                              : '?',
                           style: const TextStyle(color: Color(0xFF0066CC)),
                         ),
                       ),
-                      title: Text(entry.value,
-                          style: const TextStyle(color: Colors.white)),
+                      title: Text(
+                        entry.value,
+                        style: const TextStyle(color: Colors.white),
+                      ),
                       onTap: () => Navigator.of(ctx).pop(entry.key),
                     );
                   }).toList(),
@@ -447,7 +574,10 @@ class _ShiftsPageState extends State<ShiftsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white54),
+            ),
           ),
         ],
       ),
@@ -521,14 +651,11 @@ class _ShiftsPageState extends State<ShiftsPage> {
         final volume = endCounter - sp.startAnalogCounter;
         final revenue = volume * (sp.priceAtShift ?? 0);
 
-        batch.update(
-          firestore.collection('shift_pumps').doc(sp.id),
-          {
-            'endAnalogCounter': endCounter,
-            'volume': volume,
-            'revenue': revenue,
-          },
-        );
+        batch.update(firestore.collection('shift_pumps').doc(sp.id), {
+          'endAnalogCounter': endCounter,
+          'volume': volume,
+          'revenue': revenue,
+        });
         totalPumpRevenue += revenue;
       }
 
@@ -613,12 +740,16 @@ class _ShiftDetailsDialog extends StatelessWidget {
           builder: (context, spSnap) {
             final shiftPumps = spSnap.hasData
                 ? spSnap.data!.docs
-                    .map((d) =>
-                        ShiftPump.fromMap(d.data() as Map<String, dynamic>))
-                    .toList()
+                      .map(
+                        (d) =>
+                            ShiftPump.fromMap(d.data() as Map<String, dynamic>),
+                      )
+                      .toList()
                 : <ShiftPump>[];
-            final totalRevenue =
-                shiftPumps.fold<double>(0, (t, sp) => t + sp.revenue);
+            final totalRevenue = shiftPumps.fold<double>(
+              0,
+              (t, sp) => t + sp.revenue,
+            );
 
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -629,21 +760,40 @@ class _ShiftDetailsDialog extends StatelessWidget {
                 if (shift.status == ShiftStatus.closed) ...[
                   _detailRow('End', _formatDate(shift.endTime)),
                   const Divider(color: Colors.white12),
-                  _detailRow('Pump Revenue', '${totalRevenue.toStringAsFixed(2)} DA'),
-                  _detailRow('Expected Cash',
-                      shift.expectedCash != null ? '${shift.expectedCash!.toStringAsFixed(2)} DA' : '--'),
-                  _detailRow('Actual Cash',
-                      shift.actualCash != null ? '${shift.actualCash!.toStringAsFixed(2)} DA' : '--'),
+                  _detailRow(
+                    'Pump Revenue',
+                    '${totalRevenue.toStringAsFixed(2)} DA',
+                  ),
+                  _detailRow(
+                    'Expected Cash',
+                    shift.expectedCash != null
+                        ? '${shift.expectedCash!.toStringAsFixed(2)} DA'
+                        : '--',
+                  ),
+                  _detailRow(
+                    'Actual Cash',
+                    shift.actualCash != null
+                        ? '${shift.actualCash!.toStringAsFixed(2)} DA'
+                        : '--',
+                  ),
                 ],
                 if (shiftPumps.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  const Text('Pump Counters',
-                      style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600, fontSize: 13)),
+                  const Text(
+                    'Pump Counters',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  ...shiftPumps.map((sp) => _PumpCounterRow(
-                        sp: sp,
-                        pumpNameFuture: _getPumpName(sp.pumpId),
-                      )),
+                  ...shiftPumps.map(
+                    (sp) => _PumpCounterRow(
+                      sp: sp,
+                      pumpNameFuture: _getPumpName(sp.pumpId),
+                    ),
+                  ),
                 ],
                 const SizedBox(height: 16),
                 if (shift.status == ShiftStatus.open)
@@ -680,11 +830,18 @@ class _ShiftDetailsDialog extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.white54, fontSize: 13)),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white54, fontSize: 13),
+          ),
           Flexible(
             child: Text(
               value,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 13),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+                fontSize: 13,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -716,16 +873,25 @@ class _PumpCounterRow extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: Text(name, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                child: Text(
+                  name,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
               ),
-              Text('Start: ${sp.startAnalogCounter.toStringAsFixed(1)}',
-                  style: const TextStyle(color: Colors.white54, fontSize: 12)),
+              Text(
+                'Start: ${sp.startAnalogCounter.toStringAsFixed(1)}',
+                style: const TextStyle(color: Colors.white54, fontSize: 12),
+              ),
               const SizedBox(width: 8),
-              Text('End: ${sp.endAnalogCounter?.toStringAsFixed(1) ?? '--'}',
-                  style: const TextStyle(color: Colors.white54, fontSize: 12)),
+              Text(
+                'End: ${sp.endAnalogCounter?.toStringAsFixed(1) ?? '--'}',
+                style: const TextStyle(color: Colors.white54, fontSize: 12),
+              ),
               const SizedBox(width: 8),
-              Text('Vol: ${sp.volume.toStringAsFixed(1)}L',
-                  style: const TextStyle(color: Color(0xFF84CC16), fontSize: 12)),
+              Text(
+                'Vol: ${sp.volume.toStringAsFixed(1)}L',
+                style: const TextStyle(color: Color(0xFF84CC16), fontSize: 12),
+              ),
             ],
           ),
         );
@@ -766,30 +932,82 @@ class _CloseShiftDialog extends StatefulWidget {
 }
 
 class _CloseShiftDialogState extends State<_CloseShiftDialog> {
-  final Map<String, TextEditingController> _counterControllers = {};
-  final _cashController = TextEditingController();
-  final _otherController = TextEditingController();
+  final Map<String, TextEditingController> _startControllers = {};
+  final Map<String, TextEditingController> _endControllers = {};
+  final Map<String, TextEditingController> _priceControllers = {};
+  final _dateController = TextEditingController();
+  final _startCashController = TextEditingController(text: '0');
+  final _endCashController = TextEditingController(text: '0');
+  final _otherController = TextEditingController(text: '0');
   final _formKey = GlobalKey<FormState>();
+  String? _selectedOperator;
+  bool _deductFromPits = true;
 
   @override
   void initState() {
     super.initState();
+    _dateController.text = DateTime.now().toString().substring(0, 16);
+
     for (final sp in widget.shiftPumps) {
-      _counterControllers[sp.pumpId] = TextEditingController(
+      _startControllers[sp.pumpId] = TextEditingController(
+        text: sp.startAnalogCounter.toStringAsFixed(1),
+      );
+      _endControllers[sp.pumpId] = TextEditingController(
         text: sp.endAnalogCounter?.toStringAsFixed(1) ?? '',
       );
+      _priceControllers[sp.pumpId] = TextEditingController(
+        text: (sp.priceAtShift ?? 0).toStringAsFixed(2),
+      );
     }
-    _otherController.text = '0';
   }
 
   @override
   void dispose() {
-    for (final c in _counterControllers.values) {
+    for (final c in _startControllers.values) {
       c.dispose();
     }
-    _cashController.dispose();
+    for (final c in _endControllers.values) {
+      c.dispose();
+    }
+    for (final c in _priceControllers.values) {
+      c.dispose();
+    }
+    _dateController.dispose();
+    _startCashController.dispose();
+    _endCashController.dispose();
     _otherController.dispose();
     super.dispose();
+  }
+
+  Widget _buildNumberField(
+    TextEditingController controller,
+    void Function(double value) onChanged,
+  ) {
+    return SizedBox(
+      width: 90,
+      child: TextFormField(
+        controller: controller,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        style: const TextStyle(color: Colors.white, fontSize: 13),
+        decoration: const InputDecoration(
+          isDense: true,
+          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          border: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.white24),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.white24),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF0066CC)),
+          ),
+        ),
+        onChanged: (v) {
+          onChanged(double.tryParse(v) ?? 0);
+          setState(() {});
+        },
+      ),
+    );
   }
 
   void _submit() {
@@ -797,271 +1015,401 @@ class _CloseShiftDialogState extends State<_CloseShiftDialog> {
 
     final Map<String, double> endCounters = {};
     for (final sp in widget.shiftPumps) {
-      final value = double.tryParse(_counterControllers[sp.pumpId]!.text);
+      final value = double.tryParse(_endControllers[sp.pumpId]?.text ?? '');
       if (value != null) {
         endCounters[sp.pumpId] = value;
       }
     }
 
-    final actualCash = double.tryParse(_cashController.text) ?? 0;
+    final actualCash = double.tryParse(_endCashController.text) ?? 0;
     final otherRevenue = double.tryParse(_otherController.text) ?? 0;
 
-    Navigator.of(context).pop(_CloseShiftResult(
-      pumpEndCounters: endCounters,
-      actualCash: actualCash,
-      otherRevenue: otherRevenue,
-    ));
+    Navigator.of(context).pop(
+      _CloseShiftResult(
+        pumpEndCounters: endCounters,
+        actualCash: actualCash,
+        otherRevenue: otherRevenue,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    double totalVolume = 0;
     double totalExpected = 0;
     final pumpRevenueMap = <String, double>{};
+
     for (final sp in widget.shiftPumps) {
-      final endVal = double.tryParse(_counterControllers[sp.pumpId]?.text ?? '');
-      if (endVal != null && endVal > sp.startAnalogCounter) {
-        final vol = endVal - sp.startAnalogCounter;
-        final rev = vol * (sp.priceAtShift ?? 0);
-        pumpRevenueMap[sp.pumpId] = rev;
-        totalExpected += rev;
-      } else {
-        pumpRevenueMap[sp.pumpId] = 0;
-      }
+      final startVal =
+          double.tryParse(_startControllers[sp.pumpId]?.text ?? '') ??
+          sp.startAnalogCounter;
+      final endVal = double.tryParse(_endControllers[sp.pumpId]?.text ?? '');
+      final price =
+          double.tryParse(_priceControllers[sp.pumpId]?.text ?? '') ??
+          (sp.priceAtShift ?? 0);
+
+      final computedVol = endVal != null && endVal >= startVal
+          ? endVal - startVal
+          : 0;
+      final computedRev = computedVol * price;
+
+      totalVolume += computedVol;
+      totalExpected += computedRev;
+      pumpRevenueMap[sp.pumpId] = computedRev;
     }
+
     final otherRev = double.tryParse(_otherController.text) ?? 0;
     totalExpected += otherRev;
-    final actualCash = double.tryParse(_cashController.text) ?? 0;
 
-    return AlertDialog(
-      backgroundColor: const Color(0xFF1A2332),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text('Close Shift — Pump Reconciliation',
-          style: TextStyle(color: Colors.white, fontSize: 18)),
-      content: Form(
-        key: _formKey,
-        child: SizedBox(
-          width: 500,
-          child: SingleChildScrollView(
+    return Dialog(
+      insetPadding: const EdgeInsets.all(16),
+      backgroundColor: const Color(0xFF0B1220),
+      child: SizedBox(
+        width: 1100,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Enter end analog counter for each pump:',
-                    style: TextStyle(color: Colors.white70, fontSize: 13)),
-                const SizedBox(height: 12),
-                ...widget.shiftPumps.map((sp) {
-                  final computedVol = () {
-                    final endVal =
-                        double.tryParse(_counterControllers[sp.pumpId]?.text ?? '');
-                    if (endVal != null && endVal > sp.startAnalogCounter) {
-                      return endVal - sp.startAnalogCounter;
-                    }
-                    return 0.0;
-                  }();
-                  final name = widget.pumpNames[sp.pumpId] ?? sp.pumpId;
-
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 100,
-                          child: Text(name,
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 13)),
-                        ),
-                        SizedBox(
-                          width: 100,
-                          child: Text('Start: ${sp.startAnalogCounter.toStringAsFixed(1)}',
-                              style: const TextStyle(
-                                  color: Colors.white54, fontSize: 12)),
-                        ),
-                        SizedBox(
-                          width: 120,
-                          child: TextFormField(
-                            controller: _counterControllers[sp.pumpId],
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
-                            style: const TextStyle(color: Colors.white, fontSize: 13),
-                            decoration: InputDecoration(
-                              hintText: 'End counter',
-                              hintStyle:
-                                  const TextStyle(color: Colors.white24, fontSize: 13),
-                              isDense: true,
-                              contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                              ),
-                              focusedBorder: const OutlineInputBorder(
-                                borderSide: BorderSide(color: Color(0xFF0066CC)),
-                              ),
-                            ),
-                            validator: (v) {
-                              if (v == null || v.isEmpty) return 'Required';
-                              final val = double.tryParse(v);
-                              if (val == null) return 'Invalid';
-                              if (val < sp.startAnalogCounter) {
-                                return '< start';
-                              }
-                              return null;
-                            },
-                            onChanged: (_) => setState(() {}),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text('${computedVol.toStringAsFixed(1)}L',
-                            style: const TextStyle(
-                                color: Color(0xFF84CC16),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600)),
-                        const SizedBox(width: 8),
-                        Text(
-                          pumpRevenueMap[sp.pumpId]! > 0
-                              ? '${pumpRevenueMap[sp.pumpId]!.toStringAsFixed(2)} DA'
-                              : '',
-                          style: const TextStyle(
-                              color: Colors.white54, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-                const Divider(color: Colors.white12),
-                // Other revenue (product/service sales)
                 Row(
                   children: [
-                    const Text('Other Revenue (DA):',
-                        style: TextStyle(color: Colors.white70, fontSize: 13)),
+                    const Icon(Icons.input, color: Color(0xFF0066CC), size: 24),
                     const SizedBox(width: 8),
-                    SizedBox(
-                      width: 120,
-                      child: TextFormField(
-                        controller: _otherController,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
-                        decoration: InputDecoration(
-                          isDense: true,
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                          ),
-                          focusedBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xFF0066CC)),
-                          ),
-                        ),
-                        onChanged: (_) => setState(() {}),
+                    const Text(
+                      'SHIFT DATA IMPORT',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(color: Colors.white54),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                // Expected cash summary
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0B1220),
-                    borderRadius: BorderRadius.circular(8),
+                    color: const Color(0xFF1A2332),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
                     children: [
-                      _summaryRow('Expected Pump Revenue',
-                          '${totalExpected.toStringAsFixed(2)} DA',
-                          Colors.white),
-                      _summaryRow('Other Revenue',
-                          '${otherRev.toStringAsFixed(2)} DA', Colors.white),
-                      const Divider(color: Colors.white12),
-                      _summaryRow('Total Expected',
-                          '${totalExpected.toStringAsFixed(2)} DA',
-                          const Color(0xFF84CC16)),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _dateController,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: const InputDecoration(
+                                labelText: 'Date',
+                                labelStyle: TextStyle(color: Colors.white54),
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              initialValue: _selectedOperator,
+                              style: const TextStyle(color: Colors.white),
+                              dropdownColor: const Color(0xFF1A2332),
+                              decoration: const InputDecoration(
+                                labelText: 'Operator',
+                                labelStyle: TextStyle(color: Colors.white54),
+                                border: OutlineInputBorder(),
+                              ),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'operator1',
+                                  child: Text('Operator 1'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'operator2',
+                                  child: Text('Operator 2'),
+                                ),
+                              ],
+                              onChanged: (v) =>
+                                  setState(() => _selectedOperator = v),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _startCashController,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              style: const TextStyle(color: Colors.white),
+                              decoration: const InputDecoration(
+                                labelText: 'Start Cash',
+                                labelStyle: TextStyle(color: Colors.white54),
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _endCashController,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              style: const TextStyle(color: Colors.white),
+                              decoration: const InputDecoration(
+                                labelText: 'End Cash',
+                                labelStyle: TextStyle(color: Colors.white54),
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Checkbox(
+                            value: _deductFromPits,
+                            onChanged: (v) =>
+                                setState(() => _deductFromPits = v ?? true),
+                            activeColor: const Color(0xFF84CC16),
+                          ),
+                          const Text(
+                            'Deduct From Pits',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 12),
-                // Actual cash
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A2332),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.vertical,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: DataTable(
+                          headingRowHeight: 42,
+                          columns: const [
+                            DataColumn(
+                              label: Text(
+                                '#',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            ),
+                            DataColumn(
+                              label: Text(
+                                'Pump',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            ),
+                            DataColumn(
+                              label: Text(
+                                'Start Index',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            ),
+                            DataColumn(
+                              label: Text(
+                                'End Index',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            ),
+                            DataColumn(
+                              label: Text(
+                                'Volume',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            ),
+                            DataColumn(
+                              label: Text(
+                                'Price',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            ),
+                            DataColumn(
+                              label: Text(
+                                'Amount',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            ),
+                          ],
+                          rows: List.generate(widget.shiftPumps.length, (
+                            index,
+                          ) {
+                            final sp = widget.shiftPumps[index];
+                            final name =
+                                widget.pumpNames[sp.pumpId] ?? sp.pumpId;
+                            final startController =
+                                _startControllers[sp.pumpId]!;
+                            final endController = _endControllers[sp.pumpId]!;
+                            final priceController =
+                                _priceControllers[sp.pumpId]!;
+
+                            final startVal =
+                                double.tryParse(startController.text) ??
+                                sp.startAnalogCounter;
+                            final endVal = double.tryParse(endController.text);
+                            final price =
+                                double.tryParse(priceController.text) ??
+                                (sp.priceAtShift ?? 0);
+                            final volume = endVal != null && endVal >= startVal
+                                ? endVal - startVal
+                                : 0;
+                            final amount = volume * price;
+
+                            return DataRow(
+                              cells: [
+                                DataCell(
+                                  Text(
+                                    (index + 1).toString(),
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                                DataCell(
+                                  Text(
+                                    name,
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                                DataCell(
+                                  _buildNumberField(
+                                    startController,
+                                    (v) => startController.text = v
+                                        .toStringAsFixed(1),
+                                  ),
+                                ),
+                                DataCell(
+                                  _buildNumberField(
+                                    endController,
+                                    (v) => endController.text = v
+                                        .toStringAsFixed(1),
+                                  ),
+                                ),
+                                DataCell(
+                                  Text(
+                                    volume.toStringAsFixed(2),
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                                DataCell(
+                                  _buildNumberField(
+                                    priceController,
+                                    (v) => priceController.text = v
+                                        .toStringAsFixed(2),
+                                  ),
+                                ),
+                                DataCell(
+                                  Text(
+                                    amount.toStringAsFixed(2),
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Row(
                   children: [
-                    const Text('Actual Cash in Register (DA):',
-                        style: TextStyle(color: Colors.white70, fontSize: 13)),
-                    const SizedBox(width: 8),
-                    SizedBox(
-                      width: 140,
-                      child: TextFormField(
-                        controller: _cashController,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
-                        decoration: InputDecoration(
-                          isDense: true,
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                          ),
-                          focusedBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xFF0066CC)),
-                          ),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1A2332),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        validator: (v) {
-                          if (v == null || v.isEmpty) return 'Required';
-                          if (double.tryParse(v) == null) return 'Invalid';
-                          return null;
-                        },
-                        onChanged: (_) => setState(() {}),
+                        child: Column(
+                          children: [
+                            const Text(
+                              'TOTAL VOLUME',
+                              style: TextStyle(
+                                color: Colors.white54,
+                                fontSize: 12,
+                              ),
+                            ),
+                            Text(
+                              totalVolume.toStringAsFixed(2),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1A2332),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            const Text(
+                              'TOTAL REVENUE',
+                              style: TextStyle(
+                                color: Colors.white54,
+                                fontSize: 12,
+                              ),
+                            ),
+                            Text(
+                              totalExpected.toStringAsFixed(2),
+                              style: const TextStyle(
+                                color: Color(0xFF84CC16),
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      onPressed: _submit,
+                      icon: const Icon(Icons.save),
+                      label: const Text('SAVE SHIFT'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0066CC),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                if (actualCash > 0 && totalExpected > 0) ...[
-                  const SizedBox(height: 8),
-                  _summaryRow(
-                    'Difference',
-                    '${(actualCash - totalExpected) >= 0 ? '+' : ''}${(actualCash - totalExpected).toStringAsFixed(2)} DA',
-                    actualCash >= totalExpected
-                        ? const Color(0xFF84CC16)
-                        : const Color(0xFFEF4444),
-                  ),
-                ],
               ],
             ),
           ),
         ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
-        ),
-        ElevatedButton(
-          onPressed: _submit,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF0066CC),
-            foregroundColor: Colors.white,
-          ),
-          child: const Text('Close Shift'),
-        ),
-      ],
-    );
-  }
-
-  Widget _summaryRow(String label, String value, Color valueColor) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(color: Colors.white54, fontSize: 13)),
-          Text(value,
-              style: TextStyle(
-                  color: valueColor,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13)),
-        ],
       ),
     );
   }

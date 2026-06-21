@@ -1,0 +1,10 @@
+import '../entities/product.dart';
+
+abstract class ProductRepository {
+  Stream<List<Product>> watchProducts();
+  Future<Product?> getProduct(String id);
+  Future<void> createProduct(Product product);
+  Future<void> updateProduct(Product product);
+  Future<void> archiveProduct(String id);
+  Future<void> restoreProduct(String id);
+}

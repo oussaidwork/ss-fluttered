@@ -1,52 +1,52 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../../core/constants/firestore_paths.dart';
-import '../../data/firestore/firestore_provider.dart';
+import '../../data/datasource/database_datasource.dart';
 import '../../domain/entities/expense.dart';
 import '../../domain/enums/expense_category.dart';
 import '../../domain/repositories/expense_repository.dart';
 
 class ExpenseRepositoryImpl implements ExpenseRepository {
-  ExpenseRepositoryImpl._();
-  static final _instance = ExpenseRepositoryImpl._();
-  factory ExpenseRepositoryImpl() => _instance;
+  final DatabaseDataSource _ds;
+
+  ExpenseRepositoryImpl(this._ds);
 
   @override
   Stream<List<Expense>> watchExpenses({ExpenseCategory? category}) {
-    Query query = firestore
-        .collection(FirestorePaths.expenses)
-        .orderBy('timestamp', descending: true);
-
     if (category != null) {
-      query = query.where('category', isEqualTo: category.value);
+      return _ds.streamQueryMulti(
+        FirestorePaths.expenses,
+        filters: [QueryFilter(field: 'category', value: category.value)],
+        orderByField: 'timestamp',
+        orderByDescending: true,
+      ).map(
+        (snap) => snap.docs
+            .map((d) => Expense.fromMap(d.data() as Map<String, dynamic>))
+            .toList(),
+      );
     }
 
-    return query.snapshots().map(
-          (snap) =>
-              snap.docs.map((d) => Expense.fromMap(d.data() as Map<String, dynamic>)).toList(),
-        );
+    return _ds.streamQuery(
+      FirestorePaths.expenses,
+      orderByField: 'timestamp',
+      orderByDescending: true,
+    ).map(
+      (snap) => snap.docs
+          .map((d) => Expense.fromMap(d.data() as Map<String, dynamic>))
+          .toList(),
+    );
   }
 
   @override
   Future<void> createExpense(Expense expense) async {
-    await firestore
-        .collection(FirestorePaths.expenses)
-        .doc(expense.id)
-        .set(expense.toMap());
+    await _ds.setDoc(FirestorePaths.expenses, expense.id, expense.toMap());
   }
 
   @override
   Future<void> updateExpense(Expense expense) async {
-    await firestore
-        .collection(FirestorePaths.expenses)
-        .doc(expense.id)
-        .update(expense.toMap());
+    await _ds.updateDoc(FirestorePaths.expenses, expense.id, expense.toMap());
   }
 
   @override
   Future<void> deleteExpense(String id) async {
-    await firestore.collection(FirestorePaths.expenses).doc(id).delete();
+    await _ds.deleteDoc(FirestorePaths.expenses, id);
   }
 }
-
-final expenseRepository = ExpenseRepositoryImpl();

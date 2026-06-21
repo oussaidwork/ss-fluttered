@@ -1,14 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/constants/firestore_paths.dart';
-import '../../data/firestore/firestore_provider.dart';
+import '../../data/datasource/database_datasource.dart';
 import '../../domain/entities/log_entry.dart';
 import '../../domain/repositories/log_repository.dart';
 
 class LogRepositoryImpl implements LogRepository {
-  LogRepositoryImpl._();
-  static final _instance = LogRepositoryImpl._();
-  factory LogRepositoryImpl() => _instance;
+  final DatabaseDataSource _ds;
+
+  LogRepositoryImpl(this._ds);
 
   @override
   Future<void> logAction({
@@ -16,39 +16,46 @@ class LogRepositoryImpl implements LogRepository {
     String? details,
     String? userId,
   }) async {
-    final doc = firestore.collection(FirestorePaths.logs).doc();
+    final docId = _ds.docRef(FirestorePaths.logs, '').id;
     final entry = LogEntry(
-      id: doc.id,
+      id: docId,
       action: action,
       details: details,
       timestamp: DateTime.now(),
       userId: userId,
     );
-    await doc.set(entry.toMap());
+    await _ds.setDoc(FirestorePaths.logs, docId, entry.toMap());
   }
 
   @override
   Stream<List<LogEntry>> watchLogs() {
-    return firestore
-        .collection(FirestorePaths.logs)
-        .orderBy('timestamp', descending: true)
-        .limit(100)
-        .snapshots()
-        .map(
-          (snap) =>
-              snap.docs.map((d) => LogEntry.fromMap(d.data())).toList(),
-        );
+    return _ds.streamQuery(
+      FirestorePaths.logs,
+      orderByField: 'timestamp',
+      orderByDescending: true,
+      limit: 100,
+    ).map(
+      (snap) => snap.docs
+          .map((d) => LogEntry.fromMap(d.data() as Map<String, dynamic>))
+          .toList(),
+    );
   }
 
   @override
   Future<void> cleanupOldLogs({required DateTime before}) async {
-    final snap = await firestore
-        .collection(FirestorePaths.logs)
-        .where('timestamp', isLessThan: Timestamp.fromDate(before))
-        .limit(500)
-        .get();
+    final snap = await _ds.queryMulti(
+      FirestorePaths.logs,
+      filters: [
+        QueryFilter(
+          field: 'timestamp',
+          value: Timestamp.fromDate(before),
+          operator: FilterOperator.isLessThan,
+        ),
+      ],
+      limit: 500,
+    );
 
-    final batch = firestore.batch();
+    final batch = _ds.batch();
     for (final doc in snap.docs) {
       batch.delete(doc.reference);
     }
@@ -58,5 +65,3 @@ class LogRepositoryImpl implements LogRepository {
     }
   }
 }
-
-final logRepository = LogRepositoryImpl();
