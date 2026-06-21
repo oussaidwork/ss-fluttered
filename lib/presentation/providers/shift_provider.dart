@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/work_shift.dart';
-import 'repository_providers.dart';
+import '../../data/di/repository_providers.dart';
 
 final activeShiftsProvider = StreamProvider<List<WorkShift>>((ref) {
   return ref.watch(shiftRepositoryProvider).watchActiveShifts();

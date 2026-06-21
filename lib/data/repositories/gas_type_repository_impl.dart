@@ -10,7 +10,7 @@ class GasTypeRepositoryImpl implements GasTypeRepository {
 
   @override
   Stream<List<GasType>> watchGasTypes() {
-    return _ds.streamQueryMulti(
+    return _ds.streamQuery(
       FirestorePaths.gasTypes,
       filters: [QueryFilter(field: 'isDeleted', value: false)],
     ).map((snap) => snap.docs.map((d) => GasType.fromMap(d.data() as Map<String, dynamic>..putIfAbsent('id', () => d.id))).toList());
@@ -19,7 +19,7 @@ class GasTypeRepositoryImpl implements GasTypeRepository {
   @override
   Future<GasType?> getGasType(String id) async {
     final doc = await _ds.getDoc(FirestorePaths.gasTypes, id);
-    if (!doc.exists) return null;
+    if (doc == null) return null;
     return GasType.fromMap(doc.data() as Map<String, dynamic>);
   }
 

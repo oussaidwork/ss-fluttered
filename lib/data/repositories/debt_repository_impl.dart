@@ -10,7 +10,7 @@ class DebtRepositoryImpl implements DebtRepository {
 
   @override
   Stream<List<Debt>> watchDebtsByClient(String clientId) {
-    return _ds.streamQueryMulti(
+    return _ds.streamQuery(
       FirestorePaths.debts,
       filters: [
         QueryFilter(field: 'clientId', value: clientId),
@@ -23,7 +23,7 @@ class DebtRepositoryImpl implements DebtRepository {
 
   @override
   Future<List<Debt>> getDebtsByClient(String clientId) async {
-    final snap = await _ds.queryMulti(
+    final snap = await _ds.query(
       FirestorePaths.debts,
       filters: [
         QueryFilter(field: 'clientId', value: clientId),

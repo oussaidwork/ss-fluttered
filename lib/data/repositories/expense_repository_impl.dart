@@ -12,7 +12,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   @override
   Stream<List<Expense>> watchExpenses({ExpenseCategory? category}) {
     if (category != null) {
-      return _ds.streamQueryMulti(
+      return _ds.streamQuery(
         FirestorePaths.expenses,
         filters: [QueryFilter(field: 'category', value: category.value)],
         orderByField: 'timestamp',

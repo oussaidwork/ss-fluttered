@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/repositories/dashboard_repository.dart';
-import 'repository_providers.dart';
+import '../../data/di/repository_providers.dart';
 
 // Re-export domain types for convenience
 export '../../domain/repositories/dashboard_repository.dart'

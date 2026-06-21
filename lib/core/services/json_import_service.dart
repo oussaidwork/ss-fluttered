@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../data/datasource/database_datasource.dart';
 
 /// Imports data from a JSON file into Firestore.
@@ -59,13 +58,12 @@ class JsonImportService {
       for (final docData in docs) {
         if (docData is! Map) continue;
         final map = Map<String, dynamic>.from(docData);
-        final docId = (map.remove('_docId') as String?) ?? _ds.docRef(name, '').id;
+        final docId = (map.remove('_docId') as String?) ?? _ds.generateId(name);
 
         // Remove undefined or null internal fields
         map.remove('_docId');
 
-        final docRef = _ds.docRef(name, docId);
-        batch.set(docRef, map, SetOptions(merge: true));
+        batch.set(name, docId, map);
         count++;
       }
 

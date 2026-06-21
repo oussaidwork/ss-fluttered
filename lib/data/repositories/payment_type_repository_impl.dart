@@ -18,7 +18,7 @@ class PaymentTypeRepositoryImpl implements PaymentTypeRepository {
   @override
   Future<PaymentType?> getPaymentType(String id) async {
     final doc = await _ds.getDoc(FirestorePaths.paymentTypes, id);
-    if (!doc.exists) return null;
+    if (doc == null) return null;
     return PaymentType.fromMap(doc.data() as Map<String, dynamic>);
   }
 

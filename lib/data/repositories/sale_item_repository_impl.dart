@@ -10,7 +10,7 @@ class SaleItemRepositoryImpl implements SaleItemRepository {
 
   @override
   Stream<List<SaleItem>> watchSaleItemsBySale(String saleId) {
-    return _ds.streamQueryMulti(
+    return _ds.streamQuery(
       FirestorePaths.saleItems,
       filters: [QueryFilter(field: 'saleId', value: saleId)],
     ).map((snap) => snap.docs.map((d) => SaleItem.fromMap(d.data() as Map<String, dynamic>..putIfAbsent('id', () => d.id))).toList());
@@ -27,7 +27,7 @@ class SaleItemRepositoryImpl implements SaleItemRepository {
 
   @override
   Future<List<SaleItem>> getSaleItemsBySale(String saleId) async {
-    final snap = await _ds.queryMulti(
+    final snap = await _ds.query(
       FirestorePaths.saleItems,
       filters: [QueryFilter(field: 'saleId', value: saleId)],
     );

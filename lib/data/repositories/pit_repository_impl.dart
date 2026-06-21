@@ -10,7 +10,7 @@ class PitRepositoryImpl implements PitRepository {
 
   @override
   Stream<List<Pit>> watchPits() {
-    return _ds.streamQueryMulti(
+    return _ds.streamQuery(
       FirestorePaths.pits,
       filters: [QueryFilter(field: 'isDeleted', value: false)],
     ).map((snap) => snap.docs.map((d) => Pit.fromMap(d.data() as Map<String, dynamic>..putIfAbsent('id', () => d.id))).toList());
@@ -19,7 +19,7 @@ class PitRepositoryImpl implements PitRepository {
   @override
   Future<Pit?> getPit(String id) async {
     final doc = await _ds.getDoc(FirestorePaths.pits, id);
-    if (!doc.exists) return null;
+    if (doc == null) return null;
     return Pit.fromMap(doc.data() as Map<String, dynamic>);
   }
 

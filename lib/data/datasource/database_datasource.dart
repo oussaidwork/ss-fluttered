@@ -1,16 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 /// Abstract interface for all database operations.
 ///
 /// This abstraction isolates the repository layer from the concrete
 /// database implementation (Firestore). To switch databases, only
 /// [FirestoreDataSourceImpl] needs to be replaced.
 abstract class DatabaseDataSource {
-  /// Returns a document reference for [collection]/[id].
-  DocumentReference docRef(String collection, String id);
+  /// Generates a unique document ID for [collection].
+  String generateId(String collection);
 
   /// Gets a single document by [collection] and [id].
-  Future<DocumentSnapshot> getDoc(String collection, String id);
+  Future<DatabaseDocSnapshot?> getDoc(String collection, String id);
 
   /// Sets (creates or overwrites) a document.
   Future<void> setDoc(
@@ -29,30 +27,8 @@ abstract class DatabaseDataSource {
   /// Deletes a document.
   Future<void> deleteDoc(String collection, String id);
 
-  /// Queries a collection with a single filter.
-  Future<QuerySnapshot> query(
-    String collection, {
-    String? filterField,
-    dynamic filterValue,
-    bool filterIsEqualTo = true,
-    String? orderByField,
-    bool orderByDescending = false,
-    int? limit,
-  });
-
-  /// Streams a collection with a single filter (real-time).
-  Stream<QuerySnapshot> streamQuery(
-    String collection, {
-    String? filterField,
-    dynamic filterValue,
-    bool filterIsEqualTo = true,
-    String? orderByField,
-    bool orderByDescending = false,
-    int? limit,
-  });
-
-  /// Queries a collection with multiple filters.
-  Future<QuerySnapshot> queryMulti(
+  /// Queries a collection with optional filters.
+  Future<DatabaseQuerySnapshot> query(
     String collection, {
     List<QueryFilter>? filters,
     String? orderByField,
@@ -60,8 +36,8 @@ abstract class DatabaseDataSource {
     int? limit,
   });
 
-  /// Streams a collection with multiple filters (real-time).
-  Stream<QuerySnapshot> streamQueryMulti(
+  /// Streams a collection with optional filters (real-time).
+  Stream<DatabaseQuerySnapshot> streamQuery(
     String collection, {
     List<QueryFilter>? filters,
     String? orderByField,
@@ -69,14 +45,42 @@ abstract class DatabaseDataSource {
     int? limit,
   });
 
-  /// Returns a write batch for atomic operations.
-  WriteBatch batch();
+  /// Returns a batch for atomic multi-document operations.
+  DatabaseBatch batch();
 
   /// Executes a transaction.
-  Future<T> runTransaction<T>(Future<T> Function(Transaction txn) handler);
+  Future<T> runTransaction<T>(Future<T> Function(DatabaseTransaction txn) handler);
 }
 
-/// A reusable filter for Firestore queries.
+/// Abstract database document snapshot.
+abstract class DatabaseDocSnapshot {
+  String get id;
+  bool get exists;
+  Map<String, dynamic>? data();
+}
+
+/// Abstract database query result.
+abstract class DatabaseQuerySnapshot {
+  List<DatabaseDocSnapshot> get docs;
+}
+
+/// Abstract batch writer for atomic multi-document operations.
+abstract class DatabaseBatch {
+  void set(String collection, String id, Map<String, dynamic> data);
+  void update(String collection, String id, Map<String, dynamic> data);
+  void delete(String collection, String id);
+  Future<void> commit();
+}
+
+/// Abstract transaction for atomic read-write operations.
+abstract class DatabaseTransaction {
+  Future<DatabaseDocSnapshot?> get(String collection, String id);
+  void set(String collection, String id, Map<String, dynamic> data);
+  void update(String collection, String id, Map<String, dynamic> data);
+  void delete(String collection, String id);
+}
+
+/// A reusable filter for database queries.
 class QueryFilter {
   final String field;
   final dynamic value;

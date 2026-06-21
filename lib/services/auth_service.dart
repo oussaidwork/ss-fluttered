@@ -1,24 +1,26 @@
-import 'package:firebase_auth/firebase_auth.dart';
-
-import '../data/auth/firebase_auth_provider.dart';
+import '../domain/entities/auth_user.dart';
 import '../domain/entities/user.dart';
 import '../domain/enums/user_role.dart';
+import '../domain/repositories/auth_repository.dart';
 import '../domain/repositories/user_repository.dart';
 
 class AuthService {
+  final AuthRepository _authRepository;
   final UserRepository _userRepository;
 
   AuthService({
+    required AuthRepository authRepository,
     required UserRepository userRepository,
-  }) : _userRepository = userRepository;
+  })  : _authRepository = authRepository,
+        _userRepository = userRepository;
 
-  Future<User?> signIn(String email, String password) async {
-    final result = await firebaseAuthProvider.signIn(email, password);
-    return result.user;
+  Future<AuthUser?> signIn(String email, String password) async {
+    await _authRepository.signIn(email, password);
+    return _authRepository.currentUser;
   }
 
   Future<void> signOut() async {
-    await firebaseAuthProvider.signOut();
+    await _authRepository.signOut();
   }
 
   Future<void> createUserProfile(String uid, String email,
@@ -34,7 +36,7 @@ class AuthService {
   }
 
   String? getCurrentUserId() {
-    return firebaseAuthProvider.currentUser?.uid;
+    return _authRepository.currentUser?.uid;
   }
 
   Future<UserProfile?> getCurrentUserProfile() async {

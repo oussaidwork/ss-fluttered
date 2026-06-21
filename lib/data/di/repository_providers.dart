@@ -1,30 +1,34 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/datasource/database_datasource.dart';
-import '../../data/datasource/firestore_datasource.dart';
-import '../../data/repositories/client_repository_impl.dart';
-import '../../data/repositories/client_fleet_repository_impl.dart';
-import '../../data/repositories/dashboard_repository_impl.dart';
-import '../../data/repositories/debt_repository_impl.dart';
-import '../../data/repositories/expense_repository_impl.dart';
-import '../../data/repositories/gas_type_repository_impl.dart';
-import '../../data/repositories/log_repository_impl.dart';
-import '../../data/repositories/payment_repository_impl.dart';
-import '../../data/repositories/payment_type_repository_impl.dart';
-import '../../data/repositories/permission_repository_impl.dart';
-import '../../data/repositories/pit_repository_impl.dart';
-import '../../data/repositories/product_repository_impl.dart';
-import '../../data/repositories/pump_repository_impl.dart';
-import '../../data/repositories/refill_repository_impl.dart';
-import '../../data/repositories/sale_item_repository_impl.dart';
-import '../../data/repositories/sale_repository_impl.dart';
-import '../../data/repositories/shift_repository_impl.dart';
-import '../../data/repositories/user_repository_impl.dart';
+import '../datasource/database_datasource.dart';
+import '../datasource/firestore_datasource.dart';
+import '../repositories/auth_repository_impl.dart';
+import '../repositories/client_repository_impl.dart';
+import '../repositories/client_fleet_repository_impl.dart';
+import '../repositories/dashboard_repository_impl.dart';
+import '../repositories/debt_repository_impl.dart';
+import '../repositories/expense_repository_impl.dart';
+import '../repositories/fuel_price_history_repository_impl.dart';
+import '../repositories/gas_type_repository_impl.dart';
+import '../repositories/log_repository_impl.dart';
+import '../repositories/payment_repository_impl.dart';
+import '../repositories/payment_type_repository_impl.dart';
+import '../repositories/permission_repository_impl.dart';
+import '../repositories/pit_repository_impl.dart';
+import '../repositories/product_repository_impl.dart';
+import '../repositories/pump_repository_impl.dart';
+import '../repositories/refill_repository_impl.dart';
+import '../repositories/sale_item_repository_impl.dart';
+import '../repositories/sale_repository_impl.dart';
+import '../repositories/shift_repository_impl.dart';
+import '../repositories/user_repository_impl.dart';
+import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/client_repository.dart';
 import '../../domain/repositories/client_fleet_repository.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../../domain/repositories/debt_repository.dart';
 import '../../domain/repositories/expense_repository.dart';
+import '../../domain/repositories/fuel_price_history_repository.dart';
 import '../../domain/repositories/gas_type_repository.dart';
 import '../../domain/repositories/log_repository.dart';
 import '../../domain/repositories/payment_repository.dart';
@@ -46,6 +50,10 @@ import '../../core/services/import_service.dart';
 
 final databaseDataSourceProvider = Provider<DatabaseDataSource>((ref) {
   return FirestoreDataSourceImpl();
+});
+
+final authRepositoryImplProvider = Provider<AuthRepository>((ref) {
+  return AuthRepositoryImpl();
 });
 
 // ─── Repositories ────────────────────────────────────────────
@@ -112,6 +120,11 @@ final refillRepositoryProvider = Provider<RefillRepository>((ref) {
 
 final logRepositoryProvider = Provider<LogRepository>((ref) {
   return LogRepositoryImpl(ref.watch(databaseDataSourceProvider));
+});
+
+final fuelPriceHistoryRepositoryProvider =
+    Provider<FuelPriceHistoryRepository>((ref) {
+  return FuelPriceHistoryRepositoryImpl(ref.watch(databaseDataSourceProvider));
 });
 
 final permissionRepositoryProvider = Provider<PermissionRepository>((ref) {

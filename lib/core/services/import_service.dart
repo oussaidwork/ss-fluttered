@@ -238,7 +238,7 @@ class ImportService {
       if (pumpName.isEmpty) continue;
       
       // Map pump name to pumpId
-      final pumpSnap = await _ds.queryMulti(
+      final pumpSnap = await _ds.query(
         FirestorePaths.pumps,
         filters: [QueryFilter(field: 'name', value: pumpName)],
         limit: 1,
@@ -254,7 +254,7 @@ class ImportService {
         if (val == null) continue;
         final counter = (val as num?)?.toDouble() ?? 0.0;
         
-        final spId = _ds.docRef(FirestorePaths.shiftPumps, '').id;
+        final spId = _ds.generateId(FirestorePaths.shiftPumps);
         await _ds.setDoc(FirestorePaths.shiftPumps, spId, {
           'id': spId,
           'shiftId': shiftId,
@@ -293,7 +293,7 @@ class ImportService {
         'isDeleted': false,
       });
       
-      final spId = _ds.docRef(FirestorePaths.saleItems, '').id;
+      final spId = _ds.generateId(FirestorePaths.saleItems);
       await _ds.setDoc(FirestorePaths.saleItems, spId, {
         'id': spId,
         'saleId': saleId,

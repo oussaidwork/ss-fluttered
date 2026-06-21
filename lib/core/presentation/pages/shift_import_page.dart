@@ -26,15 +26,7 @@ class _PumpReading {
   _PumpStatus status;
   String? error;
 
-  _PumpReading({
-    required this.code,
-    this.pumpId,
-    this.pumpName,
-    this.startAnalog,
-    this.endAnalog,
-    this.volume,
-    this.status = _PumpStatus.pending,
-  });
+  _PumpReading({required this.code}) : status = _PumpStatus.pending;
 }
 
 enum _PumpStatus { pending, matched, unmatched, noData, error }
@@ -97,13 +89,17 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
     final excel = Excel.decodeBytes(bytes);
     final sheet = excel.tables['Shift Import'];
     if (sheet == null || sheet.rows.length < 34) {
-      throw Exception('Invalid file: expected "Shift Import" sheet with at least 34 rows');
+      throw Exception(
+        'Invalid file: expected "Shift Import" sheet with at least 34 rows',
+      );
     }
 
     final preview = _ShiftPreview();
 
     // ── Row 8: Shift Header ──
-    final headerRow = sheet.rows[8].map((c) => c?.value?.toString().trim()).toList();
+    final headerRow = sheet.rows[8]
+        .map((c) => c?.value?.toString().trim())
+        .toList();
     preview.date = headerRow[0];
     preview.operatorName = headerRow[1];
     preview.superPrice = _parseDouble(headerRow[2]);
@@ -125,7 +121,9 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
         preview.operatorId = userSnap.docs.first.id;
         preview.operatorFound = true;
       } else {
-        preview.warnings.add('Operator "${preview.operatorName}" not found in users collection');
+        preview.warnings.add(
+          'Operator "${preview.operatorName}" not found in users collection',
+        );
       }
     }
 
@@ -139,7 +137,10 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
     final pumpNameByCode = <String, String>{};
     for (final doc in allPumps.docs) {
       final data = doc.data();
-      final code = (data['label'] as String? ?? data['name'] as String? ?? '').toString().toUpperCase().trim();
+      final code = (data['label'] as String? ?? data['name'] as String? ?? '')
+          .toString()
+          .toUpperCase()
+          .trim();
       if (code.isNotEmpty) {
         pumpByCode[code] = doc.id;
         pumpNameByCode[code] = data['name'] as String? ?? code;
@@ -147,7 +148,9 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
     }
 
     for (var i = 10; i <= 33 && i < sheet.rows.length; i++) {
-      final row = sheet.rows[i].map((c) => c?.value?.toString().trim()).toList();
+      final row = sheet.rows[i]
+          .map((c) => c?.value?.toString().trim())
+          .toList();
       final code = (row[0] ?? '').toString().toUpperCase().trim();
       if (code.isEmpty) continue;
 
@@ -169,7 +172,8 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
         reading.volume = reading.endAnalog! - reading.startAnalog!;
         if (reading.volume! < 0) {
           reading.status = _PumpStatus.error;
-          reading.error = 'End reading (${reading.endAnalog}) < Start reading (${reading.startAnalog})';
+          reading.error =
+              'End reading (${reading.endAnalog}) < Start reading (${reading.startAnalog})';
         }
       } else if (reading.startAnalog == null && reading.endAnalog == null) {
         reading.status = _PumpStatus.noData;
@@ -214,7 +218,10 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
 
       // 2. Create shift_pumps for matched pumps
       for (final pump in preview.pumps) {
-        if (pump.pumpId == null || pump.status == _PumpStatus.noData || pump.status == _PumpStatus.error) continue;
+        if (pump.pumpId == null ||
+            pump.status == _PumpStatus.noData ||
+            pump.status == _PumpStatus.error)
+          continue;
         final spId = firestore.collection('shift_pumps').doc().id;
         batch.set(firestore.collection('shift_pumps').doc(spId), {
           'id': spId,
@@ -241,7 +248,9 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
           double? price;
           if (n.contains('super')) {
             price = preview.superPrice;
-          } else if (n.contains('diesel') || n.contains('gasoil') || n.contains('gazole')) {
+          } else if (n.contains('diesel') ||
+              n.contains('gasoil') ||
+              n.contains('gazole')) {
             price = preview.dieselPrice;
           }
           if (price != null) {
@@ -272,7 +281,9 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Import completed: $shiftPumpsCount pump readings, $fuelHistoryCount price records'),
+            content: Text(
+              'Import completed: $shiftPumpsCount pump readings, $fuelHistoryCount price records',
+            ),
             backgroundColor: const Color(0xFF84CC16),
             behavior: SnackBarBehavior.floating,
           ),
@@ -304,7 +315,11 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
               const SizedBox(width: 12),
               const Text(
                 'Shift Import',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
               const Spacer(),
               if (!_parsed && !_isLoading)
@@ -315,7 +330,10 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0066CC),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                   ),
                 ),
               if (_parsed && !_importing && _result == null)
@@ -326,7 +344,10 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF84CC16),
                     foregroundColor: const Color(0xFF0B1220),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                   ),
                 ),
             ],
@@ -340,7 +361,9 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
 
           if (_isLoading)
             const Expanded(
-              child: Center(child: CircularProgressIndicator(color: Color(0xFF0066CC))),
+              child: Center(
+                child: CircularProgressIndicator(color: Color(0xFF0066CC)),
+              ),
             ),
 
           if (_error != null)
@@ -349,20 +372,31 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
               decoration: BoxDecoration(
                 color: const Color(0xFFEF4444).withAlpha(20),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFEF4444).withAlpha(60)),
+                border: Border.all(
+                  color: const Color(0xFFEF4444).withAlpha(60),
+                ),
               ),
               child: Row(
                 children: [
                   const Icon(Icons.error_outline, color: Color(0xFFEF4444)),
                   const SizedBox(width: 12),
-                  Expanded(child: Text(_error!, style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13))),
+                  Expanded(
+                    child: Text(
+                      _error!,
+                      style: const TextStyle(
+                        color: Color(0xFFEF4444),
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
 
           if (_result != null) _buildResults(),
 
-          if (_parsed && _preview != null && _result == null) Expanded(child: _buildPreview()),
+          if (_parsed && _preview != null && _result == null)
+            Expanded(child: _buildPreview()),
 
           if (!_parsed && !_isLoading && _error == null)
             const Expanded(
@@ -372,8 +406,10 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
                   children: [
                     Icon(Icons.upload_file, color: Colors.white24, size: 64),
                     SizedBox(height: 16),
-                    Text('Select a shift readings XLSX file to begin',
-                        style: TextStyle(color: Colors.white38, fontSize: 16)),
+                    Text(
+                      'Select a shift readings XLSX file to begin',
+                      style: TextStyle(color: Colors.white38, fontSize: 16),
+                    ),
                   ],
                 ),
               ),
@@ -396,21 +432,53 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.check_circle, color: Color(0xFF84CC16), size: 48),
+              const Icon(
+                Icons.check_circle,
+                color: Color(0xFF84CC16),
+                size: 48,
+              ),
               const SizedBox(height: 16),
-              const Text('Import Complete!', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text(
+                'Import Complete!',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 12),
-              ...(_result?.entries ?? <MapEntry<String, int>>[]).map((e) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('${e.key}: ', style: const TextStyle(color: Colors.white54, fontSize: 14)),
-                        Text('${e.value}', style: const TextStyle(color: Color(0xFF84CC16), fontSize: 14, fontWeight: FontWeight.w600)),
-                        Text(' records', style: const TextStyle(color: Colors.white54, fontSize: 14)),
-                      ],
-                    ),
-                  )),
+              ...(_result?.entries ?? <MapEntry<String, int>>[]).map(
+                (e) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${e.key}: ',
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Text(
+                        '${e.value}',
+                        style: const TextStyle(
+                          color: Color(0xFF84CC16),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        ' records',
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               const SizedBox(height: 20),
               OutlinedButton(
                 onPressed: () => setState(() {
@@ -430,14 +498,14 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
 
   Widget _buildPreview() {
     final p = _preview!;
-    final totalVolume = p.pumps
-        .where((r) => r.volume != null)
-        .fold(0.0, (sum, r) => sum! + r.volume!) as double;
+    final totalVolume = p.pumps.fold<double>(
+      0.0,
+      (acc, r) => acc + (r.volume ?? 0),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Warnings ──
         if (p.warnings.isNotEmpty)
           Container(
             width: double.infinity,
@@ -445,7 +513,7 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: const Color(0xFFEAB308).withAlpha(20),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(color: const Color(0xFFEAB308).withAlpha(60)),
             ),
             child: Column(
@@ -453,142 +521,312 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.warning_amber, color: Color(0xFFEAB308), size: 18),
+                    Icon(
+                      Icons.warning_amber,
+                      color: Color(0xFFEAB308),
+                      size: 18,
+                    ),
                     SizedBox(width: 8),
-                    Text('Warnings', style: TextStyle(color: Color(0xFFEAB308), fontWeight: FontWeight.w600, fontSize: 13)),
+                    Text(
+                      'Warnings',
+                      style: TextStyle(
+                        color: Color(0xFFEAB308),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 6),
-                ...p.warnings.map((w) => Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Row(
-                        children: [
-                          const SizedBox(width: 26),
-                          Expanded(child: Text('• $w', style: const TextStyle(color: Colors.white54, fontSize: 12))),
-                        ],
+                ...p.warnings.map(
+                  (w) => Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      '• $w',
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
                       ),
-                    )),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
 
-        // ── Shift Header Card ──
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(16),
-          margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
             color: const Color(0xFF0B1220),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.white12),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Shift Header', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 12),
               Row(
                 children: [
-                  _infoChip('Date', p.date ?? '-'),
-                  const SizedBox(width: 24),
-                  _infoChip('Operator', p.operatorName ?? '-',
-                    icon: p.operatorFound ? Icons.check_circle : Icons.error_outline,
-                    iconColor: p.operatorFound ? const Color(0xFF84CC16) : const Color(0xFFEAB308)),
-                  const SizedBox(width: 24),
+                  const Text(
+                    'Shift Summary',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  _summaryCard(
+                    'Total Volume',
+                    '${totalVolume.toStringAsFixed(1)} L',
+                    Icons.local_gas_station,
+                    const Color(0xFF84CC16),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Wrap(
+                spacing: 16,
+                runSpacing: 12,
+                children: [
+                  _summaryCard(
+                    'Date',
+                    p.date ?? '-',
+                    Icons.calendar_today,
+                    const Color(0xFF0066CC),
+                  ),
+                  _summaryCard(
+                    'Operator',
+                    p.operatorName ?? '-',
+                    p.operatorFound ? Icons.check_circle : Icons.error_outline,
+                    p.operatorFound
+                        ? const Color(0xFF84CC16)
+                        : const Color(0xFFEAB308),
+                  ),
                   if (p.superPrice != null)
-                    _infoChip('Super Price', '${p.superPrice} MAD'),
-                  if (p.dieselPrice != null) ...[
-                    const SizedBox(width: 24),
-                    _infoChip('Diesel Price', '${p.dieselPrice} MAD'),
-                  ],
+                    _summaryCard(
+                      'Super Price',
+                      '${p.superPrice!.toStringAsFixed(2)} MAD',
+                      Icons.attach_money,
+                      const Color(0xFF84CC16),
+                    ),
+                  if (p.dieselPrice != null)
+                    _summaryCard(
+                      'Diesel Price',
+                      '${p.dieselPrice!.toStringAsFixed(2)} MAD',
+                      Icons.attach_money,
+                      const Color(0xFF0066CC),
+                    ),
                 ],
               ),
             ],
           ),
         ),
-
-        // ── Warnings ──
-        const Text('Pump Readings', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
-
-        // ── Pump Table ──
+        const SizedBox(height: 16),
         Expanded(
           child: Container(
             decoration: BoxDecoration(
               color: const Color(0xFF0B1220),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.white12),
             ),
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  // Header
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF111A2E),
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
-                    ),
-                    child: const Row(
-                      children: [
-                        Expanded(flex: 2, child: Text('#', style: TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.w600))),
-                        Expanded(flex: 3, child: Text('PUMP', style: TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.w600))),
-                        Expanded(flex: 2, child: Text('CODE', style: TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.w600))),
-                        Expanded(flex: 3, child: Text('START', style: TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.w600))),
-                        Expanded(flex: 3, child: Text('END', style: TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.w600))),
-                        Expanded(flex: 3, child: Text('VOLUME', style: TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.w600))),
-                        Expanded(flex: 3, child: Text('STATUS', style: TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.w600))),
-                      ],
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF111A2E),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(12),
                     ),
                   ),
-                  // Rows
-                  ...List.generate(p.pumps.length, (i) {
-                    final pump = p.pumps[i];
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: i.isEven ? Colors.transparent : Colors.white.withAlpha(3),
-                        border: const Border(bottom: BorderSide(color: Colors.white12, width: 0.5)),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(flex: 2, child: Text('${i + 1}', style: const TextStyle(color: Colors.white38, fontSize: 12))),
-                          Expanded(flex: 3, child: Text(pump.pumpName ?? '-', style: const TextStyle(color: Colors.white70, fontSize: 12))),
-                          Expanded(flex: 2, child: Text(pump.code, style: const TextStyle(color: Colors.white70, fontSize: 12, fontFamily: 'monospace'))),
-                          Expanded(flex: 3, child: Text(pump.startAnalog?.toStringAsFixed(0) ?? '-', style: const TextStyle(color: Colors.white54, fontSize: 12))),
-                          Expanded(flex: 3, child: Text(pump.endAnalog?.toStringAsFixed(0) ?? '-', style: const TextStyle(color: Colors.white70, fontSize: 12))),
-                          Expanded(
-                            flex: 3,
-                            child: pump.volume != null
-                                ? Text(pump.volume!.toStringAsFixed(1), style: const TextStyle(color: Color(0xFF84CC16), fontSize: 12, fontFamily: 'monospace'))
-                                : const Text('-', style: TextStyle(color: Colors.white38, fontSize: 12)),
+                  child: const Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          '#',
+                          style: TextStyle(
+                            color: Colors.white38,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
                           ),
-                          Expanded(flex: 3, child: _pumpStatusBadge(pump)),
-                        ],
-                      ),
-                    );
-                  }),
-                  // Summary row
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF111A2E),
-                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(8)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Expanded(flex: 7, child: SizedBox()),
-                        const Expanded(flex: 3, child: Text('Total Volume', style: TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.w600))),
-                        Expanded(
-                          flex: 3,
-                          child: Text('${totalVolume.toStringAsFixed(1)} L', style: const TextStyle(color: Color(0xFF84CC16), fontSize: 13, fontWeight: FontWeight.bold)),
                         ),
-                        const Expanded(flex: 3, child: SizedBox()),
-                      ],
+                      ),
+                      Expanded(
+                        flex: 4,
+                        child: Text(
+                          'Pump',
+                          style: TextStyle(
+                            color: Colors.white38,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 3,
+                        child: Text(
+                          'Code',
+                          style: TextStyle(
+                            color: Colors.white38,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 3,
+                        child: Text(
+                          'Start',
+                          style: TextStyle(
+                            color: Colors.white38,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 3,
+                        child: Text(
+                          'End',
+                          style: TextStyle(
+                            color: Colors.white38,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 3,
+                        child: Text(
+                          'Volume',
+                          style: TextStyle(
+                            color: Colors.white38,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 3,
+                        child: Text(
+                          'Status',
+                          style: TextStyle(
+                            color: Colors.white38,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: List.generate(p.pumps.length, (i) {
+                        final pump = p.pumps[i];
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: i.isEven
+                                ? Colors.transparent
+                                : Colors.white.withAlpha(3),
+                            border: const Border(
+                              bottom: BorderSide(
+                                color: Colors.white12,
+                                width: 0.5,
+                              ),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  '${i + 1}',
+                                  style: const TextStyle(
+                                    color: Colors.white38,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 4,
+                                child: Text(
+                                  pump.pumpName ?? '-',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Text(
+                                  pump.code,
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                    fontFamily: 'monospace',
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Text(
+                                  pump.startAnalog?.toStringAsFixed(0) ?? '-',
+                                  style: const TextStyle(
+                                    color: Colors.white54,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Text(
+                                  pump.endAnalog?.toStringAsFixed(0) ?? '-',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: pump.volume != null
+                                    ? Text(
+                                        pump.volume!.toStringAsFixed(1),
+                                        style: const TextStyle(
+                                          color: Color(0xFF84CC16),
+                                          fontSize: 12,
+                                          fontFamily: 'monospace',
+                                        ),
+                                      )
+                                    : const Text(
+                                        '-',
+                                        style: TextStyle(
+                                          color: Colors.white38,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                              ),
+                              Expanded(flex: 3, child: _pumpStatusBadge(pump)),
+                            ],
+                          ),
+                        );
+                      }),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -596,17 +834,44 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
     );
   }
 
-  Widget _infoChip(String label, String value, {IconData? icon, Color? iconColor}) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (icon != null) ...[
-          Icon(icon, size: 14, color: iconColor),
-          const SizedBox(width: 4),
+  Widget _summaryCard(
+    String label,
+    String value,
+    IconData icon,
+    Color iconColor,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(4),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: iconColor, size: 16),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(color: Colors.white38, fontSize: 11),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ],
-        Text('$label: ', style: const TextStyle(color: Colors.white38, fontSize: 12)),
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
-      ],
+      ),
     );
   }
 
@@ -614,26 +879,35 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
     switch (pump.status) {
       case _PumpStatus.matched:
         return Row(
-          children: [
-            const Icon(Icons.check_circle, color: Color(0xFF84CC16), size: 14),
-            const SizedBox(width: 4),
-            Text('OK', style: TextStyle(color: const Color(0xFF84CC16), fontSize: 11)),
+          children: const [
+            Icon(Icons.check_circle, color: Color(0xFF84CC16), size: 14),
+            SizedBox(width: 4),
+            Text(
+              'OK',
+              style: TextStyle(color: Color(0xFF84CC16), fontSize: 11),
+            ),
           ],
         );
       case _PumpStatus.unmatched:
         return Row(
-          children: [
-            const Icon(Icons.error_outline, color: Color(0xFFEAB308), size: 14),
-            const SizedBox(width: 4),
-            Text('Unmatched', style: TextStyle(color: const Color(0xFFEAB308), fontSize: 11)),
+          children: const [
+            Icon(Icons.error_outline, color: Color(0xFFEAB308), size: 14),
+            SizedBox(width: 4),
+            Text(
+              'Unmatched',
+              style: TextStyle(color: Color(0xFFEAB308), fontSize: 11),
+            ),
           ],
         );
       case _PumpStatus.noData:
         return Row(
-          children: [
-            const Icon(Icons.remove_circle_outline, color: Colors.white38, size: 14),
-            const SizedBox(width: 4),
-            Text('No data', style: const TextStyle(color: Colors.white38, fontSize: 11)),
+          children: const [
+            Icon(Icons.remove_circle_outline, color: Colors.white38, size: 14),
+            SizedBox(width: 4),
+            Text(
+              'No data',
+              style: TextStyle(color: Colors.white38, fontSize: 11),
+            ),
           ],
         );
       case _PumpStatus.error:
@@ -641,11 +915,19 @@ class _ShiftImportPageState extends State<ShiftImportPage> {
           children: [
             const Icon(Icons.cancel, color: Color(0xFFEF4444), size: 14),
             const SizedBox(width: 4),
-            Flexible(child: Text(pump.error ?? 'Error', style: const TextStyle(color: Color(0xFFEF4444), fontSize: 11))),
+            Flexible(
+              child: Text(
+                pump.error ?? 'Error',
+                style: const TextStyle(color: Color(0xFFEF4444), fontSize: 11),
+              ),
+            ),
           ],
         );
       case _PumpStatus.pending:
-        return const Text('Pending', style: TextStyle(color: Colors.white38, fontSize: 11));
+        return const Text(
+          'Pending',
+          style: TextStyle(color: Colors.white38, fontSize: 11),
+        );
     }
   }
 }

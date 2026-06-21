@@ -10,7 +10,7 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Stream<List<Product>> watchProducts() {
-    return _ds.streamQueryMulti(
+    return _ds.streamQuery(
       FirestorePaths.products,
       filters: [QueryFilter(field: 'isDeleted', value: false)],
     ).map((snap) => snap.docs.map((d) => Product.fromMap(d.data() as Map<String, dynamic>..putIfAbsent('id', () => d.id))).toList());
@@ -19,7 +19,7 @@ class ProductRepositoryImpl implements ProductRepository {
   @override
   Future<Product?> getProduct(String id) async {
     final doc = await _ds.getDoc(FirestorePaths.products, id);
-    if (!doc.exists) return null;
+    if (doc == null) return null;
     return Product.fromMap(doc.data() as Map<String, dynamic>);
   }
 

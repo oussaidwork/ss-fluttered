@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
 import '../enums/payment_status.dart';
 
 class Payment {
@@ -75,15 +74,15 @@ class Payment {
       'status': status.value,
       'checkBankName': checkBankName,
       'checkNumber': checkNumber,
-      'dueDate': dueDate != null ? Timestamp.fromDate(dueDate!) : null,
-      'clearedAt': clearedAt != null ? Timestamp.fromDate(clearedAt!) : null,
+      'dueDate': dueDate?.toIso8601String(),
+      'clearedAt': clearedAt?.toIso8601String(),
       'notes': notes,
       'clientId': clientId,
       'saleId': saleId,
       'paymentTypeId': paymentTypeId,
       'recordedBy': recordedBy,
       'isDeleted': isDeleted,
-      'createdAt': Timestamp.fromDate(createdAt),
+      'createdAt': createdAt.toIso8601String(),
     };
   }
 
@@ -94,15 +93,15 @@ class Payment {
       status: PaymentStatus.fromString(map['status'] as String? ?? 'PENDING'),
       checkBankName: map['checkBankName'] as String?,
       checkNumber: map['checkNumber'] as String?,
-      dueDate: (map['dueDate'] as Timestamp?)?.toDate(),
-      clearedAt: (map['clearedAt'] as Timestamp?)?.toDate(),
+      dueDate: DateTime.tryParse(map['dueDate'] as String? ?? ''),
+      clearedAt: DateTime.tryParse(map['clearedAt'] as String? ?? ''),
       notes: map['notes'] as String?,
       clientId: map['clientId'] as String?,
       saleId: map['saleId'] as String?,
       paymentTypeId: map['paymentTypeId'] as String?,
       recordedBy: map['recordedBy'] as String?,
       isDeleted: map['isDeleted'] as bool? ?? false,
-      createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ?? DateTime.now(),
     );
   }
 }

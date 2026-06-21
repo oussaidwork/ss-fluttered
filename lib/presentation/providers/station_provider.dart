@@ -5,7 +5,7 @@ import '../../domain/entities/pit.dart';
 import '../../domain/entities/pump.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/entities/payment_type.dart';
-import 'repository_providers.dart';
+import '../../data/di/repository_providers.dart';
 
 final gasTypesProvider = StreamProvider<List<GasType>>((ref) {
   return ref.watch(gasTypeRepositoryProvider).watchGasTypes();

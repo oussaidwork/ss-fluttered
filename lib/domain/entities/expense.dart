@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
 import '../enums/expense_category.dart';
 
 class Expense {
@@ -47,7 +46,7 @@ class Expense {
       'amount': amount,
       'quantity': quantity,
       'category': category?.value,
-      'timestamp': Timestamp.fromDate(timestamp),
+      'timestamp': timestamp.toIso8601String(),
       'recordedBy': recordedBy,
     };
   }
@@ -61,7 +60,7 @@ class Expense {
       category: map['category'] != null
           ? ExpenseCategory.fromString(map['category'] as String)
           : null,
-      timestamp: (map['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      timestamp: DateTime.tryParse(map['timestamp'] as String? ?? '') ?? DateTime.now(),
       recordedBy: map['recordedBy'] as String?,
     );
   }

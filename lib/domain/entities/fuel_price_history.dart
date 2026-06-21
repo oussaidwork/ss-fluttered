@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
-
 class FuelPriceHistory {
   final String id;
   final double? oldPriceIn;
@@ -54,7 +52,7 @@ class FuelPriceHistory {
       'newPriceIn': newPriceIn,
       'oldPriceOut': oldPriceOut,
       'newPriceOut': newPriceOut,
-      'changedAt': Timestamp.fromDate(changedAt),
+      'changedAt': changedAt.toIso8601String(),
       'gasTypeId': gasTypeId,
       'changedBy': changedBy,
       'isDeleted': isDeleted,
@@ -68,7 +66,7 @@ class FuelPriceHistory {
       newPriceIn: (map['newPriceIn'] as num?)?.toDouble(),
       oldPriceOut: (map['oldPriceOut'] as num?)?.toDouble(),
       newPriceOut: (map['newPriceOut'] as num?)?.toDouble(),
-      changedAt: (map['changedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      changedAt: DateTime.tryParse(map['changedAt'] as String? ?? '') ?? DateTime.now(),
       gasTypeId: map['gasTypeId'] as String? ?? '',
       changedBy: map['changedBy'] as String?,
       isDeleted: map['isDeleted'] as bool? ?? false,

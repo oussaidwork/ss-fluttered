@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../../core/constants/firestore_paths.dart';
 import '../../data/datasource/database_datasource.dart';
 import '../../domain/entities/log_entry.dart';
@@ -16,7 +14,7 @@ class LogRepositoryImpl implements LogRepository {
     String? details,
     String? userId,
   }) async {
-    final docId = _ds.docRef(FirestorePaths.logs, '').id;
+    final docId = _ds.generateId(FirestorePaths.logs);
     final entry = LogEntry(
       id: docId,
       action: action,
@@ -43,12 +41,12 @@ class LogRepositoryImpl implements LogRepository {
 
   @override
   Future<void> cleanupOldLogs({required DateTime before}) async {
-    final snap = await _ds.queryMulti(
+    final snap = await _ds.query(
       FirestorePaths.logs,
       filters: [
         QueryFilter(
           field: 'timestamp',
-          value: Timestamp.fromDate(before),
+          value: before.toIso8601String(),
           operator: FilterOperator.isLessThan,
         ),
       ],
@@ -57,7 +55,7 @@ class LogRepositoryImpl implements LogRepository {
 
     final batch = _ds.batch();
     for (final doc in snap.docs) {
-      batch.delete(doc.reference);
+      batch.delete(FirestorePaths.logs, doc.id);
     }
 
     if (snap.docs.isNotEmpty) {

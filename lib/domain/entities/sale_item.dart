@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
 import '../enums/sale_type.dart';
 
 class SaleItem {
@@ -78,7 +77,7 @@ class SaleItem {
       'driverName': driverName,
       'vehiclePlate': vehiclePlate,
       'notes': notes,
-      'timestamp': Timestamp.fromDate(timestamp),
+      'timestamp': timestamp.toIso8601String(),
     };
   }
 
@@ -96,7 +95,7 @@ class SaleItem {
       driverName: map['driverName'] as String?,
       vehiclePlate: map['vehiclePlate'] as String?,
       notes: map['notes'] as String?,
-      timestamp: (map['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      timestamp: DateTime.tryParse(map['timestamp'] as String? ?? '') ?? DateTime.now(),
     );
   }
 }

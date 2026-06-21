@@ -12,12 +12,14 @@ class FirestoreDataSourceImpl implements DatabaseDataSource {
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
   @override
-  DocumentReference docRef(String collection, String id) =>
-      _firestore.collection(collection).doc(id);
+  String generateId(String collection) =>
+      _firestore.collection(collection).doc().id;
 
   @override
-  Future<DocumentSnapshot> getDoc(String collection, String id) =>
-      _firestore.collection(collection).doc(id).get();
+  Future<DatabaseDocSnapshot?> getDoc(String collection, String id) async {
+    final snap = await _firestore.collection(collection).doc(id).get();
+    return snap.exists ? FirestoreDocSnapshot(snap) : null;
+  }
 
   @override
   Future<void> setDoc(
@@ -39,73 +41,44 @@ class FirestoreDataSourceImpl implements DatabaseDataSource {
   Future<void> deleteDoc(String collection, String id) =>
       _firestore.collection(collection).doc(id).delete();
 
-  Query _buildSingleQuery(
+  @override
+  Future<DatabaseQuerySnapshot> query(
     String collection, {
-    String? filterField,
-    dynamic filterValue,
-    bool filterIsEqualTo = true,
+    List<QueryFilter>? filters,
+    String? orderByField,
+    bool orderByDescending = false,
+    int? limit,
+  }) async {
+    final q = _buildQuery(
+      collection,
+      filters: filters,
+      orderByField: orderByField,
+      orderByDescending: orderByDescending,
+      limit: limit,
+    );
+    final snap = await q.get();
+    return FirestoreQuerySnapshot(snap);
+  }
+
+  @override
+  Stream<DatabaseQuerySnapshot> streamQuery(
+    String collection, {
+    List<QueryFilter>? filters,
     String? orderByField,
     bool orderByDescending = false,
     int? limit,
   }) {
-    Query q = _firestore.collection(collection);
-
-    if (filterField != null && filterValue != null) {
-      q = q.where(filterField, isEqualTo: filterValue);
-    }
-
-    if (orderByField != null) {
-      q = q.orderBy(orderByField, descending: orderByDescending);
-    }
-
-    if (limit != null) {
-      q = q.limit(limit);
-    }
-
-    return q;
+    final q = _buildQuery(
+      collection,
+      filters: filters,
+      orderByField: orderByField,
+      orderByDescending: orderByDescending,
+      limit: limit,
+    );
+    return q.snapshots().map((snap) => FirestoreQuerySnapshot(snap));
   }
 
-  @override
-  Future<QuerySnapshot> query(
-    String collection, {
-    String? filterField,
-    dynamic filterValue,
-    bool filterIsEqualTo = true,
-    String? orderByField,
-    bool orderByDescending = false,
-    int? limit,
-  }) =>
-      _buildSingleQuery(
-        collection,
-        filterField: filterField,
-        filterValue: filterValue,
-        filterIsEqualTo: filterIsEqualTo,
-        orderByField: orderByField,
-        orderByDescending: orderByDescending,
-        limit: limit,
-      ).get();
-
-  @override
-  Stream<QuerySnapshot> streamQuery(
-    String collection, {
-    String? filterField,
-    dynamic filterValue,
-    bool filterIsEqualTo = true,
-    String? orderByField,
-    bool orderByDescending = false,
-    int? limit,
-  }) =>
-      _buildSingleQuery(
-        collection,
-        filterField: filterField,
-        filterValue: filterValue,
-        filterIsEqualTo: filterIsEqualTo,
-        orderByField: orderByField,
-        orderByDescending: orderByDescending,
-        limit: limit,
-      ).snapshots();
-
-  Query _buildMultiQuery(
+  Query _buildQuery(
     String collection, {
     List<QueryFilter>? filters,
     String? orderByField,
@@ -151,41 +124,95 @@ class FirestoreDataSourceImpl implements DatabaseDataSource {
   }
 
   @override
-  Future<QuerySnapshot> queryMulti(
-    String collection, {
-    List<QueryFilter>? filters,
-    String? orderByField,
-    bool orderByDescending = false,
-    int? limit,
-  }) =>
-      _buildMultiQuery(
-        collection,
-        filters: filters,
-        orderByField: orderByField,
-        orderByDescending: orderByDescending,
-        limit: limit,
-      ).get();
+  DatabaseBatch batch() => FirestoreBatch(_firestore.batch(), _firestore);
 
   @override
-  Stream<QuerySnapshot> streamQueryMulti(
-    String collection, {
-    List<QueryFilter>? filters,
-    String? orderByField,
-    bool orderByDescending = false,
-    int? limit,
-  }) =>
-      _buildMultiQuery(
-        collection,
-        filters: filters,
-        orderByField: orderByField,
-        orderByDescending: orderByDescending,
-        limit: limit,
-      ).snapshots();
+  Future<T> runTransaction<T>(
+      Future<T> Function(DatabaseTransaction txn) handler) {
+    return _firestore.runTransaction((txn) {
+      return handler(FirestoreTransaction(txn, _firestore));
+    });
+  }
+}
+
+/// Firestore wrapper for [DatabaseDocSnapshot].
+class FirestoreDocSnapshot extends DatabaseDocSnapshot {
+  final DocumentSnapshot _snap;
+
+  FirestoreDocSnapshot(this._snap);
 
   @override
-  WriteBatch batch() => _firestore.batch();
+  String get id => _snap.id;
 
   @override
-  Future<T> runTransaction<T>(Future<T> Function(Transaction txn) handler) =>
-      _firestore.runTransaction(handler);
+  bool get exists => _snap.exists;
+
+  @override
+  Map<String, dynamic>? data() => _snap.data() as Map<String, dynamic>?;
+}
+
+/// Firestore wrapper for [DatabaseQuerySnapshot].
+class FirestoreQuerySnapshot extends DatabaseQuerySnapshot {
+  final QuerySnapshot _snap;
+
+  FirestoreQuerySnapshot(this._snap);
+
+  @override
+  List<DatabaseDocSnapshot> get docs =>
+      _snap.docs.map((d) => FirestoreDocSnapshot(d)).toList();
+}
+
+/// Firestore wrapper for [DatabaseBatch].
+class FirestoreBatch extends DatabaseBatch {
+  final WriteBatch _batch;
+  final FirebaseFirestore _firestore;
+
+  FirestoreBatch(this._batch, this._firestore);
+
+  DocumentReference _ref(String collection, String id) =>
+      _firestore.collection(collection).doc(id);
+
+  @override
+  void set(String collection, String id, Map<String, dynamic> data) =>
+      _batch.set(_ref(collection, id), data);
+
+  @override
+  void update(String collection, String id, Map<String, dynamic> data) =>
+      _batch.update(_ref(collection, id), data);
+
+  @override
+  void delete(String collection, String id) =>
+      _batch.delete(_ref(collection, id));
+
+  @override
+  Future<void> commit() => _batch.commit();
+}
+
+/// Firestore wrapper for [DatabaseTransaction].
+class FirestoreTransaction extends DatabaseTransaction {
+  final Transaction _txn;
+  final FirebaseFirestore _firestore;
+
+  FirestoreTransaction(this._txn, this._firestore);
+
+  DocumentReference _ref(String collection, String id) =>
+      _firestore.collection(collection).doc(id);
+
+  @override
+  Future<DatabaseDocSnapshot?> get(String collection, String id) async {
+    final snap = await _txn.get(_ref(collection, id));
+    return FirestoreDocSnapshot(snap);
+  }
+
+  @override
+  void set(String collection, String id, Map<String, dynamic> data) =>
+      _txn.set(_ref(collection, id), data);
+
+  @override
+  void update(String collection, String id, Map<String, dynamic> data) =>
+      _txn.update(_ref(collection, id), data);
+
+  @override
+  void delete(String collection, String id) =>
+      _txn.delete(_ref(collection, id));
 }

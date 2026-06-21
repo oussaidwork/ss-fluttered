@@ -16,24 +16,21 @@ class RefillRepositoryImpl implements RefillRepository {
   }) async {
     final batch = _ds.batch();
 
-    final pitRef = _ds.docRef(FirestorePaths.pits, refill.pitId);
-    final pitSnap = await pitRef.get();
-    if (!pitSnap.exists) {
+    final pitDoc = await _ds.getDoc(FirestorePaths.pits, refill.pitId);
+    if (pitDoc == null || !pitDoc.exists) {
       throw Exception('Pit not found');
     }
-    final pitData = pitSnap.data() as Map<String, dynamic>?;
+    final pitData = pitDoc.data() as Map<String, dynamic>?;
     final currentVolume =
         (pitData?['currentVolume'] as num?)?.toDouble() ?? 0;
-    batch.update(pitRef, {
+    batch.update(FirestorePaths.pits, refill.pitId, {
       'currentVolume': currentVolume + refill.volume,
     });
 
-    final refillRef = _ds.docRef(FirestorePaths.pitRefills, refill.id);
-    batch.set(refillRef, refill.toMap());
+    batch.set(FirestorePaths.pitRefills, refill.id, refill.toMap());
 
     if (payment != null) {
-      final payRef = _ds.docRef(FirestorePaths.refillPayments, payment.id);
-      batch.set(payRef, payment.toMap());
+      batch.set(FirestorePaths.refillPayments, payment.id, payment.toMap());
     }
 
     await batch.commit();

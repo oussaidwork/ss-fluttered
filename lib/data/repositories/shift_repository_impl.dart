@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../../core/constants/firestore_paths.dart';
 import '../../data/datasource/database_datasource.dart';
 import '../../domain/entities/work_shift.dart';
@@ -25,14 +23,13 @@ class ShiftRepositoryImpl implements ShiftRepository {
   }) async {
     final batch = _ds.batch();
 
-    final shiftRef = _ds.docRef(FirestorePaths.workShifts, shiftId);
-    batch.update(shiftRef, {
+    batch.update(FirestorePaths.workShifts, shiftId, {
       'status': 'CLOSED',
-      'endTime': Timestamp.fromDate(DateTime.now()),
+      'endTime': DateTime.now().toIso8601String(),
       'actualCash': actualCash,
     });
 
-    final shiftPumpsSnap = await _ds.queryMulti(
+    final shiftPumpsSnap = await _ds.query(
       FirestorePaths.shiftPumps,
       filters: [QueryFilter(field: 'shiftId', value: shiftId)],
     );
@@ -42,7 +39,7 @@ class ShiftRepositoryImpl implements ShiftRepository {
       final pumpId = docData['pumpId'] as String? ?? '';
       final endCounter = endAnalogCounters[pumpId];
       if (endCounter != null) {
-        batch.update(doc.reference, {'endAnalogCounter': endCounter});
+        batch.update(FirestorePaths.shiftPumps, doc.id, {'endAnalogCounter': endCounter});
       }
     }
 
@@ -51,7 +48,7 @@ class ShiftRepositoryImpl implements ShiftRepository {
 
   @override
   Stream<List<WorkShift>> watchActiveShifts() {
-    return _ds.streamQueryMulti(
+    return _ds.streamQuery(
       FirestorePaths.workShifts,
       filters: [
         QueryFilter(field: 'status', value: 'OPEN'),
@@ -67,7 +64,7 @@ class ShiftRepositoryImpl implements ShiftRepository {
 
   @override
   Stream<List<WorkShift>> watchAllShifts() {
-    return _ds.streamQueryMulti(
+    return _ds.streamQuery(
       FirestorePaths.workShifts,
       filters: [QueryFilter(field: 'isDeleted', value: false)],
       orderByField: 'startTime',
@@ -82,7 +79,7 @@ class ShiftRepositoryImpl implements ShiftRepository {
 
   @override
   Future<List<ShiftPump>> getShiftPumps(String shiftId) async {
-    final snap = await _ds.queryMulti(
+    final snap = await _ds.query(
       FirestorePaths.shiftPumps,
       filters: [QueryFilter(field: 'shiftId', value: shiftId)],
     );
@@ -93,7 +90,7 @@ class ShiftRepositoryImpl implements ShiftRepository {
 
   @override
   Future<Map<String, double>> deriveChainData(String shiftId) async {
-    final shiftPumpsSnap = await _ds.queryMulti(
+    final shiftPumpsSnap = await _ds.query(
       FirestorePaths.shiftPumps,
       filters: [QueryFilter(field: 'shiftId', value: shiftId)],
     );
@@ -112,7 +109,7 @@ class ShiftRepositoryImpl implements ShiftRepository {
     for (final sp in sorted) {
       double previousEndAnalogCounter = 0;
 
-      final prevShiftPumpsSnap = await _ds.queryMulti(
+      final prevShiftPumpsSnap = await _ds.query(
         FirestorePaths.shiftPumps,
         filters: [
           QueryFilter(field: 'pumpId', value: sp.pumpId),
@@ -127,7 +124,7 @@ class ShiftRepositoryImpl implements ShiftRepository {
         previousEndAnalogCounter = lastSp.endAnalogCounter ?? 0;
       } else {
         final pumpDoc = await _ds.getDoc(FirestorePaths.pumps, sp.pumpId);
-        if (pumpDoc.exists) {
+        if (pumpDoc != null && pumpDoc.exists) {
           final pumpData = pumpDoc.data() as Map<String, dynamic>?;
           previousEndAnalogCounter =
               (pumpData?['initialAnalogCounter'] as num?)?.toDouble() ?? 0;
@@ -144,7 +141,7 @@ class ShiftRepositoryImpl implements ShiftRepository {
 
   @override
   Future<bool> verifyChain(String shiftId) async {
-    final shiftPumpsSnap = await _ds.queryMulti(
+    final shiftPumpsSnap = await _ds.query(
       FirestorePaths.shiftPumps,
       filters: [QueryFilter(field: 'shiftId', value: shiftId)],
     );
@@ -157,7 +154,7 @@ class ShiftRepositoryImpl implements ShiftRepository {
     for (final sp in shiftPumps) {
       double previousEndAnalogCounter = 0;
 
-      final prevSnap = await _ds.queryMulti(
+      final prevSnap = await _ds.query(
         FirestorePaths.shiftPumps,
         filters: [
           QueryFilter(field: 'pumpId', value: sp.pumpId),
@@ -171,7 +168,7 @@ class ShiftRepositoryImpl implements ShiftRepository {
         previousEndAnalogCounter = lastSp.endAnalogCounter ?? 0;
       } else {
         final pumpDoc = await _ds.getDoc(FirestorePaths.pumps, sp.pumpId);
-        if (pumpDoc.exists) {
+        if (pumpDoc != null && pumpDoc.exists) {
           final pumpData = pumpDoc.data() as Map<String, dynamic>?;
           previousEndAnalogCounter =
               (pumpData?['initialAnalogCounter'] as num?)?.toDouble() ?? 0;

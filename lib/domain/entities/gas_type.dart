@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
-
 class GasType {
   final String id;
   final String name;
@@ -51,8 +49,8 @@ class GasType {
       'priceOut': priceOut,
       'color': color,
       'isDeleted': isDeleted,
-      'createdAt': Timestamp.fromDate(createdAt),
-      'updatedAt': Timestamp.fromDate(updatedAt),
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
     };
   }
 
@@ -64,8 +62,8 @@ class GasType {
       priceOut: (map['priceOut'] as num?)?.toDouble() ?? 0.0,
       color: map['color'] as String?,
       isDeleted: map['isDeleted'] as bool? ?? false,
-      createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      updatedAt: (map['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      createdAt: DateTime.parse(map['createdAt'] as String? ?? DateTime.now().toIso8601String()),
+      updatedAt: DateTime.parse(map['updatedAt'] as String? ?? DateTime.now().toIso8601String()),
     );
   }
 }

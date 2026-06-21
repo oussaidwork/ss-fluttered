@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
 import '../enums/shift_status.dart';
 
 class WorkShift {
@@ -47,8 +46,8 @@ class WorkShift {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'startTime': Timestamp.fromDate(startTime),
-      'endTime': Timestamp.fromDate(endTime),
+      'startTime': startTime.toIso8601String(),
+      'endTime': endTime.toIso8601String(),
       'status': status.value,
       'actualCash': actualCash,
       'expectedCash': expectedCash,
@@ -60,8 +59,8 @@ class WorkShift {
   factory WorkShift.fromMap(Map<String, dynamic> map) {
     return WorkShift(
       id: map['id'] as String? ?? '',
-      startTime: (map['startTime'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      endTime: (map['endTime'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      startTime: DateTime.tryParse(map['startTime'] as String? ?? '') ?? DateTime.now(),
+      endTime: DateTime.tryParse(map['endTime'] as String? ?? '') ?? DateTime.now(),
       status: ShiftStatus.fromString(map['status'] as String? ?? 'CLOSED'),
       actualCash: (map['actualCash'] as num?)?.toDouble(),
       expectedCash: (map['expectedCash'] as num?)?.toDouble(),

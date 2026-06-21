@@ -10,7 +10,7 @@ class ClientFleetRepositoryImpl implements ClientFleetRepository {
 
   @override
   Stream<List<ClientFleet>> watchClientFleet(String clientId) {
-    return _ds.streamQueryMulti(
+    return _ds.streamQuery(
       FirestorePaths.clientFleet,
       filters: [
         QueryFilter(field: 'clientId', value: clientId),
@@ -21,7 +21,7 @@ class ClientFleetRepositoryImpl implements ClientFleetRepository {
 
   @override
   Stream<List<ClientFleet>> watchAllClientFleet() {
-    return _ds.streamQueryMulti(
+    return _ds.streamQuery(
       FirestorePaths.clientFleet,
       filters: [QueryFilter(field: 'isDeleted', value: false)],
     ).map((snap) => snap.docs.map((d) => ClientFleet.fromMap(d.data() as Map<String, dynamic>..putIfAbsent('id', () => d.id))).toList());

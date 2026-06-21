@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
-
 class LogEntry {
   final String id;
   final String action;
@@ -36,7 +34,7 @@ class LogEntry {
       'id': id,
       'action': action,
       'details': details,
-      'timestamp': Timestamp.fromDate(timestamp),
+      'timestamp': timestamp.toIso8601String(),
       'userId': userId,
     };
   }
@@ -46,7 +44,7 @@ class LogEntry {
       id: map['id'] as String? ?? '',
       action: map['action'] as String? ?? '',
       details: map['details'] as String?,
-      timestamp: (map['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      timestamp: DateTime.tryParse(map['timestamp'] as String? ?? '') ?? DateTime.now(),
       userId: map['userId'] as String?,
     );
   }

@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../../core/constants/firestore_paths.dart';
 import '../../data/datasource/database_datasource.dart';
 import '../../domain/entities/sale.dart';
@@ -19,19 +17,18 @@ class SaleRepositoryImpl implements SaleRepository {
   }) async {
     final batch = _ds.batch();
 
-    final saleRef = _ds.docRef(FirestorePaths.sales, sale.id);
-    batch.set(saleRef, sale.toMap());
+    batch.set(FirestorePaths.sales, sale.id, sale.toMap());
 
     for (final item in items) {
-      final itemRef = _ds.docRef(
+      batch.set(
         '${FirestorePaths.sales}/${sale.id}/items',
         item.id,
+        item.toMap(),
       );
-      batch.set(itemRef, item.toMap());
     }
 
     if (sale.saleType == SaleType.fuel && sale.gasTypeId != null) {
-      final pitSnap = await _ds.queryMulti(
+      final pitSnap = await _ds.query(
         FirestorePaths.pits,
         filters: [
           QueryFilter(field: 'gasTypeId', value: sale.gasTypeId),
@@ -48,7 +45,7 @@ class SaleRepositoryImpl implements SaleRepository {
         final volumeSold = sale.volume ?? 0;
         final newVolume = currentVolume - volumeSold;
 
-        batch.update(pitDoc.reference, {
+        batch.update(FirestorePaths.pits, pitDoc.id, {
           'currentVolume': newVolume < 0 ? 0 : newVolume,
         });
       }
@@ -63,17 +60,17 @@ class SaleRepositoryImpl implements SaleRepository {
     final startOfDay = DateTime(now.year, now.month, now.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
 
-    return _ds.streamQueryMulti(
+    return _ds.streamQuery(
       FirestorePaths.sales,
       filters: [
         QueryFilter(
           field: 'timestamp',
-          value: Timestamp.fromDate(startOfDay),
+          value: startOfDay.toIso8601String(),
           operator: FilterOperator.isGreaterThanOrEqualTo,
         ),
         QueryFilter(
           field: 'timestamp',
-          value: Timestamp.fromDate(endOfDay),
+          value: endOfDay.toIso8601String(),
           operator: FilterOperator.isLessThan,
         ),
         QueryFilter(field: 'isDeleted', value: false),
@@ -90,7 +87,7 @@ class SaleRepositoryImpl implements SaleRepository {
 
   @override
   Stream<List<Sale>> watchAllSales() {
-    return _ds.streamQueryMulti(
+    return _ds.streamQuery(
       FirestorePaths.sales,
       filters: [QueryFilter(field: 'isDeleted', value: false)],
       orderByField: 'timestamp',

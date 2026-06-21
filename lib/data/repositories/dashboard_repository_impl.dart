@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../../core/constants/firestore_paths.dart';
 import '../../data/datasource/database_datasource.dart';
 import '../../domain/entities/sale.dart';
@@ -19,37 +17,37 @@ class DashboardRepositoryImpl implements DashboardRepository {
     // Parallel queries for performance
     final results = await Future.wait([
       // All sales (for aggregates)
-      _ds.queryMulti(
+      _ds.query(
         FirestorePaths.sales,
         filters: [QueryFilter(field: 'isDeleted', value: false)],
       ),
       // Recent 7 days sales (for trend)
-      _ds.queryMulti(
+      _ds.query(
         FirestorePaths.sales,
         filters: [
           QueryFilter(field: 'isDeleted', value: false),
           QueryFilter(
             field: 'timestamp',
-            value: Timestamp.fromDate(sevenDaysAgo),
+            value: sevenDaysAgo.toIso8601String(),
             operator: FilterOperator.isGreaterThanOrEqualTo,
           ),
         ],
         orderByField: 'timestamp',
       ),
       // Sale items for fuel breakdown
-      _ds.queryMulti(
+      _ds.query(
         FirestorePaths.saleItems,
         filters: [
           QueryFilter(field: 'saleType', value: 'FUEL'),
           QueryFilter(
             field: 'timestamp',
-            value: Timestamp.fromDate(todayStart),
+            value: todayStart.toIso8601String(),
             operator: FilterOperator.isGreaterThanOrEqualTo,
           ),
         ],
       ),
       // Pending payments
-      _ds.queryMulti(
+      _ds.query(
         FirestorePaths.payments,
         filters: [
           QueryFilter(field: 'isDeleted', value: false),
@@ -57,7 +55,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
         ],
       ),
       // All completed payments for method breakdown
-      _ds.queryMulti(
+      _ds.query(
         FirestorePaths.payments,
         filters: [
           QueryFilter(field: 'isDeleted', value: false),
@@ -65,7 +63,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
         ],
       ),
       // Recent 10 sales for activity list
-      _ds.queryMulti(
+      _ds.query(
         FirestorePaths.sales,
         filters: [QueryFilter(field: 'isDeleted', value: false)],
         orderByField: 'timestamp',
@@ -75,25 +73,25 @@ class DashboardRepositoryImpl implements DashboardRepository {
       // Expenses total
       _ds.query(FirestorePaths.expenses),
       // Active shifts
-      _ds.queryMulti(
+      _ds.query(
         FirestorePaths.workShifts,
         filters: [QueryFilter(field: 'status', value: 'OPEN')],
       ),
       // Clients count
-      _ds.queryMulti(
+      _ds.query(
         FirestorePaths.clients,
         filters: [QueryFilter(field: 'isDeleted', value: false)],
       ),
       // Fuel types for labels
       _ds.query(FirestorePaths.gasTypes),
       // Closed shifts in last 7 days (for shift performance)
-      _ds.queryMulti(
+      _ds.query(
         FirestorePaths.workShifts,
         filters: [
           QueryFilter(field: 'status', value: 'CLOSED'),
           QueryFilter(
             field: 'startTime',
-            value: Timestamp.fromDate(sevenDaysAgo),
+            value: sevenDaysAgo.toIso8601String(),
             operator: FilterOperator.isGreaterThanOrEqualTo,
           ),
         ],
@@ -142,7 +140,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
     }
     for (final doc in trendSalesSnap.docs) {
       final data = doc.data() as Map<String, dynamic>;
-      final ts = (data['timestamp'] as Timestamp?)?.toDate();
+      final ts = DateTime.tryParse(data['timestamp'] as String? ?? '');
       if (ts == null) continue;
       final key =
           '${ts.year}-${ts.month.toString().padLeft(2, '0')}-${ts.day.toString().padLeft(2, '0')}';
@@ -218,7 +216,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
     // === Shift performance (last 7 days) ===
     final shiftPerformance = closedShiftsSnap.docs.map((doc) {
       final data = doc.data() as Map<String, dynamic>;
-      final startTime = (data['startTime'] as Timestamp?)?.toDate() ?? now;
+      final startTime = DateTime.tryParse(data['startTime'] as String? ?? '') ?? now;
       return ShiftPerformancePoint(
         date: startTime,
         expectedCash: (data['expectedCash'] as num?)?.toDouble() ?? 0,

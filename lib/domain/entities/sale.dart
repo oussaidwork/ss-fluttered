@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
 import '../enums/sale_type.dart';
 
 class Sale {
@@ -99,7 +98,7 @@ class Sale {
       'vehiclePlate': vehiclePlate,
       'driverPhone': driverPhone,
       'notes': notes,
-      'timestamp': Timestamp.fromDate(timestamp),
+      'timestamp': timestamp.toIso8601String(),
       'shiftId': shiftId,
       'clientId': clientId,
       'gasTypeId': gasTypeId,
@@ -108,7 +107,7 @@ class Sale {
       'paymentTypeId': paymentTypeId,
       'workerId': workerId,
       'isDeleted': isDeleted,
-      'createdAt': Timestamp.fromDate(createdAt),
+      'createdAt': createdAt.toIso8601String(),
     };
   }
 
@@ -123,7 +122,7 @@ class Sale {
       vehiclePlate: map['vehiclePlate'] as String?,
       driverPhone: map['driverPhone'] as String?,
       notes: map['notes'] as String?,
-      timestamp: (map['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      timestamp: DateTime.tryParse(map['timestamp'] as String? ?? '') ?? DateTime.now(),
       shiftId: map['shiftId'] as String?,
       clientId: map['clientId'] as String?,
       gasTypeId: map['gasTypeId'] as String?,
@@ -132,7 +131,7 @@ class Sale {
       paymentTypeId: map['paymentTypeId'] as String?,
       workerId: map['workerId'] as String?,
       isDeleted: map['isDeleted'] as bool? ?? false,
-      createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ?? DateTime.now(),
     );
   }
 }

@@ -20,7 +20,7 @@ class PdfReportService {
     required DatabaseDataSource ds,
   }) async {
     final doc = pw.Document();
-    final sales = await ds.queryMulti(
+    final sales = await ds.query(
       FirestorePaths.sales,
       filters: [
         QueryFilter(field: 'isDeleted', value: false),
@@ -103,7 +103,7 @@ class PdfReportService {
     required DatabaseDataSource ds,
   }) async {
     final doc = pw.Document();
-    final shifts = await ds.queryMulti(
+    final shifts = await ds.query(
       FirestorePaths.workShifts,
       filters: [
         QueryFilter(
@@ -181,7 +181,7 @@ class PdfReportService {
 
   static Future<Uint8List> generateDebtsReport({required DatabaseDataSource ds}) async {
     final doc = pw.Document();
-    final debts = await ds.queryMulti(
+    final debts = await ds.query(
       FirestorePaths.debts,
       filters: [QueryFilter(field: 'isDeleted', value: false)],
       orderByField: 'created',
@@ -255,7 +255,7 @@ class PdfReportService {
     required DatabaseDataSource ds,
   }) async {
     final doc = pw.Document();
-    final payments = await ds.queryMulti(
+    final payments = await ds.query(
       FirestorePaths.payments,
       filters: [
         QueryFilter(field: 'isDeleted', value: false),
@@ -338,7 +338,7 @@ class PdfReportService {
 
   static Future<Uint8List> generatePumpIndexReport({required DatabaseDataSource ds}) async {
     final doc = pw.Document();
-    final pumpsSnap = await ds.queryMulti(
+    final pumpsSnap = await ds.query(
       FirestorePaths.pumps,
       filters: [QueryFilter(field: 'isDeleted', value: false)],
     );
@@ -348,7 +348,7 @@ class PdfReportService {
       final pumpData = pumpDoc.data() as Map<String, dynamic>;
       final pumpName = pumpData['name'] as String? ?? pumpDoc.id;
 
-      final spSnap = await ds.queryMulti(
+      final spSnap = await ds.query(
         FirestorePaths.shiftPumps,
         filters: [QueryFilter(field: 'pumpId', value: pumpDoc.id)],
         orderByField: 'shiftId',
@@ -405,7 +405,7 @@ class PdfReportService {
     required DatabaseDataSource ds,
   }) async {
     final doc = pw.Document();
-    final refills = await ds.queryMulti(
+    final refills = await ds.query(
       FirestorePaths.pitRefills,
       filters: [
         QueryFilter(
@@ -482,7 +482,7 @@ class PdfReportService {
 
   static Future<Uint8List> generateFuelPriceReport({required DatabaseDataSource ds}) async {
     final doc = pw.Document();
-    final priceHistory = await ds.queryMulti(
+    final priceHistory = await ds.query(
       FirestorePaths.fuelPriceHistory,
       orderByField: 'changedAt',
       orderByDescending: true,
@@ -539,7 +539,7 @@ class PdfReportService {
     required DatabaseDataSource ds,
   }) async {
     final doc = pw.Document();
-    final logs = await ds.queryMulti(
+    final logs = await ds.query(
       FirestorePaths.logs,
       filters: [
         QueryFilter(
@@ -605,20 +605,20 @@ class PdfReportService {
 
   static Future<Uint8List> generateStatisticsReport({required DatabaseDataSource ds}) async {
     final doc = pw.Document();
-    final salesSnap = await ds.queryMulti(
+    final salesSnap = await ds.query(
       FirestorePaths.sales,
       filters: [QueryFilter(field: 'isDeleted', value: false)],
     );
-    final clientsCount = (await ds.queryMulti(
+    final clientsCount = (await ds.query(
       FirestorePaths.clients,
       filters: [QueryFilter(field: 'isDeleted', value: false)],
     )).docs.length;
     final shiftsSnap = await ds.query(FirestorePaths.workShifts);
-    final pumpsCount = (await ds.queryMulti(
+    final pumpsCount = (await ds.query(
       FirestorePaths.pumps,
       filters: [QueryFilter(field: 'isDeleted', value: false)],
     )).docs.length;
-    final productsCount = (await ds.queryMulti(
+    final productsCount = (await ds.query(
       FirestorePaths.products,
       filters: [QueryFilter(field: 'isDeleted', value: false)],
     )).docs.length;

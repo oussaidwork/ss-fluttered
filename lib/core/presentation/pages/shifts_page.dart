@@ -49,6 +49,7 @@ class _ShiftsPageState extends State<ShiftsPage> {
             child: StreamBuilder<QuerySnapshot>(
               stream: firestore
                   .collection('work_shifts')
+                  .where('isDeleted', isEqualTo: false)
                   .orderBy('startTime', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
@@ -253,6 +254,15 @@ class _ShiftsPageState extends State<ShiftsPage> {
                   ),
                 ),
               ),
+              DataColumn(
+                label: Text(
+                  'Actions',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ],
             rows: shifts.map((shift) {
               final isSelected = _selectedShiftId == shift.id;
@@ -314,6 +324,17 @@ class _ShiftsPageState extends State<ShiftsPage> {
                     ),
                   ),
                   DataCell(_buildDiffCell(shift)),
+                  DataCell(
+                    IconButton(
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        color: Color(0xFFEF4444),
+                        size: 20,
+                      ),
+                      tooltip: 'Delete shift',
+                      onPressed: () => _deleteShift(shift),
+                    ),
+                  ),
                 ],
               );
             }).toList(),
@@ -336,6 +357,72 @@ class _ShiftsPageState extends State<ShiftsPage> {
         fontWeight: FontWeight.w600,
       ),
     );
+  }
+
+  Future<void> _deleteShift(WorkShift shift) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A2332),
+        title: const Text(
+          'Delete Shift',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          'Delete shift for ${_formatDate(shift.startTime)}?',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      final batch = firestore.batch();
+      batch.delete(firestore.collection('work_shifts').doc(shift.id));
+
+      final shiftPumpsSnap = await firestore
+          .collection('shift_pumps')
+          .where('shiftId', isEqualTo: shift.id)
+          .get();
+
+      for (final doc in shiftPumpsSnap.docs) {
+        batch.delete(doc.reference);
+      }
+
+      await batch.commit();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Shift deleted successfully.'),
+            backgroundColor: Color(0xFF84CC16),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete shift: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildStatusBadge(ShiftStatus status) {

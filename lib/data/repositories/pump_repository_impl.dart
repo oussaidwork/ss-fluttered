@@ -10,7 +10,7 @@ class PumpRepositoryImpl implements PumpRepository {
 
   @override
   Stream<List<Pump>> watchPumps() {
-    return _ds.streamQueryMulti(
+    return _ds.streamQuery(
       FirestorePaths.pumps,
       filters: [QueryFilter(field: 'isDeleted', value: false)],
     ).map((snap) => snap.docs.map((d) => Pump.fromMap(d.data() as Map<String, dynamic>..putIfAbsent('id', () => d.id))).toList());
@@ -19,7 +19,7 @@ class PumpRepositoryImpl implements PumpRepository {
   @override
   Future<Pump?> getPump(String id) async {
     final doc = await _ds.getDoc(FirestorePaths.pumps, id);
-    if (!doc.exists) return null;
+    if (doc == null) return null;
     return Pump.fromMap(doc.data() as Map<String, dynamic>);
   }
 

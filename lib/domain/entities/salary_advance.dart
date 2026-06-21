@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
 import '../enums/advance_status.dart';
 
 class SalaryAdvance {
@@ -45,9 +44,8 @@ class SalaryAdvance {
       'id': id,
       'amount': amount,
       'status': status.value,
-      'requestDate': Timestamp.fromDate(requestDate),
-      'resolutionDate':
-          resolutionDate != null ? Timestamp.fromDate(resolutionDate!) : null,
+      'requestDate': requestDate.toIso8601String(),
+      'resolutionDate': resolutionDate?.toIso8601String(),
       'workerId': workerId,
       'resolvedBy': resolvedBy,
     };
@@ -58,9 +56,8 @@ class SalaryAdvance {
       id: map['id'] as String? ?? '',
       amount: (map['amount'] as num?)?.toDouble() ?? 0.0,
       status: AdvanceStatus.fromString(map['status'] as String? ?? 'PENDING'),
-      requestDate:
-          (map['requestDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      resolutionDate: (map['resolutionDate'] as Timestamp?)?.toDate(),
+      requestDate: DateTime.tryParse(map['requestDate'] as String? ?? '') ?? DateTime.now(),
+      resolutionDate: DateTime.tryParse(map['resolutionDate'] as String? ?? ''),
       workerId: map['workerId'] as String? ?? '',
       resolvedBy: map['resolvedBy'] as String?,
     );

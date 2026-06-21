@@ -353,7 +353,7 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
         );
       },
       loading: () => _statsRowPlaceholder(),
-      error: (_, __) => _statsRowPlaceholder(),
+      error: (_, _) => _statsRowPlaceholder(),
     );
   }
 
@@ -440,7 +440,7 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF84CC16))),
-        error: (_, __) => const Center(
+        error: (_, _) => const Center(
           child: Text('Error loading client', style: TextStyle(color: Colors.redAccent)),
         ),
       ),
@@ -761,7 +761,7 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF84CC16))),
-      error: (_, __) => _emptyTable('Error loading sales'),
+      error: (_, _) => _emptyTable('Error loading sales'),
     );
   }
 
@@ -796,7 +796,7 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF84CC16))),
-      error: (_, __) => _emptyTable('Error loading payments'),
+      error: (_, _) => _emptyTable('Error loading payments'),
     );
   }
 
@@ -828,7 +828,7 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF84CC16))),
-      error: (_, __) => _emptyTable('Error loading debts'),
+      error: (_, _) => _emptyTable('Error loading debts'),
     );
   }
 

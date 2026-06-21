@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
-
 class PitRefill {
   final String id;
   final double volume;
@@ -90,7 +88,7 @@ class PitRefill {
       'costPerLiter': costPerLiter,
       'totalCost': totalCost,
       'profitMargin': profitMargin,
-      'timestamp': Timestamp.fromDate(timestamp),
+      'timestamp': timestamp.toIso8601String(),
       'pitId': pitId,
       'recordedBy': recordedBy,
       'supplierId': supplierId,
@@ -113,7 +111,7 @@ class PitRefill {
       costPerLiter: (map['costPerLiter'] as num?)?.toDouble(),
       totalCost: (map['totalCost'] as num?)?.toDouble(),
       profitMargin: (map['profitMargin'] as num?)?.toDouble(),
-      timestamp: (map['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      timestamp: DateTime.tryParse(map['timestamp'] as String? ?? '') ?? DateTime.now(),
       pitId: map['pitId'] as String? ?? '',
       recordedBy: map['recordedBy'] as String?,
       supplierId: map['supplierId'] as String?,

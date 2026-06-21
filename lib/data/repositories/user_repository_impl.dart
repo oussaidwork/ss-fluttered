@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../../core/constants/firestore_paths.dart';
 import '../../data/datasource/database_datasource.dart';
 import '../../domain/entities/user.dart';
@@ -25,7 +23,7 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<UserProfile?> getUser(String userId) async {
     final doc = await _ds.getDoc(FirestorePaths.users, userId);
-    if (!doc.exists) return null;
+    if (doc == null) return null;
     return UserProfile.fromMap(doc.data() as Map<String, dynamic>);
   }
 
@@ -37,7 +35,7 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Stream<List<SalaryAdvance>> watchAdvances({String? workerId}) {
     if (workerId != null) {
-      return _ds.streamQueryMulti(
+      return _ds.streamQuery(
         FirestorePaths.salaryAdvances,
         filters: [QueryFilter(field: 'workerId', value: workerId)],
         orderByField: 'requestDate',
@@ -75,7 +73,7 @@ class UserRepositoryImpl implements UserRepository {
     await _ds.updateDoc(FirestorePaths.salaryAdvances, advanceId, {
       'status': approved ? 'APPROVED' : 'REJECTED',
       'resolvedBy': resolvedBy,
-      'resolutionDate': Timestamp.fromDate(DateTime.now()),
+      'resolutionDate': DateTime.now().toIso8601String(),
     });
   }
 }

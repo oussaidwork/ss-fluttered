@@ -30,6 +30,217 @@ class _PumpsPageState extends State<PumpsPage> {
     final counterCtrl = TextEditingController(
       text: pump?['initialAnalogCounter']?.toString() ?? '',
     );
+    // a fun to insert a list of pump map 24 pumps 4 pumps per block
+    void _insertPumpList() {
+      final pumps = [
+        // group A from GA-01 to GA-04 and SA-01 to SA-02
+        {
+          'name': 'GA-01',
+          'groupId': 'Block A',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'blue',
+        },
+        {
+          'name': 'GA-02',
+          'groupId': 'Block A',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'blue',
+        },
+        {
+          'name': 'GA-03',
+          'groupId': 'Block A',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'blue',
+        },
+        {
+          'name': 'GA-04',
+          'groupId': 'Block A',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'blue',
+        },
+        {
+          'name': 'SA-01',
+          'groupId': 'Block A',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'yellow',
+        },
+        {
+          'name': 'SA-02',
+          'groupId': 'Block A',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'yellow',
+        },
+        // group B
+        {
+          'name': 'GB-01',
+          'groupId': 'Block B',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'blue',
+        },
+        {
+          'name': 'GB-02',
+          'groupId': 'Block B',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'blue',
+        },
+        {
+          'name': 'GB-03',
+          'groupId': 'Block B',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'blue',
+        },
+        {
+          'name': 'GB-04',
+          'groupId': 'Block B',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'blue',
+        },
+        {
+          'name': 'SB-01',
+          'groupId': 'Block B',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'yellow',
+        },
+        {
+          'name': 'SB-02',
+          'groupId': 'Block B',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'yellow',
+        },
+        //group C
+        {
+          'name': 'GC-01',
+          'groupId': 'Block C',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'blue',
+        },
+        {
+          'name': 'GC-02',
+          'groupId': 'Block C',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'blue',
+        },
+        {
+          'name': 'GC-03',
+          'groupId': 'Block C',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'blue',
+        },
+        {
+          'name': 'GC-04',
+          'groupId': 'Block C',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'blue',
+        },
+        {
+          'name': 'SC-01',
+          'groupId': 'Block C',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'yellow',
+        },
+        {
+          'name': 'SC-02',
+          'groupId': 'Block C',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'yellow',
+        },
+        //group D
+        {
+          'name': 'GD-01',
+          'groupId': 'Block D',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'blue',
+        },
+        {
+          'name': 'GD-02',
+          'groupId': 'Block D',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'blue',
+        },
+        {
+          'name': 'GD-03',
+          'groupId': 'Block D',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'blue',
+        },
+        {
+          'name': 'GD-04',
+          'groupId': 'Block D',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'blue',
+        },
+        {
+          'name': 'SD-01',
+          'groupId': 'Block D',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'yellow',
+        },
+        {
+          'name': 'SD-02',
+          'groupId': 'Block D',
+          'pitId': null,
+          'initialAnalogCounter': 0,
+          'isActive': true,
+          'color': 'yellow',
+        },
+      ];
+
+      for (final p in pumps) {
+        final id = firestore.collection('pumps').doc().id;
+        firestore.collection('pumps').doc(id).set({
+          ...p,
+          'id': id,
+          'isDeleted': false,
+        });
+      }
+    }
+
     String? selectedGroupId = pump?['groupId'] ?? 'Block A';
     String? selectedPitId = pump?['pitId'];
     bool isActive = pump?['isActive'] ?? true;
@@ -181,7 +392,9 @@ class _PumpsPageState extends State<PumpsPage> {
                 } else {
                   await firestore.collection('pumps').doc(docId).update(data);
                 }
-                //if (ctx.mounted) Navigator.pop(ctx);
+                if (ctx.mounted) Navigator.pop(ctx);
+                //for initial setup only
+                //_insertPumpList();
               },
               child: Text(
                 docId == null ? 'Add' : 'Save',

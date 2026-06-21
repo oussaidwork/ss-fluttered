@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../../core/constants/firestore_paths.dart';
 import '../../data/datasource/database_datasource.dart';
 import '../../domain/entities/payment.dart';
@@ -12,7 +10,7 @@ class PaymentRepositoryImpl implements PaymentRepository {
 
   @override
   Stream<List<Payment>> watchPendingPayments() {
-    return _ds.streamQueryMulti(
+    return _ds.streamQuery(
       FirestorePaths.payments,
       filters: [
         QueryFilter(field: 'status', value: 'PENDING'),
@@ -30,10 +28,9 @@ class PaymentRepositoryImpl implements PaymentRepository {
   @override
   Future<void> clearCheck(String paymentId) async {
     await _ds.runTransaction((txn) async {
-      final ref = _ds.docRef(FirestorePaths.payments, paymentId);
-      final snap = await txn.get(ref);
+      final snap = await txn.get(FirestorePaths.payments, paymentId);
 
-      if (!snap.exists) {
+      if (snap == null || !snap.exists) {
         throw Exception('Payment not found');
       }
 
@@ -44,9 +41,9 @@ class PaymentRepositoryImpl implements PaymentRepository {
         throw Exception('Can only clear PENDING payments');
       }
 
-      txn.update(ref, {
+      txn.update(FirestorePaths.payments, paymentId, {
         'status': 'COMPLETED',
-        'clearedAt': Timestamp.fromDate(DateTime.now()),
+        'clearedAt': DateTime.now().toIso8601String(),
       });
     });
   }
@@ -54,10 +51,9 @@ class PaymentRepositoryImpl implements PaymentRepository {
   @override
   Future<void> rejectCheck(String paymentId) async {
     await _ds.runTransaction((txn) async {
-      final ref = _ds.docRef(FirestorePaths.payments, paymentId);
-      final snap = await txn.get(ref);
+      final snap = await txn.get(FirestorePaths.payments, paymentId);
 
-      if (!snap.exists) {
+      if (snap == null || !snap.exists) {
         throw Exception('Payment not found');
       }
 
@@ -68,9 +64,9 @@ class PaymentRepositoryImpl implements PaymentRepository {
         throw Exception('Can only reject PENDING payments');
       }
 
-      txn.update(ref, {
+      txn.update(FirestorePaths.payments, paymentId, {
         'status': 'REJECTED',
-        'clearedAt': Timestamp.fromDate(DateTime.now()),
+        'clearedAt': DateTime.now().toIso8601String(),
       });
     });
   }

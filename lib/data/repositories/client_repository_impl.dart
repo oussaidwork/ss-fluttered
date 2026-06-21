@@ -10,7 +10,7 @@ class ClientRepositoryImpl implements ClientRepository {
 
   @override
   Stream<List<Client>> watchClients() {
-    return _ds.streamQueryMulti(
+    return _ds.streamQuery(
       FirestorePaths.clients,
       filters: [QueryFilter(field: 'isDeleted', value: false)],
       orderByField: 'name',
@@ -23,7 +23,7 @@ class ClientRepositoryImpl implements ClientRepository {
 
   @override
   Future<double> getClientBalance(String clientId) async {
-    final debtsSnap = await _ds.queryMulti(
+    final debtsSnap = await _ds.query(
       FirestorePaths.debts,
       filters: [
         QueryFilter(field: 'clientId', value: clientId),
@@ -36,7 +36,7 @@ class ClientRepositoryImpl implements ClientRepository {
       totalDebts += ((doc.data() as Map<String, dynamic>?)?['amount'] as num?)?.toDouble() ?? 0;
     }
 
-    final paymentsSnap = await _ds.queryMulti(
+    final paymentsSnap = await _ds.query(
       FirestorePaths.payments,
       filters: [
         QueryFilter(field: 'clientId', value: clientId),
